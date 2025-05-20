@@ -1,15 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { z } from "zod"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { createClient } from "@/lib/supabase-browser"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
-import { toast } from "sonner"
-import { createClient } from "@/lib/supabase-browser"
 
 const confirmSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
@@ -19,20 +19,24 @@ type ConfirmValues = z.infer<typeof confirmSchema>
 
 export default function ConfirmResetPasswordForm() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
+  const [isSessionReady, setIsSessionReady] = useState(false)
   const form = useForm<ConfirmValues>({
     resolver: zodResolver(confirmSchema),
     defaultValues: { password: "" },
   })
 
   useEffect(() => {
-    const accessToken = searchParams.get("access_token")
-    if (!accessToken) {
-      toast.error("Invalid or missing access token.")
-      router.replace("/auth/login")
-    }
-  }, [searchParams, router])
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data, error }) => {
+      if (error || !data?.user) {
+        toast.error("Session expired or invalid. Please request a new password reset.")
+        router.replace("/auth/login")
+      } else {
+        setIsSessionReady(true)
+      }
+    })
+  }, [router])
 
   async function onSubmit(values: ConfirmValues) {
     setIsLoading(true)
@@ -47,6 +51,16 @@ export default function ConfirmResetPasswordForm() {
     }
     toast.success("Password updated successfully!")
     router.replace("/auth/login")
+  }
+
+  if (!isSessionReady) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
+        <div className="w-full max-w-md p-8 rounded-lg shadow-lg border bg-background">
+          <h1 className="text-2xl font-bold mb-6 text-center">Verifying session...</h1>
+        </div>
+      </div>
+    )
   }
 
   return (
