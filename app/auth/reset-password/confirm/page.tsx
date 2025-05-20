@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase-server"
-import RegisterForm from "./register-form"
+import ConfirmResetPasswordForm from "./confirm-form"
 
-export default async function RegisterPage() {
+export default async function ConfirmResetPasswordPage() {
   const supabase = await createClient()
   const {
     data: { user },
@@ -10,5 +10,5 @@ export default async function RegisterPage() {
   if (user) {
     redirect("/")
   }
-  return <RegisterForm />
+  return <ConfirmResetPasswordForm />
 } 
