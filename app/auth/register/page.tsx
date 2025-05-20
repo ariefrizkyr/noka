@@ -6,18 +6,17 @@ import { createClient } from "@/lib/supabase-browser"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError(null)
     const supabase = createClient()
     const { error } = await supabase.auth.signUp({
       email,
@@ -25,9 +24,9 @@ export default function RegisterPage() {
     })
     setLoading(false)
     if (error) {
-      setError(error.message)
+      toast.error(error.message)
     } else {
-      router.push("/auth/login")
+      toast.success("Registration successful! Please check your email to confirm your account.")
     }
   }
 
@@ -56,7 +55,6 @@ export default function RegisterPage() {
             required
           />
         </div>
-        {error && <div className="text-red-500 text-sm">{error}</div>}
         <Button type="submit" disabled={loading} className="w-full">
           {loading ? "Registering..." : "Register"}
         </Button>

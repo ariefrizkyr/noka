@@ -5,10 +5,10 @@ import { createClient } from "@/lib/supabase-browser"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState("")
-  const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -16,14 +16,13 @@ export default function ResetPasswordPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    setMessage(null)
     const supabase = createClient()
     const { error } = await supabase.auth.resetPasswordForEmail(email)
     setLoading(false)
     if (error) {
-      setError(error.message)
+      toast.error(error.message)
     } else {
-      setMessage("Check your email for a password reset link.")
+      toast.success("Check your email for a password reset link.")
     }
   }
 
@@ -43,7 +42,6 @@ export default function ResetPasswordPage() {
           />
         </div>
         {error && <div className="text-red-500 text-sm">{error}</div>}
-        {message && <div className="text-green-600 text-sm">{message}</div>}
         <Button type="submit" disabled={loading} className="w-full">
           {loading ? "Sending..." : "Send reset link"}
         </Button>
