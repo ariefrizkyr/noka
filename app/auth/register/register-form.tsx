@@ -45,7 +45,7 @@ export default function RegisterForm() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
       <div className="w-full max-w-md p-8 rounded-lg shadow-lg border bg-background">
-        <h1 className="text-2xl font-bold mb-6 text-center">Sign Up for Staglink</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">Sign Up</h1>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField

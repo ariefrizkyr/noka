@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Staglink",
-  description: "Staglink",
+  title: "Base SaaS",
+  description: "Base SaaS",
 };
 
 export default function RootLayout({
