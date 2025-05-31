@@ -1,0 +1,11 @@
+# Task ID: 1
+# Title: Configure Google OAuth Provider in Supabase & Google Cloud Console
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Set up the Google OAuth 2.0 client ID and secret in the Google Cloud Console and configure them in the Supabase dashboard. Ensure redirect URIs are correctly set to `${NEXT_PUBLIC_SITE_URL}/auth/callback`.
+# Details:
+1. Go to Google Cloud Console -> APIs & Services -> Credentials. 2. Create OAuth 2.0 Client ID (Web application). 3. Add Authorized JavaScript origins: `${NEXT_PUBLIC_SITE_URL}` (e.g., http://localhost:3000 for local dev). 4. Add Authorized redirect URIs: `${NEXT_PUBLIC_SITE_URL}/auth/callback`. 5. Copy Client ID and Client Secret. 6. Go to Supabase Dashboard -> Authentication -> Providers -> Google. 7. Enable Google provider and paste Client ID and Client Secret. 8. Ensure 'Redirect URI' in Supabase matches the one in Google Cloud Console. 9. Add `NEXT_PUBLIC_SITE_URL` to your `.env.local` file (e.g., `NEXT_PUBLIC_SITE_URL=http://localhost:3000`).
+
+# Test Strategy:
+Verify that Supabase dashboard shows Google provider as active and configured. Confirm environment variables for site URL are set.

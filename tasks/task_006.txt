@@ -1,0 +1,60 @@
+# Task ID: 6
+# Title: Update Next.js Middleware for Auth Routes
+# Status: done
+# Dependencies: 2, 5
+# Priority: medium
+# Description: Configure Next.js middleware to manage user sessions, primarily for refreshing tokens using Supabase SSR utilities. This ensures session persistence across requests.
+# Details:
+1. Create or update `middleware.ts` in the project root (or `src/`). 2. Use `createServerClient` from `@supabase/ssr` and the standard Supabase middleware pattern to handle cookies and refresh sessions.
+```typescript
+// middleware.ts
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
+
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({ request: { headers: request.headers } });
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) { return request.cookies.get(name)?.value; },
+        set(name: string, value: string, options: CookieOptions) { request.cookies.set({ name, value, ...options }); response = NextResponse.next({ request: { headers: request.headers } }); response.cookies.set({ name, value, ...options }); },
+        remove(name: string, options: CookieOptions) { request.cookies.set({ name, value: '', ...options }); response = NextResponse.next({ request: { headers: request.headers } }); response.cookies.set({ name, value: '', ...options }); },
+      },
+    }
+  );
+  await supabase.auth.getUser(); // Refreshes session if expired
+  return response;
+}
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|auth/auth-code-error|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+};
+```
+Ensure matcher excludes static assets and public error pages.
+
+# Test Strategy:
+Verify sessions are maintained across page navigations and automatically refreshed. Test navigation to protected routes after login and ensure session state is correctly read by server components.
+
+# Subtasks:
+## 1. Basic Middleware Setup with Supabase Client [done]
+### Dependencies: None
+### Description: Initialize the Next.js middleware by creating a `middleware.ts` file, install necessary Supabase packages, and set up the Supabase client for use within the middleware.
+### Details:
+Create the `middleware.ts` file at the project root or inside the `src` folder. Install `@supabase/supabase-js` and, if using SSR, `@supabase/ssr`. Set up environment variables for Supabase. Import and initialize the Supabase client in the middleware context.
+
+## 2. Cookie Handling and Session Refresh Logic [done]
+### Dependencies: 6.1
+### Description: Implement logic in the middleware to handle cookies, refresh expired Supabase Auth tokens, and manage user sessions securely.
+### Details:
+Use the Supabase client to check and refresh the user session using `supabase.auth.getUser()` (not `getSession()` for security). Update cookies in both the request and response as needed to ensure the latest session is available to server components and the browser. Handle redirects for protected and auth routes based on session state.
+
+## 3. Route Matcher Configuration and Testing [done]
+### Dependencies: 6.2
+### Description: Configure the middleware matcher to specify which routes the middleware should apply to, and thoroughly test the middleware to ensure correct behavior across all relevant routes.
+### Details:
+Set up the `matcher` property in the middleware config to exclude static files, images, and other non-auth routes. Test the middleware by accessing protected, public, and authentication routes to verify session management, redirects, and token refresh logic work as intended.
+

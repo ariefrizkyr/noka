@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase-browser"
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton"
 
 const registerSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -79,6 +80,12 @@ export default function RegisterForm() {
             </Button>
           </form>
         </Form>
+        <div className="flex items-center my-6">
+          <div className="flex-grow border-t border-gray-200" />
+          <span className="mx-4 text-gray-400 text-xs">or</span>
+          <div className="flex-grow border-t border-gray-200" />
+        </div>
+        <GoogleSignInButton className="mb-2" />
         <div className="flex justify-between mt-4 text-sm">
           <a href="/auth/login" className="text-primary hover:underline">Login</a>
         </div>

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { createClient } from '@/lib/supabase-server';
+import { ReactNode } from 'react';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,11 +20,16 @@ export const metadata: Metadata = {
   description: "Daily Planner App. Simplified.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: ReactNode;
+}) {
+  // Example: Session verification in a server component
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  // You can pass user info to children or context here if needed
+  // Do not redirect in layout; handle in page components
   return (
     <html lang="en">
       <body

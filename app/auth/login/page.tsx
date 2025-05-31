@@ -7,8 +7,9 @@ export default async function LoginPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  // Redirect authenticated users away from login page
   if (user) {
-    redirect("/")
+    redirect("/dashboard")
   }
   return <LoginForm />
 } 

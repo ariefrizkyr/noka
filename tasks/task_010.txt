@@ -1,0 +1,50 @@
+# Task ID: 10
+# Title: End-to-End Testing and Documentation Update
+# Status: pending
+# Dependencies: 1, 4, 5, 7, 8, 9
+# Priority: high
+# Description: Perform comprehensive end-to-end testing for new user registration and existing user login via Google SSO. Update relevant user documentation.
+# Details:
+Test Scenarios:
+1. New User Registration: Click Google button, authenticate with Google, verify new account in Supabase `auth.users`, land on dashboard.
+2. Existing User Login (Google): Click Google button, authenticate, log into existing Supabase account, land on dashboard.
+3. Existing User Login (email/password user with same email as Google): Test Supabase's behavior for account linking (should ideally log in or link). If not, document behavior.
+4. Error flows: User cancels Google auth, invalid callback.
+5. Test on multiple browsers and mobile viewport.
+Documentation:
+1. Update internal dev docs on OAuth setup. 2. Update user-facing FAQs/guides on using Google Sign-In. 3. Update onboarding flows if they detail sign-up methods.
+
+# Test Strategy:
+Execute all defined test scenarios systematically. Review and update all relevant documentation. Perform a user acceptance test (UAT) if possible.
+
+# Subtasks:
+## 1. New User Registration Testing [pending]
+### Dependencies: None
+### Description: Design and execute end-to-end tests for the new user registration flow, including form validation, email verification, and successful account creation.
+### Details:
+Test the entire registration process from the user interface through backend validation and database entry. Include edge cases such as invalid input, duplicate emails, and network interruptions.
+
+## 2. Existing User Login Testing [pending]
+### Dependencies: 10.1
+### Description: Perform end-to-end tests for the login process of existing users, ensuring authentication, session management, and error handling work as expected.
+### Details:
+Test login with valid and invalid credentials, session persistence, password reset, and account lockout scenarios. Validate integration with backend authentication services.
+
+## 3. Error Flow Testing [pending]
+### Dependencies: 10.1, 10.2
+### Description: Test error scenarios across registration and login flows, including invalid inputs, server errors, and user feedback mechanisms.
+### Details:
+Simulate and verify system behavior for edge cases such as network failures, incorrect data, and backend outages. Ensure appropriate error messages and recovery options are presented to users.
+
+## 4. Cross-Browser and Responsive Testing [pending]
+### Dependencies: 10.1, 10.2, 10.3
+### Description: Validate that registration and login flows function correctly across multiple browsers and device types, ensuring a consistent user experience.
+### Details:
+Test on major browsers (Chrome, Firefox, Safari, Edge) and various device resolutions. Check for layout issues, broken elements, and inconsistent behavior.
+
+## 5. Documentation Updates for Developers and End-Users [pending]
+### Dependencies: 10.1, 10.2, 10.3, 10.4
+### Description: Update technical and user-facing documentation to reflect changes in registration and login flows, including new features, error handling, and supported platforms.
+### Details:
+Revise developer guides, API references, and end-user help materials. Ensure documentation is clear, accurate, and accessible to all stakeholders.
+

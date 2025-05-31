@@ -1,0 +1,42 @@
+<context>
+# Overview  
+Enable users to register and log in using their Google account via Single Sign-On (SSO), in addition to the existing email/password method. This will streamline onboarding, improve security, and reduce friction for users who prefer federated authentication.
+
+# Core Features  
+1. Google SSO Login & Registration
+   - What it does: Allows users to sign up or log in using their Google account with a single click.
+   - Why it's important: Reduces friction for new users, increases security, and meets user expectations for modern SaaS products.
+   - How it works: User clicks "Continue with Google" on login or registration page, is redirected to Google OAuth, and upon success, is authenticated via Supabase. New users are registered automatically; existing users are logged in.
+
+# User Experience  
+- User Personas: New users seeking quick onboarding; existing users preferring federated login.
+- Key User Flows: User clicks "Continue with Google", authenticates with Google, and is redirected back to the app, landing on the dashboard.
+- UI/UX Considerations: Prominent Google button, Google branding, loading/error states, accessibility, and mobile responsiveness.
+</context>
+<PRD>
+# Technical Architecture  
+- System Components: Next.js (app router, shadcn/ui), Supabase Auth (OAuth provider).
+- Data Models: No schema changes required; Supabase manages OAuth users.
+- APIs and Integrations: Supabase `signInWithOAuth({ provider: 'google' })` on the client; Google OAuth credentials in Supabase dashboard.
+- Infrastructure Requirements: Supabase project with Google OAuth enabled; Redirect URIs set to `/auth/callback` in Supabase and Google Cloud Console.
+
+# Development Roadmap  
+- MVP requirements: Add Google button to login/register, implement handler, handle callback/session, show errors/loading, update middleware for callback route.
+- Future enhancements: Support more providers, allow account linking, add analytics.
+
+# Logical Dependency Chain
+1. Configure Google OAuth in Supabase and Google Cloud Console.
+2. Implement frontend button and handler for Google SSO.
+3. Handle OAuth callback and session in Next.js.
+4. Test end-to-end flow for new and existing users.
+5. Update documentation and onboarding guides.
+
+# Risks and Mitigations  
+- Technical challenges: Misconfiguration of OAuth credentials or redirect URIs. Mitigation: Follow docs closely; test in staging.
+- MVP scoping: Only Google SSO for now; defer other providers.
+- Resource constraints: Minimal, as Supabase handles most logic.
+
+# Appendix  
+- References: [Supabase OAuth Docs](https://supabase.com/docs/guides/auth/social-login), [Google Cloud OAuth Setup](https://console.cloud.google.com/apis/credentials)
+- Technical Specifications: Use `supabase.auth.signInWithOAuth({ provider: 'google' })` in the browser. Redirect URI: `${NEXT_PUBLIC_SITE_URL}/auth/callback` (must match Supabase and Google config).
+</PRD> 

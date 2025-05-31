@@ -25,7 +25,7 @@ export default async function LandingPage() {
         <div className="flex gap-4">
           {user ? (
             <>
-              <Link href="#">
+              <Link href="/dashboard">
                 <Button variant="outline">Go to App</Button>
               </Link>
               <form action={handleLogout}>

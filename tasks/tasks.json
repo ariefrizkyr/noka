@@ -1,0 +1,394 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Configure Google OAuth Provider in Supabase & Google Cloud Console",
+      "description": "Set up the Google OAuth 2.0 client ID and secret in the Google Cloud Console and configure them in the Supabase dashboard. Ensure redirect URIs are correctly set to `${NEXT_PUBLIC_SITE_URL}/auth/callback`.",
+      "details": "1. Go to Google Cloud Console -> APIs & Services -> Credentials. 2. Create OAuth 2.0 Client ID (Web application). 3. Add Authorized JavaScript origins: `${NEXT_PUBLIC_SITE_URL}` (e.g., http://localhost:3000 for local dev). 4. Add Authorized redirect URIs: `${NEXT_PUBLIC_SITE_URL}/auth/callback`. 5. Copy Client ID and Client Secret. 6. Go to Supabase Dashboard -> Authentication -> Providers -> Google. 7. Enable Google provider and paste Client ID and Client Secret. 8. Ensure 'Redirect URI' in Supabase matches the one in Google Cloud Console. 9. Add `NEXT_PUBLIC_SITE_URL` to your `.env.local` file (e.g., `NEXT_PUBLIC_SITE_URL=http://localhost:3000`).",
+      "testStrategy": "Verify that Supabase dashboard shows Google provider as active and configured. Confirm environment variables for site URL are set.",
+      "priority": "high",
+      "dependencies": [],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 2,
+      "title": "Initialize Supabase Client in Next.js Application",
+      "description": "Set up the Supabase client instances (browser and server) within the Next.js application to interact with Supabase services, particularly Auth, using the `@supabase/ssr` package.",
+      "details": "1. Install Supabase JS library: `npm install @supabase/supabase-js @supabase/ssr`. 2. Create `utils/supabase/client.ts` for browser client: \n```typescript\n// utils/supabase/client.ts\nimport { createBrowserClient } from '@supabase/ssr';\n\nexport function createClient() {\n  return createBrowserClient(\n    process.env.NEXT_PUBLIC_SUPABASE_URL!,\n    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!\n  );\n}\n```\n3. Create `utils/supabase/server.ts` for server-side clients (Server Components, Route Handlers):\n```typescript\n// utils/supabase/server.ts\nimport { createServerClient, type CookieOptions } from '@supabase/ssr';\nimport { cookies } from 'next/headers';\n\nexport function createClient() {\n  const cookieStore = cookies();\n  return createServerClient(\n    process.env.NEXT_PUBLIC_SUPABASE_URL!,\n    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,\n    {\n      cookies: {\n        get(name: string) { return cookieStore.get(name)?.value; },\n        set(name: string, value: string, options: CookieOptions) { cookieStore.set({ name, value, ...options }); },\n        remove(name: string, options: CookieOptions) { cookieStore.delete({ name, ...options }); },\n      },\n    }\n  );\n}\n```\n4. Ensure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are in `.env.local`.",
+      "testStrategy": "Create a test page that attempts to initialize both clients (conditionally, or one in a server component, one in a client component) and call a basic Supabase function like `auth.getUser()`. Verify no initialization errors.",
+      "priority": "high",
+      "dependencies": [],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 3,
+      "title": "Implement 'Continue with Google' Button UI",
+      "description": "Update the reusable UI component for the 'Continue with Google' button using shadcn/ui. This update ensures strict adherence to the latest Google branding guidelines (e.g., official 'G' SVG logo, specific colors, padding, font, 40px minimum height) and enhances accessibility. The component should use the `Button` from `shadcn/ui` with custom styling to match Google's specifications.",
+      "status": "done",
+      "dependencies": [
+        2
+      ],
+      "priority": "medium",
+      "details": "1. Ensure shadcn/ui is initialized and Button component is available. Use `npx shadcn@latest add button` if needed (note: `shadcn@latest`, not `shadcn-ui@latest`). Install `lucide-react` if other icons are used elsewhere, but not for this button's Google logo.\n2. Create or update `components/auth/GoogleSignInButton.tsx`.\n3. Use `Button` from `shadcn/ui`. Include the official Google 'G' SVG logo (see code sample) to the left of the text 'Continue with Google' (or custom text via `children` prop).\n4. Styling Requirements (Strictly follow Google Branding Guidelines):\n    - Button: `variant=\"outline\"` as a base, `w-full`.\n    - Colors: Background `white`, border `1px solid #747775`, text `#1F1F1F`.\n    - Logo: Official Google 'G' SVG in full color. Do not stretch, recolor, or alter the logo.\n    - Padding & Spacing: 12px padding to the left of the logo, 10px padding between the logo and the button text, and 12px padding to the right of the button text.\n    - Dimensions: Minimum button height of 40px. Icon size 18x18px.\n    - Font: System font stack (Roboto preferred, fallback to sans-serif). This should ideally be handled by global styles.\n5. Accessibility: Ensure proper ARIA attributes (e.g., `aria-disabled` for disabled state), a clear keyboard focus indicator (e.g., focus ring), and correct behavior for the disabled state.\n6. Responsiveness: The button and icon must scale appropriately for mobile and desktop views, maintaining aspect ratios and specified spacing.\n7. Brand Compliance: Do not use the Google logo or Google brand colors outside the context of this sign-in button, as per Google's guidelines.\n8. Reference: For full details, consult the [Google Branding Guidelines](https://developers.google.com/identity/branding-guidelines).\n\n```tsx\n// components/auth/GoogleSignInButton.tsx\nimport { Button } from '@/components/ui/button';\nimport * as React from 'react';\n\n// Official Google 'G' SVG logo component\nconst GoogleLogo: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (\n  <svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" width=\"18px\" height=\"18px\" viewBox=\"0 0 48 48\" {...props}>\n    <g>\n      <path fill=\"#EA4335\" d=\"M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z\"></path>\n      <path fill=\"#4285F4\" d=\"M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z\"></path>\n      <path fill=\"#FBBC05\" d=\"M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z\"></path>\n      <path fill=\"#34A853\" d=\"M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z\"></path>\n      <path fill=\"none\" d=\"M0 0h48v48H0z\"></path>\n    </g>\n  </svg>\n);\n\ninterface GoogleSignInButtonProps extends React.ComponentPropsWithoutRef<'button'> {\n  onClick: () => void;\n  isLoading?: boolean;\n  // children prop is implicitly part of ComponentPropsWithoutRef<'button'>\n}\n\nexport function GoogleSignInButton({\n  onClick,\n  isLoading,\n  children,\n  className,\n  style,\n  ...props\n}: GoogleSignInButtonProps) {\n  return (\n    <Button\n      variant=\"outline\" // Base variant, specific styles will override\n      onClick={onClick}\n      disabled={isLoading}\n      className={`w-full flex items-center justify-center \n                  bg-white text-[#1F1F1F] border border-[#747775] \n                  hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500\n                  disabled:opacity-70\n                  ${className || ''}`}\n      style={{\n        paddingTop: '11px',    // For 40px min height with 18px icon: (40-18)/2 = 11px\n        paddingBottom: '11px',\n        paddingLeft: '12px',   // 12px padding left of logo\n        paddingRight: '12px',  // 12px padding right of text\n        minHeight: '40px',\n        fontFamily: 'Roboto, Arial, sans-serif', // Specify font stack\n        ...style // Allow overriding styles\n      }}\n      {...props}\n    >\n      <GoogleLogo className=\"mr-[10px]\" /> {/* 10px margin between logo and text */}\n      <span>\n        {isLoading ? 'Processing...' : children || 'Continue with Google'}\n      </span>\n    </Button>\n  );\n}\n```",
+      "testStrategy": "1. Render the button on a test page in various states (default, hover, focus, disabled, isLoading).\n2. Verify exact visual appearance against Google branding guidelines: colors (bg: white, border: #747775, text: #1F1F1F), Google 'G' SVG logo (18x18px, full color, not stretched/distorted), padding (12px left/right of content, 10px between logo/text), minimum height (40px), and font (Roboto/system sans-serif).\n3. Test responsiveness: ensure button and icon scale correctly on mobile and desktop, maintaining aspect ratio and specified spacing. The button should be full-width as specified.\n4. Accessibility checks: Use browser developer tools (e.g., Lighthouse, Axe) and manual keyboard navigation to verify ARIA attributes (e.g., `aria-disabled` on disabled button), proper keyboard focus ring visibility and style, and overall usability for assistive technologies.\n5. Confirm click handler invocation when the button is clicked (and not when disabled). Verify `isLoading` state correctly displays 'Processing...' (or similar) and disables the button.\n6. Verify that the Google logo and brand colors are used exclusively within the button as per guidelines.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Component Setup and Basic Structure",
+          "description": "Create the foundational UI component for the 'Continue with Google' button, including the button element, icon placement, and label text. Ensure the structure allows for easy integration of styling and accessibility features.",
+          "dependencies": [],
+          "details": "Set up the component in your framework of choice (e.g., React, Vue, plain HTML). Include a button element, the official Google icon (sourced per guidelines), and the 'Continue with Google' label, ensuring the words 'Google' and the action are on the same line as per branding requirements.",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "Styling Implementation According to Google Guidelines",
+          "description": "Apply styles to the button to match Google's branding requirements, including color, padding, font, icon usage, and spacing. Ensure no unauthorized modifications to the logo or button appearance.",
+          "dependencies": [
+            1
+          ],
+          "details": "Reference the latest Google branding and button guidelines to set the correct colors, font, button radius, and spacing. Use the official colored Google icon and do not alter its appearance except for size. Ensure the button provides sufficient contrast and clear space, and avoid overcrowding or overstating Google's role.",
+          "status": "done"
+        },
+        {
+          "id": 3,
+          "title": "Accessibility and Responsive Behavior Testing",
+          "description": "Test and enhance the button for accessibility and responsiveness, ensuring it works well across devices and is usable by assistive technologies.",
+          "dependencies": [
+            2
+          ],
+          "details": "Add appropriate ARIA labels, keyboard navigation support, and ensure the button is readable by screen readers. Test the button's appearance and usability on various screen sizes and devices, making adjustments as needed for full responsiveness and accessibility compliance.",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Implement Client-Side Google SSO Logic",
+      "description": "Implement the client-side function that initiates the Google OAuth flow using `supabase.auth.signInWithOAuth` when the 'Continue with Google' button is clicked.",
+      "details": "1. In the client component where `GoogleSignInButton` is used (e.g., `app/login/page.tsx`). 2. Import `createClient` from `utils/supabase/client.ts`. 3. Create a handler function `handleGoogleSignIn`. 4. Call `supabase.auth.signInWithOAuth` with `provider: 'google'` and `options.redirectTo` pointing to `${window.location.origin}/auth/callback`.\n```tsx\n// Example usage in app/login/page.tsx\n'use client';\nimport { createClient } from '@/utils/supabase/client';\nimport { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';\nimport { useState } from 'react';\n\nexport default function LoginPage() {\n  const supabase = createClient();\n  const [isLoading, setIsLoading] = useState(false);\n  const [errorMsg, setErrorMsg] = useState<string | null>(null);\n\n  const handleGoogleSignIn = async () => {\n    setIsLoading(true);\n    setErrorMsg(null);\n    const { error } = await supabase.auth.signInWithOAuth({\n      provider: 'google',\n      options: {\n        redirectTo: `${window.location.origin}/auth/callback`,\n      },\n    });\n    if (error) {\n      setErrorMsg(error.message);\n      setIsLoading(false);\n    }\n    // Supabase client handles the redirection to Google.\n  };\n\n  return (\n    <div>\n      <GoogleSignInButton onClick={handleGoogleSignIn} isLoading={isLoading} />\n      {errorMsg && <p className=\"text-red-500\">{errorMsg}</p>}\n    </div>\n  );\n}\n```",
+      "testStrategy": "Click the button. Verify redirection to Google's OAuth consent screen. Check browser console for errors. Ensure `redirectTo` is correctly formed.",
+      "priority": "high",
+      "dependencies": [
+        1,
+        2,
+        3
+      ],
+      "status": "done",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Basic OAuth Flow with Supabase Client",
+          "description": "Set up the core Google SSO authentication flow using Supabase's signInWithOAuth method",
+          "dependencies": [],
+          "details": "Create a function that handles the Google sign-in process using Supabase's client. Implement the signInWithOAuth method with 'google' as the provider. For implicit flow, this will redirect users to Google's consent screen and handle the return to your application with tokens. For PKCE flow, include the redirectTo parameter pointing to your callback route. Ensure the redirect URL is added to your allow list.",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "Implement Error Handling and Loading State Management",
+          "description": "Add robust error handling and loading state management to the Google SSO implementation",
+          "dependencies": [
+            1
+          ],
+          "details": "Enhance the basic OAuth implementation by adding loading state indicators during the authentication process. Implement comprehensive error handling for various failure scenarios (network issues, user cancellation, invalid credentials). Create user-friendly error messages and recovery paths. Add appropriate UI feedback to indicate the authentication status to users throughout the process.",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Create Next.js Route Handler for Auth Callback",
+      "description": "Implement the Next.js App Router route handler at `app/auth/callback/route.ts` to exchange the authorization code from Google for a Supabase session.",
+      "details": "1. Create `app/auth/callback/route.ts`. 2. Use `createClient` from `utils/supabase/server.ts`. 3. In the `GET` handler, retrieve the `code` from search parameters. 4. Call `supabase.auth.exchangeCodeForSession(code)`. 5. Redirect to dashboard (e.g., `/dashboard`) on success, or an error page on failure.\n```typescript\n// app/auth/callback/route.ts\nimport { createClient } from '@/utils/supabase/server';\nimport { NextResponse } from 'next/server';\n\nexport async function GET(request: Request) {\n  const { searchParams, origin } = new URL(request.url);\n  const code = searchParams.get('code');\n  const next = searchParams.get('next') ?? '/dashboard'; // Default redirect to dashboard\n\n  if (code) {\n    const supabase = createClient();\n    const { error } = await supabase.auth.exchangeCodeForSession(code);\n    if (!error) {\n      return NextResponse.redirect(`${origin}${next}`);\n    }\n    console.error('Auth callback error:', error.message);\n  }\n\n  // Redirect to an error page if code is missing or exchange fails\n  return NextResponse.redirect(`${origin}/auth/auth-code-error`);\n}\n```",
+      "testStrategy": "After successful Google authentication, verify this route is hit. Check for session cookies being set by Supabase. Verify redirection to the dashboard or error page.",
+      "priority": "high",
+      "dependencies": [
+        1,
+        2
+      ],
+      "status": "done",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Basic Route Handler with Code Exchange",
+          "description": "Create the Next.js route handler for the OAuth callback endpoint. Implement the logic to receive the authorization code from the query parameters and exchange it for access and refresh tokens using the Supabase authentication flow.",
+          "dependencies": [],
+          "details": "Set up the route handler file in the appropriate Next.js API or app directory. Extract the authorization code from the request, call the Supabase API to exchange the code for tokens, and handle the response.",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "Add Error Handling and Redirection Logic",
+          "description": "Enhance the route handler to handle errors during the code exchange process. Implement logic to redirect users to appropriate pages based on success or failure, ensuring a smooth user experience.",
+          "dependencies": [
+            1
+          ],
+          "details": "Check for errors in the token exchange response. If an error occurs, redirect the user to an error page or display a relevant message. On success, redirect the user to the intended destination within the app.",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Update Next.js Middleware for Auth Routes",
+      "description": "Configure Next.js middleware to manage user sessions, primarily for refreshing tokens using Supabase SSR utilities. This ensures session persistence across requests.",
+      "details": "1. Create or update `middleware.ts` in the project root (or `src/`). 2. Use `createServerClient` from `@supabase/ssr` and the standard Supabase middleware pattern to handle cookies and refresh sessions.\n```typescript\n// middleware.ts\nimport { createServerClient, type CookieOptions } from '@supabase/ssr';\nimport { NextResponse, type NextRequest } from 'next/server';\n\nexport async function middleware(request: NextRequest) {\n  let response = NextResponse.next({ request: { headers: request.headers } });\n  const supabase = createServerClient(\n    process.env.NEXT_PUBLIC_SUPABASE_URL!,\n    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,\n    {\n      cookies: {\n        get(name: string) { return request.cookies.get(name)?.value; },\n        set(name: string, value: string, options: CookieOptions) { request.cookies.set({ name, value, ...options }); response = NextResponse.next({ request: { headers: request.headers } }); response.cookies.set({ name, value, ...options }); },\n        remove(name: string, options: CookieOptions) { request.cookies.set({ name, value: '', ...options }); response = NextResponse.next({ request: { headers: request.headers } }); response.cookies.set({ name, value: '', ...options }); },\n      },\n    }\n  );\n  await supabase.auth.getUser(); // Refreshes session if expired\n  return response;\n}\n\nexport const config = {\n  matcher: [\n    '/((?!_next/static|_next/image|favicon.ico|auth/auth-code-error|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',\n  ],\n};\n```\nEnsure matcher excludes static assets and public error pages.",
+      "testStrategy": "Verify sessions are maintained across page navigations and automatically refreshed. Test navigation to protected routes after login and ensure session state is correctly read by server components.",
+      "priority": "medium",
+      "dependencies": [
+        2,
+        5
+      ],
+      "status": "done",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Basic Middleware Setup with Supabase Client",
+          "description": "Initialize the Next.js middleware by creating a `middleware.ts` file, install necessary Supabase packages, and set up the Supabase client for use within the middleware.",
+          "dependencies": [],
+          "details": "Create the `middleware.ts` file at the project root or inside the `src` folder. Install `@supabase/supabase-js` and, if using SSR, `@supabase/ssr`. Set up environment variables for Supabase. Import and initialize the Supabase client in the middleware context.",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "Cookie Handling and Session Refresh Logic",
+          "description": "Implement logic in the middleware to handle cookies, refresh expired Supabase Auth tokens, and manage user sessions securely.",
+          "dependencies": [
+            1
+          ],
+          "details": "Use the Supabase client to check and refresh the user session using `supabase.auth.getUser()` (not `getSession()` for security). Update cookies in both the request and response as needed to ensure the latest session is available to server components and the browser. Handle redirects for protected and auth routes based on session state.",
+          "status": "done"
+        },
+        {
+          "id": 3,
+          "title": "Route Matcher Configuration and Testing",
+          "description": "Configure the middleware matcher to specify which routes the middleware should apply to, and thoroughly test the middleware to ensure correct behavior across all relevant routes.",
+          "dependencies": [
+            2
+          ],
+          "details": "Set up the `matcher` property in the middleware config to exclude static files, images, and other non-auth routes. Test the middleware by accessing protected, public, and authentication routes to verify session management, redirects, and token refresh logic work as intended.",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Implement Session Management and Redirection",
+      "description": "Ensure that after successful OAuth callback and session exchange, the user session is correctly established, and the user is redirected to the dashboard or intended page. Protect routes based on session.",
+      "details": "1. The `/auth/callback` route (Task 5) redirects to `/dashboard` on success. 2. Protect dashboard/app routes by checking for user session. In Server Components:\n```typescript\n// app/dashboard/page.tsx (example)\nimport { createClient } from '@/utils/supabase/server';\nimport { redirect } from 'next/navigation';\n\nexport default async function DashboardPage() {\n  const supabase = createClient();\n  const { data: { user } } = await supabase.auth.getUser();\n  if (!user) { redirect('/login'); }\n  return <div>Welcome, {user.email}!</div>;\n}\n```\n3. Implement a logout button that calls `supabase.auth.signOut()` and redirects to login.",
+      "testStrategy": "Log in via Google, verify redirection to dashboard. Access protected routes directly without login; verify redirection to login. Test logout functionality.",
+      "priority": "high",
+      "dependencies": [
+        4,
+        5,
+        6
+      ],
+      "status": "done",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Dashboard Route Protection",
+          "description": "Ensure that the dashboard route is accessible only to authenticated users by checking the user's session state before rendering the dashboard component.",
+          "dependencies": [],
+          "details": "Add middleware or route guards to the dashboard route. If the session is invalid or missing, redirect the user to the login page or an appropriate error page.",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "Session Verification in Server Components",
+          "description": "Verify the user's session in server-side components to prevent unauthorized access and ensure secure handling of user data.",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement logic in server-rendered components to check for a valid session token or cookie. If the session is invalid, trigger a redirect or return an error response.",
+          "status": "done"
+        },
+        {
+          "id": 3,
+          "title": "Implement Logout Functionality",
+          "description": "Provide a secure logout mechanism that invalidates the user's session and removes any session tokens or cookies.",
+          "dependencies": [
+            2
+          ],
+          "details": "Add a logout endpoint or handler that clears the session on the server and removes session identifiers from the client. Redirect the user to the login or home page after logout.",
+          "status": "done"
+        },
+        {
+          "id": 4,
+          "title": "Implement Redirection Logic for Authenticated and Unauthenticated Users",
+          "description": "Set up redirection rules to guide users based on their authentication state, ensuring a smooth and secure user experience.",
+          "dependencies": [
+            3
+          ],
+          "details": "Configure logic to redirect authenticated users away from login/signup pages to the dashboard, and unauthenticated users away from protected routes to the login page.",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Implement Error Handling and Loading States for SSO Flow",
+      "description": "Provide clear visual feedback during the SSO process, including loading indicators on the button and handling errors from `signInWithOAuth` or the callback.",
+      "details": "1. In client-side `handleGoogleSignIn` (Task 4), use `isLoading` state to disable button and show loading text. Display errors from `signInWithOAuth` to the user. 2. Create `app/auth/auth-code-error/page.tsx` for callback errors:\n```tsx\n// app/auth/auth-code-error/page.tsx\nexport default function AuthErrorPage() {\n  return (\n    <div>\n      <h1>Authentication Error</h1>\n      <p>Sorry, we couldn't sign you in. Please try again or return to the login page.</p>\n      <a href=\"/login\">Go to Login</a>\n    </div>\n  );\n}\n```\n3. Ensure the callback route (Task 5) redirects to this page on error.",
+      "testStrategy": "Test scenarios: user cancels Google login, network error during OAuth. Verify loading state on button click. Verify redirection to `auth-code-error` page if callback fails. Ensure error messages are user-friendly.",
+      "priority": "medium",
+      "dependencies": [
+        4,
+        5
+      ],
+      "status": "in-progress",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Client-side Loading and Error States",
+          "description": "Create loading indicators and error handling mechanisms in the login component to provide visual feedback during SSO authentication attempts.",
+          "dependencies": [],
+          "details": "Add loading spinners during authentication requests, implement error message displays for failed login attempts, handle timeout scenarios, and ensure proper state management during the authentication flow. Follow SSO best practices by implementing real-time feedback for users when authentication is in progress or fails.",
+          "status": "in-progress"
+        },
+        {
+          "id": 2,
+          "title": "Create Authentication Error Pages",
+          "description": "Design and implement dedicated error pages that provide clear information and recovery options when SSO authentication fails.",
+          "dependencies": [
+            1
+          ],
+          "details": "Develop user-friendly error pages with clear messaging for different authentication failure scenarios (invalid credentials, expired sessions, server errors, etc.). Include troubleshooting guidance, support contact information, and options to retry authentication or use alternative login methods. Ensure pages follow brand guidelines and provide a consistent user experience.",
+          "status": "in-progress"
+        },
+        {
+          "id": 3,
+          "title": "Integrate Error Handling in Callback Route",
+          "description": "Implement comprehensive error handling in the SSO callback route to properly manage and respond to authentication failures from identity providers.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Add try-catch blocks in the callback route to capture authentication errors, implement proper error logging for debugging purposes, create error code mapping between SSO provider errors and application error messages, and ensure secure error handling that doesn't expose sensitive information. Redirect users to appropriate error pages based on the type of authentication failure.",
+          "status": "in-progress"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Integrate Google SSO Button into Login/Registration Pages",
+      "description": "Add the 'Continue with Google' button to the existing login and registration pages, ensuring it's prominently displayed and integrated with the SSO logic.",
+      "details": "1. Identify login (`app/login/page.tsx`) and registration (`app/signup/page.tsx` or equivalent) components. 2. Import and render the `GoogleSignInButton` component (from Task 3). 3. Connect its `onClick` prop to the `handleGoogleSignIn` function (from Task 4), including loading/error state management. 4. Position the button prominently, possibly with a divider like 'Or continue with'. Ensure UI is responsive and accessible.",
+      "testStrategy": "Navigate to login/registration pages. Verify Google SSO button is present, styled correctly, and functional. Test existing email/password flows to ensure they are not broken.",
+      "priority": "medium",
+      "dependencies": [
+        3,
+        4,
+        8
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Integrate Google SSO Button on Login Page",
+          "description": "Add the Google SSO button to the existing login page, ensuring it is properly positioned and functions as expected. This includes loading the Google client library, initializing with the correct client ID, and handling the authentication response.",
+          "dependencies": [],
+          "details": "Follow Google's documentation to render the button using JavaScript or HTML, and ensure the button does not conflict with existing authentication elements. Test the login flow to confirm successful authentication and error handling.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Integrate Google SSO Button on Registration Page",
+          "description": "Add the Google SSO button to the registration page, ensuring new users can register using their Google account. Ensure the button is distinct and does not interfere with traditional registration fields.",
+          "dependencies": [
+            1
+          ],
+          "details": "Replicate the integration steps from the login page, adapting the callback logic to handle new user registration. Ensure the registration flow captures necessary user information from the Google profile and handles edge cases (e.g., existing accounts).",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "UI/UX Improvements: Responsive Design and Visual Separation",
+          "description": "Enhance the user interface by making the Google SSO button responsive and visually distinct from other authentication methods on both login and registration pages.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Apply responsive design principles to ensure the button displays correctly on all devices. Add visual separation (e.g., dividers, spacing, or labels) between the Google SSO button and other authentication options to improve clarity and usability.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "End-to-End Testing and Documentation Update",
+      "description": "Perform comprehensive end-to-end testing for new user registration and existing user login via Google SSO. Update relevant user documentation.",
+      "details": "Test Scenarios:\n1. New User Registration: Click Google button, authenticate with Google, verify new account in Supabase `auth.users`, land on dashboard.\n2. Existing User Login (Google): Click Google button, authenticate, log into existing Supabase account, land on dashboard.\n3. Existing User Login (email/password user with same email as Google): Test Supabase's behavior for account linking (should ideally log in or link). If not, document behavior.\n4. Error flows: User cancels Google auth, invalid callback.\n5. Test on multiple browsers and mobile viewport.\nDocumentation:\n1. Update internal dev docs on OAuth setup. 2. Update user-facing FAQs/guides on using Google Sign-In. 3. Update onboarding flows if they detail sign-up methods.",
+      "testStrategy": "Execute all defined test scenarios systematically. Review and update all relevant documentation. Perform a user acceptance test (UAT) if possible.",
+      "priority": "high",
+      "dependencies": [
+        1,
+        4,
+        5,
+        7,
+        8,
+        9
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "New User Registration Testing",
+          "description": "Design and execute end-to-end tests for the new user registration flow, including form validation, email verification, and successful account creation.",
+          "dependencies": [],
+          "details": "Test the entire registration process from the user interface through backend validation and database entry. Include edge cases such as invalid input, duplicate emails, and network interruptions.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Existing User Login Testing",
+          "description": "Perform end-to-end tests for the login process of existing users, ensuring authentication, session management, and error handling work as expected.",
+          "dependencies": [
+            1
+          ],
+          "details": "Test login with valid and invalid credentials, session persistence, password reset, and account lockout scenarios. Validate integration with backend authentication services.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Error Flow Testing",
+          "description": "Test error scenarios across registration and login flows, including invalid inputs, server errors, and user feedback mechanisms.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Simulate and verify system behavior for edge cases such as network failures, incorrect data, and backend outages. Ensure appropriate error messages and recovery options are presented to users.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Cross-Browser and Responsive Testing",
+          "description": "Validate that registration and login flows function correctly across multiple browsers and device types, ensuring a consistent user experience.",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "details": "Test on major browsers (Chrome, Firefox, Safari, Edge) and various device resolutions. Check for layout issues, broken elements, and inconsistent behavior.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Documentation Updates for Developers and End-Users",
+          "description": "Update technical and user-facing documentation to reflect changes in registration and login flows, including new features, error handling, and supported platforms.",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "details": "Revise developer guides, API references, and end-user help materials. Ensure documentation is clear, accurate, and accessible to all stakeholders.",
+          "status": "pending"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+# Task ID: 3
+# Title: Implement 'Continue with Google' Button UI
+# Status: done
+# Dependencies: 2
+# Priority: medium
+# Description: Update the reusable UI component for the 'Continue with Google' button using shadcn/ui. This update ensures strict adherence to the latest Google branding guidelines (e.g., official 'G' SVG logo, specific colors, padding, font, 40px minimum height) and enhances accessibility. The component should use the `Button` from `shadcn/ui` with custom styling to match Google's specifications.
+# Details:
+1. Ensure shadcn/ui is initialized and Button component is available. Use `npx shadcn@latest add button` if needed (note: `shadcn@latest`, not `shadcn-ui@latest`). Install `lucide-react` if other icons are used elsewhere, but not for this button's Google logo.
+2. Create or update `components/auth/GoogleSignInButton.tsx`.
+3. Use `Button` from `shadcn/ui`. Include the official Google 'G' SVG logo (see code sample) to the left of the text 'Continue with Google' (or custom text via `children` prop).
+4. Styling Requirements (Strictly follow Google Branding Guidelines):
+    - Button: `variant="outline"` as a base, `w-full`.
+    - Colors: Background `white`, border `1px solid #747775`, text `#1F1F1F`.
+    - Logo: Official Google 'G' SVG in full color. Do not stretch, recolor, or alter the logo.
+    - Padding & Spacing: 12px padding to the left of the logo, 10px padding between the logo and the button text, and 12px padding to the right of the button text.
+    - Dimensions: Minimum button height of 40px. Icon size 18x18px.
+    - Font: System font stack (Roboto preferred, fallback to sans-serif). This should ideally be handled by global styles.
+5. Accessibility: Ensure proper ARIA attributes (e.g., `aria-disabled` for disabled state), a clear keyboard focus indicator (e.g., focus ring), and correct behavior for the disabled state.
+6. Responsiveness: The button and icon must scale appropriately for mobile and desktop views, maintaining aspect ratios and specified spacing.
+7. Brand Compliance: Do not use the Google logo or Google brand colors outside the context of this sign-in button, as per Google's guidelines.
+8. Reference: For full details, consult the [Google Branding Guidelines](https://developers.google.com/identity/branding-guidelines).
+
+```tsx
+// components/auth/GoogleSignInButton.tsx
+import { Button } from '@/components/ui/button';
+import * as React from 'react';
+
+// Official Google 'G' SVG logo component
+const GoogleLogo: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" viewBox="0 0 48 48" {...props}>
+    <g>
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+      <path fill="none" d="M0 0h48v48H0z"></path>
+    </g>
+  </svg>
+);
+
+interface GoogleSignInButtonProps extends React.ComponentPropsWithoutRef<'button'> {
+  onClick: () => void;
+  isLoading?: boolean;
+  // children prop is implicitly part of ComponentPropsWithoutRef<'button'>
+}
+
+export function GoogleSignInButton({
+  onClick,
+  isLoading,
+  children,
+  className,
+  style,
+  ...props
+}: GoogleSignInButtonProps) {
+  return (
+    <Button
+      variant="outline" // Base variant, specific styles will override
+      onClick={onClick}
+      disabled={isLoading}
+      className={`w-full flex items-center justify-center 
+                  bg-white text-[#1F1F1F] border border-[#747775] 
+                  hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500
+                  disabled:opacity-70
+                  ${className || ''}`}
+      style={{
+        paddingTop: '11px',    // For 40px min height with 18px icon: (40-18)/2 = 11px
+        paddingBottom: '11px',
+        paddingLeft: '12px',   // 12px padding left of logo
+        paddingRight: '12px',  // 12px padding right of text
+        minHeight: '40px',
+        fontFamily: 'Roboto, Arial, sans-serif', // Specify font stack
+        ...style // Allow overriding styles
+      }}
+      {...props}
+    >
+      <GoogleLogo className="mr-[10px]" /> {/* 10px margin between logo and text */}
+      <span>
+        {isLoading ? 'Processing...' : children || 'Continue with Google'}
+      </span>
+    </Button>
+  );
+}
+```
+
+# Test Strategy:
+1. Render the button on a test page in various states (default, hover, focus, disabled, isLoading).
+2. Verify exact visual appearance against Google branding guidelines: colors (bg: white, border: #747775, text: #1F1F1F), Google 'G' SVG logo (18x18px, full color, not stretched/distorted), padding (12px left/right of content, 10px between logo/text), minimum height (40px), and font (Roboto/system sans-serif).
+3. Test responsiveness: ensure button and icon scale correctly on mobile and desktop, maintaining aspect ratio and specified spacing. The button should be full-width as specified.
+4. Accessibility checks: Use browser developer tools (e.g., Lighthouse, Axe) and manual keyboard navigation to verify ARIA attributes (e.g., `aria-disabled` on disabled button), proper keyboard focus ring visibility and style, and overall usability for assistive technologies.
+5. Confirm click handler invocation when the button is clicked (and not when disabled). Verify `isLoading` state correctly displays 'Processing...' (or similar) and disables the button.
+6. Verify that the Google logo and brand colors are used exclusively within the button as per guidelines.
+
+# Subtasks:
+## 1. Component Setup and Basic Structure [done]
+### Dependencies: None
+### Description: Create the foundational UI component for the 'Continue with Google' button, including the button element, icon placement, and label text. Ensure the structure allows for easy integration of styling and accessibility features.
+### Details:
+Set up the component in your framework of choice (e.g., React, Vue, plain HTML). Include a button element, the official Google icon (sourced per guidelines), and the 'Continue with Google' label, ensuring the words 'Google' and the action are on the same line as per branding requirements.
+
+## 2. Styling Implementation According to Google Guidelines [done]
+### Dependencies: 3.1
+### Description: Apply styles to the button to match Google's branding requirements, including color, padding, font, icon usage, and spacing. Ensure no unauthorized modifications to the logo or button appearance.
+### Details:
+Reference the latest Google branding and button guidelines to set the correct colors, font, button radius, and spacing. Use the official colored Google icon and do not alter its appearance except for size. Ensure the button provides sufficient contrast and clear space, and avoid overcrowding or overstating Google's role.
+
+## 3. Accessibility and Responsive Behavior Testing [done]
+### Dependencies: 3.2
+### Description: Test and enhance the button for accessibility and responsiveness, ensuring it works well across devices and is usable by assistive technologies.
+### Details:
+Add appropriate ARIA labels, keyboard navigation support, and ensure the button is readable by screen readers. Test the button's appearance and usability on various screen sizes and devices, making adjustments as needed for full responsiveness and accessibility compliance.
+
