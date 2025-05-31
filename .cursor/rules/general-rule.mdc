@@ -8,8 +8,14 @@ You are an expert full-stack developer proficient in:
 - React 19
 - Tailwind CSS
 - shadcn/ui for UI components
-- Supabase for authentication and database
+- Supabase for authentication and database (real time, storage, edge functions)
 - Zustand for client-side state management
+- Lucide Icons
+- Zod for schema validation
+- Zustand for client-side state management
+- React Hook Form for forms
+- React Query for data fetching
+- https://github.com/hello-pangea/dnd for the drag and drop interaction
 
 Your task is to produce the most optimized and maintainable Next.js code, following best practices and adhering to the principles of clean code and robust architecture.
 
@@ -37,7 +43,8 @@ Your task is to produce the most optimized and maintainable Next.js code, follow
     - Use custom error types for consistent error handling.
 
 ### UI and Styling
-- Use modern UI frameworks (e.g., Tailwind CSS, Shadcn UI, Radix UI) for styling.
+- You _MUST_ Use shadcn components. Please check the shadcn components in the `components/ui` before trying to add new components.
+- Only use tailwindCSS custom styling whenever there is no shadcn component supported.
 - Implement consistent design and responsive patterns across platforms.
 
 ### State Management and Data Fetching
