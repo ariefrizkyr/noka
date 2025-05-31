@@ -1,6 +1,6 @@
 # Task ID: 8
 # Title: Implement Error Handling and Loading States for SSO Flow
-# Status: in-progress
+# Status: done
 # Dependencies: 4, 5
 # Priority: medium
 # Description: Provide clear visual feedback during the SSO process, including loading indicators on the button and handling errors from `signInWithOAuth` or the callback.
@@ -24,19 +24,19 @@ export default function AuthErrorPage() {
 Test scenarios: user cancels Google login, network error during OAuth. Verify loading state on button click. Verify redirection to `auth-code-error` page if callback fails. Ensure error messages are user-friendly.
 
 # Subtasks:
-## 1. Implement Client-side Loading and Error States [in-progress]
+## 1. Implement Client-side Loading and Error States [done]
 ### Dependencies: None
 ### Description: Create loading indicators and error handling mechanisms in the login component to provide visual feedback during SSO authentication attempts.
 ### Details:
 Add loading spinners during authentication requests, implement error message displays for failed login attempts, handle timeout scenarios, and ensure proper state management during the authentication flow. Follow SSO best practices by implementing real-time feedback for users when authentication is in progress or fails.
 
-## 2. Create Authentication Error Pages [in-progress]
+## 2. Create Authentication Error Pages [done]
 ### Dependencies: 8.1
 ### Description: Design and implement dedicated error pages that provide clear information and recovery options when SSO authentication fails.
 ### Details:
 Develop user-friendly error pages with clear messaging for different authentication failure scenarios (invalid credentials, expired sessions, server errors, etc.). Include troubleshooting guidance, support contact information, and options to retry authentication or use alternative login methods. Ensure pages follow brand guidelines and provide a consistent user experience.
 
-## 3. Integrate Error Handling in Callback Route [in-progress]
+## 3. Integrate Error Handling in Callback Route [done]
 ### Dependencies: 8.1, 8.2
 ### Description: Implement comprehensive error handling in the SSO callback route to properly manage and respond to authentication failures from identity providers.
 ### Details:

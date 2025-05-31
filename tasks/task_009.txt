@@ -1,6 +1,6 @@
 # Task ID: 9
 # Title: Integrate Google SSO Button into Login/Registration Pages
-# Status: pending
+# Status: done
 # Dependencies: 3, 4, 8
 # Priority: medium
 # Description: Add the 'Continue with Google' button to the existing login and registration pages, ensuring it's prominently displayed and integrated with the SSO logic.
@@ -11,19 +11,19 @@
 Navigate to login/registration pages. Verify Google SSO button is present, styled correctly, and functional. Test existing email/password flows to ensure they are not broken.
 
 # Subtasks:
-## 1. Integrate Google SSO Button on Login Page [pending]
+## 1. Integrate Google SSO Button on Login Page [done]
 ### Dependencies: None
 ### Description: Add the Google SSO button to the existing login page, ensuring it is properly positioned and functions as expected. This includes loading the Google client library, initializing with the correct client ID, and handling the authentication response.
 ### Details:
 Follow Google's documentation to render the button using JavaScript or HTML, and ensure the button does not conflict with existing authentication elements. Test the login flow to confirm successful authentication and error handling.
 
-## 2. Integrate Google SSO Button on Registration Page [pending]
+## 2. Integrate Google SSO Button on Registration Page [done]
 ### Dependencies: 9.1
 ### Description: Add the Google SSO button to the registration page, ensuring new users can register using their Google account. Ensure the button is distinct and does not interfere with traditional registration fields.
 ### Details:
 Replicate the integration steps from the login page, adapting the callback logic to handle new user registration. Ensure the registration flow captures necessary user information from the Google profile and handles edge cases (e.g., existing accounts).
 
-## 3. UI/UX Improvements: Responsive Design and Visual Separation [pending]
+## 3. UI/UX Improvements: Responsive Design and Visual Separation [done]
 ### Dependencies: 9.1, 9.2
 ### Description: Enhance the user interface by making the Google SSO button responsive and visually distinct from other authentication methods on both login and registration pages.
 ### Details:

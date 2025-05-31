@@ -239,7 +239,7 @@
         4,
         5
       ],
-      "status": "in-progress",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -247,7 +247,7 @@
           "description": "Create loading indicators and error handling mechanisms in the login component to provide visual feedback during SSO authentication attempts.",
           "dependencies": [],
           "details": "Add loading spinners during authentication requests, implement error message displays for failed login attempts, handle timeout scenarios, and ensure proper state management during the authentication flow. Follow SSO best practices by implementing real-time feedback for users when authentication is in progress or fails.",
-          "status": "in-progress"
+          "status": "done"
         },
         {
           "id": 2,
@@ -257,7 +257,7 @@
             1
           ],
           "details": "Develop user-friendly error pages with clear messaging for different authentication failure scenarios (invalid credentials, expired sessions, server errors, etc.). Include troubleshooting guidance, support contact information, and options to retry authentication or use alternative login methods. Ensure pages follow brand guidelines and provide a consistent user experience.",
-          "status": "in-progress"
+          "status": "done"
         },
         {
           "id": 3,
@@ -268,7 +268,7 @@
             2
           ],
           "details": "Add try-catch blocks in the callback route to capture authentication errors, implement proper error logging for debugging purposes, create error code mapping between SSO provider errors and application error messages, and ensure secure error handling that doesn't expose sensitive information. Redirect users to appropriate error pages based on the type of authentication failure.",
-          "status": "in-progress"
+          "status": "done"
         }
       ]
     },
@@ -284,7 +284,7 @@
         4,
         8
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -292,7 +292,7 @@
           "description": "Add the Google SSO button to the existing login page, ensuring it is properly positioned and functions as expected. This includes loading the Google client library, initializing with the correct client ID, and handling the authentication response.",
           "dependencies": [],
           "details": "Follow Google's documentation to render the button using JavaScript or HTML, and ensure the button does not conflict with existing authentication elements. Test the login flow to confirm successful authentication and error handling.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -302,7 +302,7 @@
             1
           ],
           "details": "Replicate the integration steps from the login page, adapting the callback logic to handle new user registration. Ensure the registration flow captures necessary user information from the Google profile and handles edge cases (e.g., existing accounts).",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -313,7 +313,7 @@
             2
           ],
           "details": "Apply responsive design principles to ensure the button displays correctly on all devices. Add visual separation (e.g., dividers, spacing, or labels) between the Google SSO button and other authentication options to improve clarity and usability.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
@@ -332,7 +332,7 @@
         8,
         9
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -340,7 +340,7 @@
           "description": "Design and execute end-to-end tests for the new user registration flow, including form validation, email verification, and successful account creation.",
           "dependencies": [],
           "details": "Test the entire registration process from the user interface through backend validation and database entry. Include edge cases such as invalid input, duplicate emails, and network interruptions.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -350,7 +350,7 @@
             1
           ],
           "details": "Test login with valid and invalid credentials, session persistence, password reset, and account lockout scenarios. Validate integration with backend authentication services.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -361,7 +361,7 @@
             2
           ],
           "details": "Simulate and verify system behavior for edge cases such as network failures, incorrect data, and backend outages. Ensure appropriate error messages and recovery options are presented to users.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -373,7 +373,7 @@
             3
           ],
           "details": "Test on major browsers (Chrome, Firefox, Safari, Edge) and various device resolutions. Check for layout issues, broken elements, and inconsistent behavior.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 5,
@@ -386,7 +386,7 @@
             4
           ],
           "details": "Revise developer guides, API references, and end-user help materials. Ensure documentation is clear, accurate, and accessible to all stakeholders.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     }
