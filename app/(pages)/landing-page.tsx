@@ -21,7 +21,7 @@ export default async function LandingPage() {
     <div className="min-h-screen flex flex-col bg-white">
       {/* Navbar */}
       <nav className="flex items-center justify-between px-8 py-6 border-b">
-        <div className="text-2xl font-bold text-primary">Base SaaS</div>
+        <div className="text-2xl font-bold text-primary">Mora</div>
         <div className="flex gap-4">
           {user ? (
             <>
@@ -47,10 +47,10 @@ export default async function LandingPage() {
       {/* Hero Section */}
       <main className="flex flex-1 flex-col items-center justify-center px-4 text-center">
         <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 max-w-2xl">
-          This is a dummy landing page
+          More Control. Less Stress.
         </h1>
         <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-xl">
-          This is a dummy landing page
+          Mora is a daily planner app that helps you plan your day, and what's coming up.
         </p>
         <Link href="/auth/register">
           <Button size="lg" className="text-lg px-8 py-6">Try Now</Button>
