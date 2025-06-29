@@ -8,8 +8,7 @@
                 "task-master-ai"
             ],
             "env": {
-                "GOOGLE_API_KEY": "AIzaSyBYw4WO3o1qZfOa_BL2CerP5NCU-D7uUvs",
-                "PERPLEXITY_API_KEY": "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"
+                "GOOGLE_API_KEY": "AIzaSyBYw4WO3o1qZfOa_BL2CerP5NCU-D7uUvs"
             }
         }
     }
