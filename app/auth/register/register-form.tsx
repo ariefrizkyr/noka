@@ -33,6 +33,9 @@ export default function RegisterForm() {
     const { error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
     })
     setIsLoading(false)
     if (error) {
