@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mora",
-  description: "Daily Planner App. Simplified.",
+  title: "Noka",
+  description: "Personal Finance Tracker",
 };
 
 export default async function RootLayout({

@@ -21,7 +21,7 @@ export default async function LandingPage() {
     <div className="min-h-screen flex flex-col bg-white">
       {/* Navbar */}
       <nav className="flex items-center justify-between px-8 py-6 border-b">
-        <div className="text-2xl font-bold text-primary">Mora</div>
+        <div className="text-2xl font-bold text-primary">Noka</div>
         <div className="flex gap-4">
           {user ? (
             <>
@@ -50,7 +50,7 @@ export default async function LandingPage() {
           More Control. Less Stress.
         </h1>
         <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-xl">
-          Mora is a daily planner app that helps you plan your day, and what's coming up.
+          Noka is a personal finance tracker that helps you track your income, expenses, and savings.
         </p>
         <Link href="/auth/register">
           <Button size="lg" className="text-lg px-8 py-6">Try Now</Button>
