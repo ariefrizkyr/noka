@@ -16,8 +16,7 @@ CREATE TABLE transactions (
     from_account_id UUID REFERENCES accounts(id) ON DELETE RESTRICT,
     to_account_id UUID REFERENCES accounts(id) ON DELETE RESTRICT,
     
-    -- For investment transfers
-    investment_category_id UUID REFERENCES categories(id) ON DELETE RESTRICT,
+    
     
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -25,10 +24,6 @@ CREATE TABLE transactions (
     CONSTRAINT chk_transaction_consistency CHECK (
         (type IN ('income', 'expense') AND account_id IS NOT NULL AND category_id IS NOT NULL AND from_account_id IS NULL AND to_account_id IS NULL) OR
         (type = 'transfer' AND from_account_id IS NOT NULL AND to_account_id IS NOT NULL AND account_id IS NULL AND category_id IS NULL)
-    ),
-    CONSTRAINT chk_investment_transfer CHECK (
-        (type = 'transfer' AND to_account_id IN (SELECT id FROM accounts WHERE type = 'investment_account') AND investment_category_id IS NOT NULL) OR
-        (investment_category_id IS NULL)
     )
 );
 
