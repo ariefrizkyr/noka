@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
-import { createClient } from '@/lib/supabase-server';
+import { createClient } from '@/lib/supabase/server';
 import { ReactNode } from 'react';
 
 const geistSans = Geist({

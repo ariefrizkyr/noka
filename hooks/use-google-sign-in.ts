@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { createClient } from '@/lib/supabase-browser';
+import { createClient } from '@/lib/supabase/client';
 
 /**
  * useGoogleSignIn

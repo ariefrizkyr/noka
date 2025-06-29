@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase-server"
+import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
 export default async function LandingPage() {

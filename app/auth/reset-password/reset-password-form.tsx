@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
 import { toast } from "sonner"
-import { createClient } from "@/lib/supabase-browser"
+import { createClient } from "@/lib/supabase/client"
 
 const resetPasswordSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
