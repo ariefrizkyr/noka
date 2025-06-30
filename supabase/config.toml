@@ -57,7 +57,16 @@ schema_paths = []
 enabled = true
 # Specifies an ordered list of seed files to load during db reset.
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
-sql_paths = ["./seed.sql"]
+# Main seed file contains comprehensive sample data for development
+# Individual seed files provide specialized data sets for specific testing scenarios
+sql_paths = [
+  "./seed-simple.sql"       # Simple seed file that works with RLS (recommended)
+  # Alternative comprehensive seed files (require user context):
+  # "./seed.sql",              # Full comprehensive seed file with sample transactions
+  # "./seeds/categories.sql",   # Extended category definitions
+  # "./seeds/sample-accounts.sql", # Additional account scenarios  
+  # "./seeds/test-transactions.sql" # Extended transaction patterns
+]
 
 [realtime]
 enabled = true
