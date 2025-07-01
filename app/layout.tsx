@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { createClient } from '@/lib/supabase/server';
 import { ReactNode } from 'react';
+import { AuthProvider } from '@/contexts/auth-context';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,18 +26,21 @@ export default async function RootLayout({
 }: {
   children: ReactNode;
 }) {
-  // Example: Session verification in a server component
+  // Server-side session verification for SSR optimization
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  // You can pass user info to children or context here if needed
-  // Do not redirect in layout; handle in page components
+  // Note: Server-side user info is for SSR optimization only
+  // Client-side AuthProvider manages the reactive auth state
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <Toaster />
+        <AuthProvider>
+          {children}
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );
