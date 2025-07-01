@@ -235,14 +235,29 @@ class SessionManager {
     
     if (this.config.sessionTimeout <= 0) return
 
-    const expiresAt = new Date(session.expires_at!).getTime()
+    // Handle both Unix timestamp (seconds) and ISO date string
+    let expiresAtMs: number
+    if (typeof session.expires_at === 'number') {
+      // If it's a number, check if it's in seconds or milliseconds
+      // Unix timestamps in seconds are < 10^10, in milliseconds are > 10^10
+      expiresAtMs = session.expires_at < 10000000000 
+        ? session.expires_at * 1000  // Convert seconds to milliseconds
+        : session.expires_at         // Already in milliseconds
+    } else {
+      // If it's a string, parse as ISO date
+      expiresAtMs = new Date(session.expires_at!).getTime()
+    }
+
     const now = Date.now()
-    const timeUntilExpiry = expiresAt - now
+    const timeUntilExpiry = expiresAtMs - now
+
+    // Ensure we don't set negative timeouts
+    const timeoutDuration = Math.max(0, Math.min(timeUntilExpiry, this.config.sessionTimeout))
 
     // Set timer for session expiration
     this.sessionTimer = setTimeout(() => {
       this.handleSessionExpired()
-    }, Math.min(timeUntilExpiry, this.config.sessionTimeout))
+    }, timeoutDuration)
   }
 
   /**
