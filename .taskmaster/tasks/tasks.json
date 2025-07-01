@@ -3,107 +3,63 @@
     "tasks": [
       {
         "id": 1,
-        "title": "Setup Supabase Project Configuration",
-        "description": "Initialize Supabase project and configure environment variables in Next.js application",
-        "details": "Configure Supabase client in the existing Next.js project by setting up environment variables (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY). Create lib/supabase.ts for client initialization and ensure proper TypeScript configuration. Verify connection to Supabase instance.",
-        "testStrategy": "Test Supabase client connection by attempting to query auth.users table. Verify environment variables are properly loaded and client initializes without errors.",
+        "title": "Setup Supabase Authentication Integration",
+        "description": "Configure Supabase Auth client and establish authentication provider context for the application",
+        "details": "Install @supabase/supabase-js and @supabase/auth-helpers-react. Create Supabase client configuration with proper environment variables (SUPABASE_URL, SUPABASE_ANON_KEY). Set up AuthProvider context to wrap the application and provide authentication state management. Configure Supabase Auth settings including redirect URLs and email templates. Implement authentication state persistence and session management.",
+        "testStrategy": "Test Supabase client connection, verify environment variables are loaded correctly, test authentication state persistence across browser sessions, validate session token handling and automatic refresh",
         "priority": "high",
         "dependencies": [],
-        "status": "done",
+        "status": "pending",
         "subtasks": [
           {
             "id": 1,
-            "title": "Create environment variables configuration file",
-            "description": "Create .env.local file and configure Supabase environment variables",
+            "title": "Package Installation and Configuration",
+            "description": "Install Supabase client library and configure the Supabase instance with project URL and API key",
             "dependencies": [],
-            "details": "Create .env.local file in project root with NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, and SUPABASE_SERVICE_ROLE_KEY environment variables. Add .env.local to .gitignore if not already present to prevent committing sensitive credentials.",
+            "details": "Install @supabase/supabase-js package, create Supabase client configuration, and set up the basic connection to the Supabase project",
             "status": "done",
-            "testStrategy": "Verify environment variables are loaded correctly by checking process.env values in development mode"
+            "testStrategy": ""
           },
           {
             "id": 2,
-            "title": "Set up Supabase project in dashboard",
-            "description": "Create or configure Supabase project and obtain required API keys",
+            "title": "Environment Variable Setup",
+            "description": "Configure environment variables for Supabase project URL and anonymous public API key",
             "dependencies": [],
-            "details": "Create new Supabase project or use existing one. Obtain Project URL and anon public key from project settings. Generate service role key for server-side operations. Configure project settings including site URL for authentication callbacks.",
+            "details": "Create .env file with REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY variables, ensure proper variable naming and security practices",
             "status": "done",
-            "testStrategy": "Verify project is accessible and API keys are valid by testing connection from Supabase dashboard"
+            "testStrategy": ""
           },
           {
             "id": 3,
-            "title": "Configure Google OAuth provider",
-            "description": "Set up Google OAuth provider in Supabase Auth settings",
+            "title": "AuthProvider Context Creation",
+            "description": "Create React context provider for authentication state management across the application",
             "dependencies": [
               1,
               2
             ],
-            "details": "Navigate to Supabase Auth settings and configure Google OAuth provider. Set up Google Cloud Console project, obtain client ID and secret, configure authorized redirect URIs including Supabase callback URL. Enable Google provider in Supabase dashboard with proper client credentials.",
-            "status": "done",
-            "testStrategy": "Test Google OAuth flow by attempting sign-in through the application and verifying successful authentication"
+            "details": "Implement AuthContext with provider component, define authentication state interface, and create hooks for consuming auth context throughout the app",
+            "status": "pending",
+            "testStrategy": ""
           },
           {
             "id": 4,
-            "title": "Verify Supabase connection and authentication flows",
-            "description": "Test all authentication methods and verify Supabase client connectivity",
+            "title": "Session Management Implementation",
+            "description": "Implement user session handling including login, logout, and session persistence",
             "dependencies": [
-              1,
-              2,
               3
             ],
-            "details": "Test the existing authentication implementation by verifying: Google OAuth sign-in/sign-up, email/password registration and login, password reset functionality, session persistence across page refreshes, middleware route protection, and proper client/server communication with Supabase.",
-            "status": "done",
-            "testStrategy": "Perform end-to-end testing of all authentication flows including sign-up, sign-in, password reset, session management, and protected route access"
-          },
-          {
-            "id": 5,
-            "title": "Create Supabase Project and Obtain API Keys",
-            "description": "Set up a new Supabase project in the dashboard and retrieve the necessary API keys and URL for the Next.js application",
-            "dependencies": [],
-            "details": "Go to supabase.com, create a new project, navigate to Settings > API to get the project URL and anon key. Also obtain the service role key from the same section. Document these keys for the next step.",
-            "status": "done",
-            "testStrategy": "Verify keys are valid by testing a simple connection to the Supabase API"
-          },
-          {
-            "id": 6,
-            "title": "Configure Environment Variables",
-            "description": "Set up environment variables in Next.js for Supabase configuration",
-            "dependencies": [
-              5
-            ],
-            "details": "Create .env.local file with NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, and SUPABASE_SERVICE_ROLE_KEY. Ensure .env.local is in .gitignore. Create .env.example with placeholder values for team reference.",
-            "status": "done",
-            "testStrategy": "Verify environment variables are loaded correctly in the Next.js application"
-          },
-          {
-            "id": 7,
-            "title": "Create Supabase Client Configuration",
-            "description": "Implement the Supabase client initialization in lib/supabase.ts with proper TypeScript types",
-            "dependencies": [
-              6
-            ],
-            "details": "Create lib/supabase.ts file with createClient function from @supabase/supabase-js. Export both client and server-side configurations. Add proper TypeScript types for the client. Include error handling for missing environment variables.",
-            "status": "done",
-            "testStrategy": "Test client initialization and verify TypeScript compilation without errors"
-          },
-          {
-            "id": 8,
-            "title": "Verify Supabase Connection and Setup",
-            "description": "Test the Supabase connection and ensure all configurations are working correctly",
-            "dependencies": [
-              7
-            ],
-            "details": "Create a test API route or component that uses the Supabase client to verify connection. Test both client-side and server-side usage. Ensure proper error handling for connection failures. Document the setup process.",
-            "status": "done",
-            "testStrategy": "Run the Next.js application and verify successful connection to Supabase without console errors"
+            "details": "Add session state management, implement authentication methods (sign up, sign in, sign out), handle session persistence and user state updates",
+            "status": "pending",
+            "testStrategy": ""
           }
         ]
       },
       {
         "id": 2,
-        "title": "Create Database Schema with Enums and Types",
-        "description": "Implement all database enums, tables, and relationships as specified in the PRD",
-        "details": "Create migration files for: 1) account_type, category_type, transaction_type, budget_frequency enums, 2) user_settings table with currency and financial period settings, 3) accounts table with balance tracking, 4) categories table with budget support, 5) transactions table with transfer logic, 6) balance_ledger table for audit trail. Include all indexes and constraints as specified.",
-        "testStrategy": "Execute migrations and verify all tables, enums, and constraints are created correctly. Test constraint validations by attempting to insert invalid data and ensuring proper error responses.",
+        "title": "Implement Protected Routes Middleware",
+        "description": "Create route protection mechanism to secure authenticated areas of the application",
+        "details": "Create ProtectedRoute component that checks authentication status before rendering protected content. Implement redirect logic to send unauthenticated users to sign-in page. Add route guards for dashboard and onboarding pages. Handle loading states while checking authentication status. Implement automatic redirect after successful authentication to intended destination.",
+        "testStrategy": "Test route protection by accessing protected routes without authentication, verify redirects work correctly, test authentication state changes and route updates, validate loading states during auth checks",
         "priority": "high",
         "dependencies": [
           1
@@ -112,286 +68,393 @@
         "subtasks": [
           {
             "id": 1,
-            "title": "Create Database Enums Migration",
-            "description": "Create migration file to define all required database enums for the financial tracking system",
+            "title": "Create ProtectedRoute component",
+            "description": "Implement a reusable ProtectedRoute component that wraps other components and checks authentication status",
             "dependencies": [],
-            "details": "Create a Supabase migration file that defines account_type enum (checking, savings, credit_card, investment, loan, other), category_type enum (income, expense), transaction_type enum (income, expense, transfer), and budget_frequency enum (weekly, monthly, quarterly, yearly). Use proper SQL syntax for enum creation.",
+            "details": "Create a higher-order component or wrapper component that accepts children and authentication requirements as props",
             "status": "done",
-            "testStrategy": "Verify enums are created correctly by querying information_schema.types table"
+            "testStrategy": ""
           },
           {
             "id": 2,
-            "title": "Create User Settings Table",
-            "description": "Implement user_settings table with currency preferences and financial period configuration",
+            "title": "Implement redirect logic",
+            "description": "Add logic to redirect unauthenticated users to login page and handle post-authentication redirects",
             "dependencies": [
               1
             ],
-            "details": "Create user_settings table with columns: id (UUID primary key), user_id (UUID foreign key to auth.users), currency (VARCHAR default 'USD'), financial_period_start (INTEGER 1-31 for day of month), created_at and updated_at timestamps. Include RLS policies for user access control.",
+            "details": "Implement navigation logic that redirects to login when user is not authenticated and optionally stores the intended destination for post-login redirect",
             "status": "done",
-            "testStrategy": "Test table creation, constraints, and RLS policies by inserting test data and verifying access control"
+            "testStrategy": ""
           },
           {
             "id": 3,
-            "title": "Create Accounts Table with Balance Tracking",
-            "description": "Implement accounts table to store user financial accounts with current balance tracking",
+            "title": "Add loading state management",
+            "description": "Implement loading states during authentication checks to provide smooth user experience",
             "dependencies": [
               1
             ],
-            "details": "Create accounts table with columns: id (UUID primary key), user_id (UUID foreign key), name (VARCHAR), account_type (enum), current_balance (DECIMAL(12,2)), is_active (BOOLEAN default true), created_at and updated_at. Add indexes on user_id and account_type. Include RLS policies.",
+            "details": "Add loading indicators and handle async authentication state checks to prevent flickering between authenticated and unauthenticated states",
             "status": "done",
-            "testStrategy": "Verify balance precision, enum constraints, and that balance updates work correctly with sample transactions"
-          },
-          {
-            "id": 4,
-            "title": "Create Categories Table with Budget Support",
-            "description": "Implement categories table for transaction categorization with integrated budget functionality",
-            "dependencies": [
-              1
-            ],
-            "details": "Create categories table with columns: id (UUID primary key), user_id (UUID foreign key), name (VARCHAR), category_type (enum), budget_amount (DECIMAL(12,2)), budget_frequency (enum), is_active (BOOLEAN default true), created_at and updated_at. Add unique constraint on (user_id, name) and indexes on user_id and category_type.",
-            "status": "done",
-            "testStrategy": "Test category creation, budget amount validation, and frequency enum constraints"
-          },
-          {
-            "id": 5,
-            "title": "Create Transactions Table with Transfer Logic",
-            "description": "Implement transactions table to record all financial transactions including transfers between accounts",
-            "dependencies": [
-              1,
-              3,
-              4
-            ],
-            "details": "Create transactions table with columns: id (UUID primary key), user_id (UUID foreign key), account_id (UUID foreign key), category_id (UUID foreign key), transaction_type (enum), amount (DECIMAL(12,2)), description (TEXT), transaction_date (DATE), transfer_account_id (UUID foreign key, nullable for transfers), created_at and updated_at. Add indexes on user_id, account_id, transaction_date, and category_id.",
-            "status": "done",
-            "testStrategy": "Test transaction insertion, transfer logic validation, and ensure foreign key constraints work properly"
-          },
-          {
-            "id": 6,
-            "title": "Create Balance Ledger Audit Trail Table",
-            "description": "Implement balance_ledger table for maintaining audit trail of all balance changes",
-            "dependencies": [
-              1,
-              3,
-              5
-            ],
-            "details": "Create balance_ledger table with columns: id (UUID primary key), user_id (UUID foreign key), account_id (UUID foreign key), transaction_id (UUID foreign key), balance_before (DECIMAL(12,2)), balance_after (DECIMAL(12,2)), change_amount (DECIMAL(12,2)), created_at timestamp. Add indexes on user_id, account_id, and transaction_id. Create database triggers to automatically populate this table when account balances change.",
-            "status": "done",
-            "testStrategy": "Verify audit trail accuracy by performing test transactions and confirming balance_ledger entries match expected balance changes"
+            "testStrategy": ""
           }
         ]
       },
       {
         "id": 3,
-        "title": "Configure Row Level Security Policies",
-        "description": "Enable RLS on all tables and create user isolation policies - Most policies were already implemented, completed remaining gaps",
-        "status": "done",
-        "dependencies": [
-          2
-        ],
-        "priority": "high",
-        "details": "Row Level Security has been successfully configured on all core tables (user_settings, accounts, categories, transactions, balance_ledger). Most policies were already implemented in existing migrations. Completed the remaining gaps: added missing DELETE policy for user_settings and fully implemented RLS for balance_ledger table. All policies use auth.uid() = user_id isolation pattern, with balance_ledger using JOIN through accounts table for user identification.",
-        "testStrategy": "Create test users and verify data isolation by attempting cross-user data access. Ensure policies allow legitimate operations while blocking unauthorized access. Test all CRUD operations for each table, with special attention to balance_ledger's account-based user isolation.",
+        "title": "Build Landing Page with Authentication Entry Points",
+        "description": "Create public landing page with navigation, hero section, and authentication CTAs",
+        "details": "Design and implement responsive landing page with navbar containing logo and authentication buttons. Create compelling hero section highlighting Noka's value proposition with engaging visuals. Add prominent 'Get Started' and 'Sign Up' CTAs that direct to registration. Implement footer with Privacy Policy, Terms and Conditions links, and copyright information. Ensure mobile responsiveness and accessibility compliance.",
+        "testStrategy": "Test responsive design across different screen sizes, verify all navigation links work correctly, test CTA button functionality, validate accessibility with screen readers, check loading performance",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
         "subtasks": [
           {
             "id": 1,
-            "title": "Enable Row Level Security on Core Tables",
-            "description": "Enable RLS on user_settings, accounts, categories, transactions, and balance_ledger tables",
-            "status": "done",
+            "title": "Responsive Layout and Navigation Creation",
+            "description": "Create the foundational responsive layout structure and implement the main navigation system with mobile-friendly menu functionality",
             "dependencies": [],
-            "details": "RLS was already enabled on user_settings, accounts, categories, and transactions tables from existing migrations. Added RLS enablement for balance_ledger table in migration 20250102000000_complete_rls_policies.sql.",
-            "testStrategy": "Verified RLS is enabled on all tables by checking existing migrations and database state"
+            "details": "Set up the base HTML structure, CSS grid/flexbox layout, responsive breakpoints, and navigation bar with hamburger menu for mobile devices. Ensure proper accessibility attributes and semantic HTML elements.",
+            "status": "done",
+            "testStrategy": ""
           },
           {
             "id": 2,
-            "title": "Create SELECT Policies for User Data Isolation",
-            "description": "Implement SELECT policies ensuring users can only view their own data",
-            "status": "done",
+            "title": "Hero Section and CTA Implementation",
+            "description": "Design and implement the hero section with compelling content and call-to-action buttons",
             "dependencies": [
               1
             ],
-            "details": "SELECT policies were already implemented for user_settings, accounts, categories, and transactions tables. Added SELECT policy for balance_ledger table using JOIN with accounts table for user identification since balance_ledger doesn't have direct user_id column.",
-            "testStrategy": "Verified existing SELECT policies and tested new balance_ledger SELECT policy with different authenticated users"
+            "details": "Create an engaging hero section with headline, subtext, and prominent call-to-action buttons. Implement responsive typography, background imagery/gradients, and ensure CTAs are properly styled and accessible across all device sizes.",
+            "status": "done",
+            "testStrategy": ""
           },
           {
             "id": 3,
-            "title": "Create INSERT Policies for User Data Creation",
-            "description": "Implement INSERT policies to ensure users can only create records for themselves",
-            "status": "done",
+            "title": "Footer with Legal Links Setup",
+            "description": "Create a comprehensive footer section containing legal links, contact information, and additional navigation elements",
             "dependencies": [
               1
             ],
-            "details": "INSERT policies were already implemented for user_settings, accounts, categories, and transactions tables. Added INSERT policy for balance_ledger table with CHECK condition using JOIN with accounts table to ensure user can only insert records for their own accounts.",
-            "testStrategy": "Verified existing INSERT policies and tested new balance_ledger INSERT policy to ensure users can only create records for their own accounts"
-          },
-          {
-            "id": 4,
-            "title": "Create UPDATE and DELETE Policies",
-            "description": "Implement UPDATE and DELETE policies for user data modification and removal",
-            "status": "done",
-            "dependencies": [
-              1
-            ],
-            "details": "UPDATE and DELETE policies were already implemented for accounts, categories, and transactions tables. Added missing DELETE policy for user_settings table and both UPDATE and DELETE policies for balance_ledger table using account-based user isolation.",
-            "testStrategy": "Added and tested missing DELETE policy for user_settings and new UPDATE/DELETE policies for balance_ledger table"
-          },
-          {
-            "id": 5,
-            "title": "Comprehensive Multi-User Policy Testing",
-            "description": "Test all RLS policies with multiple user contexts and edge cases",
-            "status": "done",
-            "dependencies": [
-              2,
-              3,
-              4
-            ],
-            "details": "Execute comprehensive testing of all RLS policies across all tables with multiple authenticated users. Pay special attention to balance_ledger table's account-based user isolation pattern. Test edge cases including null user_id, anonymous access, and cross-user data access attempts.",
-            "testStrategy": "Execute comprehensive test suite with at least 3 different user accounts, testing all CRUD operations on all tables including the newly completed balance_ledger policies, and verifying data isolation is maintained"
+            "details": "Build a footer with links to privacy policy, terms of service, contact information, and any additional legal pages. Ensure proper spacing, typography, and responsive behavior that complements the overall page design.",
+            "status": "pending",
+            "testStrategy": ""
           }
         ]
       },
       {
         "id": 4,
-        "title": "Implement Database Functions and Triggers",
-        "description": "Create balance calculation functions and automated triggers for account balance updates",
-        "details": "Implement update_account_balance_with_ledger() function with proper credit card logic (expenses increase balance, transfers to credit cards decrease balance). Create trigger for automatic balance updates on transaction insert. Implement update_updated_at_column() function and apply to all tables. Create dashboard functions: get_financial_summary(), get_budget_progress(), get_investment_progress().",
-        "testStrategy": "Test balance calculations with various transaction types and account types, especially credit card scenarios. Verify ledger entries are created correctly. Test edge cases like negative amounts and transfers between different account types.",
+        "title": "Develop Authentication Forms (Sign Up, Sign In, Password Reset)",
+        "description": "Create authentication forms with Supabase Auth integration, validation, and error handling",
+        "details": "Build Sign Up form with email and password fields, client-side validation, and Supabase Auth integration. Create Sign In form with authentication handling and redirect logic. Implement Password Reset form that triggers Supabase Auth email flow. Add comprehensive form validation with real-time feedback. Implement loading states during authentication requests. Create user-friendly error messages for common scenarios (email already exists, invalid credentials, weak password). Add CSRF protection and input sanitization.",
+        "testStrategy": "Test all authentication flows end-to-end, validate form validation rules, test error handling for various scenarios, verify email verification process, test password reset flow, validate CSRF protection",
         "priority": "high",
         "dependencies": [
-          3
+          1
         ],
-        "status": "done",
+        "status": "pending",
         "subtasks": [
           {
             "id": 1,
-            "title": "Implement update_updated_at_column() function",
-            "description": "Create a generic PostgreSQL function that automatically updates the updated_at timestamp column whenever a row is modified",
+            "title": "Form Component Creation",
+            "description": "Create reusable form components with proper structure, styling, and accessibility features",
             "dependencies": [],
-            "details": "Create a PL/pgSQL function that sets NEW.updated_at = NOW() and returns NEW. This will be used as a trigger function across all tables to maintain consistent timestamp tracking.",
+            "details": "Build form components including input fields, labels, form containers, and submit buttons with proper HTML semantics and accessibility attributes",
             "status": "done",
-            "testStrategy": "Test by creating a test table, applying the trigger, and verifying timestamp updates on INSERT and UPDATE operations"
+            "testStrategy": ""
           },
           {
             "id": 2,
-            "title": "Apply updated_at triggers to all tables",
-            "description": "Create triggers on all existing tables to automatically update the updated_at column using the update_updated_at_column() function",
+            "title": "Validation Logic Implementation",
+            "description": "Implement comprehensive client-side and server-side validation for all form inputs",
             "dependencies": [
               1
             ],
-            "details": "Identify all tables that have updated_at columns and create BEFORE UPDATE triggers that call the update_updated_at_column() function. Ensure proper naming convention for triggers.",
+            "details": "Create validation schemas, error messaging system, and real-time validation feedback for email, password, and other form fields",
             "status": "done",
-            "testStrategy": "Verify each table's trigger by performing update operations and confirming updated_at timestamps change appropriately"
+            "testStrategy": ""
           },
           {
             "id": 3,
-            "title": "Implement update_account_balance_with_ledger() function",
-            "description": "Create the core balance calculation function that handles different account types with proper credit card logic",
-            "dependencies": [],
-            "details": "Implement PL/pgSQL function that calculates account balance by summing transactions from ledger. For credit cards: expenses increase balance (debt), transfers to credit cards decrease balance. For other accounts: standard debit/credit logic applies.",
+            "title": "Supabase Auth Integration",
+            "description": "Integrate Supabase authentication services for user registration, login, and session management",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Set up Supabase client, implement auth methods, handle authentication state, and manage user sessions",
             "status": "done",
-            "testStrategy": "Test with various account types including checking, savings, and credit cards with different transaction scenarios"
+            "testStrategy": ""
           },
           {
             "id": 4,
-            "title": "Create automatic balance update trigger",
-            "description": "Implement trigger that automatically recalculates account balances when transactions are inserted, updated, or deleted",
+            "title": "Error Handling and User Feedback",
+            "description": "Implement comprehensive error handling and user feedback mechanisms",
             "dependencies": [
+              2,
               3
             ],
-            "details": "Create trigger on transactions table that calls update_account_balance_with_ledger() for affected accounts. Handle both the source and destination accounts for transfers. Ensure trigger fires on INSERT, UPDATE, and DELETE operations.",
+            "details": "Create error boundaries, toast notifications, loading states, and success/failure feedback for all form interactions",
             "status": "done",
-            "testStrategy": "Test by adding, modifying, and deleting transactions, then verifying account balances update correctly in real-time"
+            "testStrategy": ""
           },
           {
             "id": 5,
-            "title": "Implement get_financial_summary() function",
-            "description": "Create dashboard function that provides comprehensive financial overview including total assets, liabilities, and net worth",
+            "title": "Security Measures Implementation",
+            "description": "Implement security measures including CSRF protection and input sanitization",
             "dependencies": [
-              3
+              3,
+              4
             ],
-            "details": "Develop function that aggregates account balances by type, calculates total assets (checking, savings, investments), total liabilities (credit cards, loans), and net worth. Return structured data suitable for dashboard display.",
-            "status": "done",
-            "testStrategy": "Verify calculations match manual totals across different account types and transaction scenarios"
-          },
-          {
-            "id": 6,
-            "title": "Implement get_budget_progress() function",
-            "description": "Create function that calculates budget progress by comparing actual spending against budget allocations",
-            "dependencies": [
-              3
-            ],
-            "details": "Develop function that takes date range parameters and returns budget vs actual spending by category. Calculate percentage utilization and remaining budget amounts. Handle both income and expense categories.",
-            "status": "done",
-            "testStrategy": "Test with various date ranges and budget scenarios to ensure accurate progress calculations and proper handling of over-budget situations"
-          },
-          {
-            "id": 7,
-            "title": "Implement get_investment_progress() function",
-            "description": "Create function that tracks investment account performance including gains/losses and portfolio allocation",
-            "dependencies": [
-              3
-            ],
-            "details": "Develop function that calculates investment performance metrics including current value, cost basis, unrealized gains/losses, and asset allocation percentages. Handle multiple investment accounts and asset types.",
-            "status": "done",
-            "testStrategy": "Test with sample investment data including purchases, sales, and dividend transactions to verify accurate performance calculations"
+            "details": "Add CSRF tokens, implement input sanitization, rate limiting, and other security best practices for form submissions",
+            "status": "pending",
+            "testStrategy": ""
           }
         ]
       },
       {
         "id": 5,
-        "title": "Generate TypeScript Types from Database Schema",
-        "description": "Create TypeScript type definitions that match the database schema",
-        "details": "Use Supabase CLI to generate TypeScript types from the database schema. Create types/database.ts with all table interfaces, enums, and function return types. Ensure types are properly exported and can be used throughout the application. Create additional utility types for API responses and form inputs.",
-        "testStrategy": "Verify generated types match database schema exactly. Test type safety by using types in sample code and ensuring TypeScript compilation succeeds. Validate enum types match database enum values.",
-        "priority": "medium",
+        "title": "Create Database Schema and API Endpoints",
+        "description": "Implement user_settings table schema and API endpoints for settings, accounts, and categories",
+        "details": "Create user_settings table with specified schema including currency_code, financial_month_start_day, financial_week_start_day, and onboarding_completed fields. Implement POST /api/settings endpoint with user authentication validation and input sanitization. Create POST /api/accounts endpoint for account creation during onboarding. Implement POST /api/categories endpoint for category creation. Add proper error handling, validation, and CSRF protection to all endpoints. Ensure all endpoints validate Supabase session tokens.",
+        "testStrategy": "Test database schema constraints and defaults, validate API endpoint authentication, test input validation and sanitization, verify CSRF protection, test error responses for invalid requests, validate database operations",
+        "priority": "high",
         "dependencies": [
-          4
+          1
         ],
         "status": "done",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Database Schema Design and Creation",
+            "description": "Design and implement the database schema including tables for settings, accounts, and categories with proper relationships, constraints, and indexes",
+            "dependencies": [],
+            "details": "Create migration files, define table structures, establish foreign key relationships, add appropriate indexes for performance, and ensure data integrity constraints are in place",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Authentication Middleware Setup",
+            "description": "Implement authentication middleware to secure API endpoints and validate user sessions",
+            "dependencies": [
+              1
+            ],
+            "details": "Set up JWT token validation, session management, role-based access control, and middleware integration with the API routes",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Individual API Endpoint Implementation",
+            "description": "Develop REST API endpoints for settings, accounts, and categories with CRUD operations",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Create endpoints for GET, POST, PUT, DELETE operations for each resource, implement proper HTTP status codes, and ensure endpoint security",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Input Validation and Sanitization",
+            "description": "Implement comprehensive input validation and sanitization for all API endpoints",
+            "dependencies": [
+              3
+            ],
+            "details": "Add request body validation, parameter sanitization, SQL injection prevention, XSS protection, and data type validation for all inputs",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Comprehensive Error Handling",
+            "description": "Implement robust error handling throughout the API with proper logging and user-friendly error responses",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Create centralized error handling middleware, implement logging system, define error response formats, and handle edge cases gracefully",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 6,
-        "title": "Setup Next.js API Routes Structure",
-        "description": "Create API route files and basic error handling utilities",
-        "details": "Create API route structure: pages/api/settings/index.ts, pages/api/accounts/index.ts, pages/api/categories/index.ts, pages/api/transactions/index.ts, pages/api/dashboard/index.ts. Implement basic error handling middleware, request validation utilities, and authentication helpers. Set up proper HTTP method handling and response formatting.",
-        "testStrategy": "Test each API route responds with proper HTTP status codes. Verify authentication middleware blocks unauthenticated requests. Test error handling with malformed requests and ensure consistent error response format.",
+        "title": "Build Multi-Step Onboarding Wizard Framework",
+        "description": "Create the onboarding wizard component structure with step navigation and state management",
+        "details": "Implement multi-step wizard component with step navigation, progress indicator, and state management using Zustand or React Context. Create stepper UI with back/next navigation and step validation. Implement wizard state persistence to handle page refreshes. Add loading states and error handling for each step. Create completion handler that marks onboarding as complete and redirects to dashboard. Ensure wizard is mandatory for new users and skipped for returning users.",
+        "testStrategy": "Test step navigation and validation, verify state persistence across steps, test wizard completion flow, validate mandatory nature for new users, test error handling and recovery, verify redirect behavior",
         "priority": "medium",
         "dependencies": [
+          2,
           5
         ],
-        "status": "done",
-        "subtasks": []
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Wizard Component Structure and Navigation",
+            "description": "Create the core wizard component with step-based navigation, including next/previous buttons, step indicators, and routing between wizard steps",
+            "dependencies": [],
+            "details": "Implement the foundational wizard UI structure with proper navigation controls, step progression indicators, and responsive layout for multi-step user flows",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "State Management Implementation",
+            "description": "Implement centralized state management for wizard data, including form state, step tracking, and data persistence across navigation",
+            "dependencies": [
+              1
+            ],
+            "details": "Set up state management system to handle wizard form data, current step tracking, validation states, and ensure data persistence when users navigate between steps",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Step Validation and Persistence",
+            "description": "Implement validation logic for each wizard step and data persistence mechanisms to save progress locally or remotely",
+            "dependencies": [
+              2
+            ],
+            "details": "Create validation rules for each step, implement real-time validation feedback, and set up persistence layer to save wizard progress and allow users to resume later",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Completion Flow Handling",
+            "description": "Implement the wizard completion flow, including final submission, success/error handling, and post-completion actions",
+            "dependencies": [
+              3
+            ],
+            "details": "Handle final wizard submission, implement success and error states, provide completion feedback to users, and manage post-completion navigation or actions",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 7,
-        "title": "Test Credit Card Balance Logic",
-        "description": "Comprehensive testing of credit card balance calculations and transactions",
-        "details": "Create comprehensive test suite for credit card balance logic: 1) Credit card expenses should increase balance (debt), 2) Credit card income should decrease balance (payments/cashback), 3) Transfers to credit cards should decrease balance (payments), 4) Transfers from credit cards should increase balance (cash advances). Test with positive/negative amounts and various scenarios.",
-        "testStrategy": "Create test scenarios with sample credit card accounts and execute various transaction types. Verify balance calculations match expected credit card behavior. Test ledger entries for accuracy and consistency. Validate against real-world credit card statement logic.",
-        "priority": "high",
+        "title": "Implement Onboarding Steps: Welcome, Currency & Financial Period Setup",
+        "description": "Build Steps 1-2 of onboarding wizard for welcome message, currency selection, and financial period configuration",
+        "details": "Create Step 1 with welcome message and currency selector dropdown (IDR, USD with IDR as default). Implement Step 2 with financial period configuration including financial month start day selector (1-31) and financial week start day selector (0-6, Sunday-Saturday). Add form validation for valid day ranges. Implement step completion validation before allowing progression. Style components consistently with application design system.",
+        "testStrategy": "Test currency selection and validation, verify financial period day selectors work correctly, test form validation rules, validate step progression logic, test default values, verify data persistence between steps",
+        "priority": "medium",
         "dependencies": [
           6
         ],
-        "status": "done",
-        "subtasks": []
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create welcome step with currency selection",
+            "description": "Implement the initial welcome step of the wizard that includes currency selection functionality",
+            "dependencies": [],
+            "details": "Build the welcome screen component with currency dropdown/selection interface, integrate with wizard framework, and handle currency state management",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement financial period configuration step",
+            "description": "Create the financial period configuration step with date range selection and period type options",
+            "dependencies": [
+              1
+            ],
+            "details": "Design and implement form inputs for financial period settings, including date pickers, period type selection, and integration with wizard navigation",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Add form validation and progression logic",
+            "description": "Implement comprehensive form validation rules and wizard step progression control",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Create validation schemas for currency and financial period inputs, implement step-by-step validation, add error handling, and ensure proper wizard navigation flow",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 8,
-        "title": "Create Database Seeding and Migration Scripts",
-        "description": "Develop scripts for database initialization and sample data creation",
-        "details": "Create migration scripts for production deployment and rollback procedures. Develop seeding scripts with sample categories (common expense/income categories with appropriate icons), sample account types, and test transaction data. Include script to create default user settings and validate all database functions work with realistic data.",
-        "testStrategy": "Execute migration and seeding scripts on fresh database instance. Verify all sample data is created correctly and maintains referential integrity. Test migration rollback procedures. Validate dashboard functions return expected results with seeded data.",
+        "title": "Implement Onboarding Steps: Account & Category Creation",
+        "description": "Build Steps 3-4 of onboarding wizard for initial account creation and category setup with budget/target configuration",
+        "details": "Create Step 3 with form for initial account creation including Account Name, Account Type dropdown, and Initial Balance number input. Implement Step 4 with category creation form including category name, type selection (expense/investment), emoji picker integration, and optional budget/target fields. For expense categories, add weekly/monthly budget options with amount input. For investment categories, add target configuration (monthly recurring or one-time goal). Implement form validation and submission handling. Create completion handler that saves all onboarding data and marks onboarding_completed as true.",
+        "testStrategy": "Test account creation form validation and submission, verify category creation with emoji picker functionality, test budget and target configuration options, validate completion handler saves all data correctly, test onboarding completion flag update, verify redirect to dashboard after completion",
         "priority": "medium",
         "dependencies": [
-          7
+          6
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Account Creation Form Implementation",
+            "description": "Implement the basic account creation form with user input fields and initial UI structure",
+            "dependencies": [],
+            "details": "Create form components for user registration including username, email, password fields with proper styling and layout",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Category Creation with Emoji Picker",
+            "description": "Build category creation functionality with integrated emoji picker component",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement category input fields, integrate emoji picker library, handle emoji selection and category naming",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Budget and Target Configuration Logic",
+            "description": "Develop conditional budget and target configuration system with business logic",
+            "dependencies": [
+              2
+            ],
+            "details": "Create budget input components, implement target setting logic, handle conditional display based on user selections",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Form Validation and Submission Handling",
+            "description": "Implement comprehensive form validation and backend submission handling",
+            "dependencies": [
+              3
+            ],
+            "details": "Add client-side validation rules, error handling, API integration for form submissions, success/failure states",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Onboarding Completion Flow",
+            "description": "Create the onboarding completion handler and user flow navigation",
+            "dependencies": [
+              4
+            ],
+            "details": "Implement completion logic, user flow redirection, data persistence confirmation, and transition to main application",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
       }
     ],
     "metadata": {
-      "created": "2025-06-29T05:16:20.412Z",
-      "updated": "2025-06-30T18:43:15.834Z",
+      "created": "2025-07-01T03:34:58.329Z",
+      "updated": "2025-07-01T03:43:21.952Z",
       "description": "Tasks for master context"
     }
   }

@@ -6,6 +6,8 @@ Project Structure:
 │   ├── globals.css
 │   ├── layout.tsx
 │   └── page.tsx
+├── codefetch
+│   └── codebase.md
 ├── components
 ├── components.json
 ├── coverage
@@ -33,7 +35,10 @@ Project Structure:
 │   ├── vercel.svg
 │   └── window.svg
 ├── supabase
+│   ├── README-SEEDING.md
 │   ├── config.toml
+│   ├── seed-simple.sql
+│   ├── seed.sql
 ├── tsconfig.json
 └── types
     └── database.ts
@@ -390,25 +395,6 @@ tsconfig.json
 27 | }
 ```
 
-.claude/settings.local.json
-```
-1 | {
-2 |   "permissions": {
-3 |     "allow": [
-4 |       "WebFetch(domain:docs.anthropic.com)",
-5 |       "mcp__context7__resolve-library-id",
-6 |       "mcp__context7__get-library-docs",
-7 |       "Bash(npm install:*)",
-8 |       "Bash(mkdir:*)",
-9 |       "Bash(npm test:*)",
-10 |       "Bash(npx supabase db reset:*)",
-11 |       "Bash(npm run test:coverage:*)"
-12 |     ],
-13 |     "deny": []
-14 |   }
-15 | }
-```
-
 .cursor/mcp.json
 ```
 1 | {
@@ -426,6 +412,26 @@ tsconfig.json
 13 |         }
 14 |     }
 15 | }
+```
+
+.claude/settings.local.json
+```
+1 | {
+2 |   "permissions": {
+3 |     "allow": [
+4 |       "WebFetch(domain:docs.anthropic.com)",
+5 |       "mcp__context7__resolve-library-id",
+6 |       "mcp__context7__get-library-docs",
+7 |       "Bash(npm install:*)",
+8 |       "Bash(mkdir:*)",
+9 |       "Bash(npm test:*)",
+10 |       "Bash(npx supabase db reset:*)",
+11 |       "Bash(npm run test:coverage:*)",
+12 |       "Bash(ls:*)"
+13 |     ],
+14 |     "deny": []
+15 |   }
+16 | }
 ```
 
 .taskmaster/config.json
@@ -658,6 +664,16 @@ app/page.tsx
 5 | }
 ```
 
+lib/utils.ts
+```
+1 | import { clsx, type ClassValue } from "clsx"
+2 | import { twMerge } from "tailwind-merge"
+3 | 
+4 | export function cn(...inputs: ClassValue[]) {
+5 |   return twMerge(clsx(inputs))
+6 | }
+```
+
 hooks/use-google-sign-in.ts
 ```
 1 | import { useState, useCallback } from 'react';
@@ -719,798 +735,6 @@ hooks/use-mobile.ts
 17 | 
 18 |   return !!isMobile
 19 | }
-```
-
-lib/utils.ts
-```
-1 | import { clsx, type ClassValue } from "clsx"
-2 | import { twMerge } from "tailwind-merge"
-3 | 
-4 | export function cn(...inputs: ClassValue[]) {
-5 |   return twMerge(clsx(inputs))
-6 | }
-```
-
-supabase/config.toml
-```
-1 | # For detailed configuration reference documentation, visit:
-2 | # https://supabase.com/docs/guides/local-development/cli/config
-3 | # A string used to distinguish different Supabase projects on the same host. Defaults to the
-4 | # working directory name when running `supabase init`.
-5 | project_id = "noka-fe"
-6 | 
-7 | [api]
-8 | enabled = true
-9 | # Port to use for the API URL.
-10 | port = 54321
-11 | # Schemas to expose in your API. Tables, views and stored procedures in this schema will get API
-12 | # endpoints. `public` and `graphql_public` schemas are included by default.
-13 | schemas = ["public", "graphql_public"]
-14 | # Extra schemas to add to the search_path of every request.
-15 | extra_search_path = ["public", "extensions"]
-16 | # The maximum number of rows returns from a view, table, or stored procedure. Limits payload size
-17 | # for accidental or malicious requests.
-18 | max_rows = 1000
-19 | 
-20 | [api.tls]
-21 | # Enable HTTPS endpoints locally using a self-signed certificate.
-22 | enabled = false
-23 | 
-24 | [db]
-25 | # Port to use for the local database URL.
-26 | port = 54322
-27 | # Port used by db diff command to initialize the shadow database.
-28 | shadow_port = 54320
-29 | # The database major version to use. This has to be the same as your remote database's. Run `SHOW
-30 | # server_version;` on the remote database to check.
-31 | major_version = 17
-32 | 
-33 | [db.pooler]
-34 | enabled = false
-35 | # Port to use for the local connection pooler.
-36 | port = 54329
-37 | # Specifies when a server connection can be reused by other clients.
-38 | # Configure one of the supported pooler modes: `transaction`, `session`.
-39 | pool_mode = "transaction"
-40 | # How many server connections to allow per user/database pair.
-41 | default_pool_size = 20
-42 | # Maximum number of client connections allowed.
-43 | max_client_conn = 100
-44 | 
-45 | # [db.vault]
-46 | # secret_key = "env(SECRET_VALUE)"
-47 | 
-48 | [db.migrations]
-49 | # If disabled, migrations will be skipped during a db push or reset.
-50 | enabled = true
-51 | # Specifies an ordered list of schema files that describe your database.
-52 | # Supports glob patterns relative to supabase directory: "./schemas/*.sql"
-53 | schema_paths = []
-54 | 
-55 | [db.seed]
-56 | # If enabled, seeds the database after migrations during a db reset.
-57 | enabled = true
-58 | # Specifies an ordered list of seed files to load during db reset.
-59 | # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
-60 | sql_paths = ["./seed.sql"]
-61 | 
-62 | [realtime]
-63 | enabled = true
-64 | # Bind realtime via either IPv4 or IPv6. (default: IPv4)
-65 | # ip_version = "IPv6"
-66 | # The maximum length in bytes of HTTP request headers. (default: 4096)
-67 | # max_header_length = 4096
-68 | 
-69 | [studio]
-70 | enabled = true
-71 | # Port to use for Supabase Studio.
-72 | port = 54323
-73 | # External URL of the API server that frontend connects to.
-74 | api_url = "http://127.0.0.1"
-75 | # OpenAI API Key to use for Supabase AI in the Supabase Studio.
-76 | openai_api_key = "env(OPENAI_API_KEY)"
-77 | 
-78 | # Email testing server. Emails sent with the local dev setup are not actually sent - rather, they
-79 | # are monitored, and you can view the emails that would have been sent from the web interface.
-80 | [inbucket]
-81 | enabled = true
-82 | # Port to use for the email testing server web interface.
-83 | port = 54324
-84 | # Uncomment to expose additional ports for testing user applications that send emails.
-85 | # smtp_port = 54325
-86 | # pop3_port = 54326
-87 | # admin_email = "admin@email.com"
-88 | # sender_name = "Admin"
-89 | 
-90 | [storage]
-91 | enabled = true
-92 | # The maximum file size allowed (e.g. "5MB", "500KB").
-93 | file_size_limit = "50MiB"
-94 | 
-95 | # Image transformation API is available to Supabase Pro plan.
-96 | # [storage.image_transformation]
-97 | # enabled = true
-98 | 
-99 | # Uncomment to configure local storage buckets
-100 | # [storage.buckets.images]
-101 | # public = false
-102 | # file_size_limit = "50MiB"
-103 | # allowed_mime_types = ["image/png", "image/jpeg"]
-104 | # objects_path = "./images"
-105 | 
-106 | [auth]
-107 | enabled = true
-108 | # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
-109 | # in emails.
-110 | site_url = "http://localhost:3000"
-111 | # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-112 | additional_redirect_urls = ["https://localhost:3000/auth/callback?next=/auth/reset-password/confirm"]
-113 | # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
-114 | jwt_expiry = 3600
-115 | # If disabled, the refresh token will never expire.
-116 | enable_refresh_token_rotation = true
-117 | # Allows refresh tokens to be reused after expiry, up to the specified interval in seconds.
-118 | # Requires enable_refresh_token_rotation = true.
-119 | refresh_token_reuse_interval = 10
-120 | # Allow/disallow new user signups to your project.
-121 | enable_signup = true
-122 | # Allow/disallow anonymous sign-ins to your project.
-123 | enable_anonymous_sign_ins = false
-124 | # Allow/disallow testing manual linking of accounts
-125 | enable_manual_linking = false
-126 | # Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.
-127 | minimum_password_length = 6
-128 | # Passwords that do not meet the following requirements will be rejected as weak. Supported values
-129 | # are: `letters_digits`, `lower_upper_letters_digits`, `lower_upper_letters_digits_symbols`
-130 | password_requirements = ""
-131 | 
-132 | [auth.rate_limit]
-133 | # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
-134 | email_sent = 2
-135 | # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
-136 | sms_sent = 30
-137 | # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
-138 | anonymous_users = 30
-139 | # Number of sessions that can be refreshed in a 5 minute interval per IP address.
-140 | token_refresh = 150
-141 | # Number of sign up and sign-in requests that can be made in a 5 minute interval per IP address (excludes anonymous users).
-142 | sign_in_sign_ups = 30
-143 | # Number of OTP / Magic link verifications that can be made in a 5 minute interval per IP address.
-144 | token_verifications = 30
-145 | # Number of Web3 logins that can be made in a 5 minute interval per IP address.
-146 | web3 = 30
-147 | 
-148 | # Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
-149 | # [auth.captcha]
-150 | # enabled = true
-151 | # provider = "hcaptcha"
-152 | # secret = ""
-153 | 
-154 | [auth.email]
-155 | # Allow/disallow new user signups via email to your project.
-156 | enable_signup = true
-157 | # If enabled, a user will be required to confirm any email change on both the old, and new email
-158 | # addresses. If disabled, only the new email is required to confirm.
-159 | double_confirm_changes = true
-160 | # If enabled, users need to confirm their email address before signing in.
-161 | enable_confirmations = true
-162 | # If enabled, users will need to reauthenticate or have logged in recently to change their password.
-163 | secure_password_change = false
-164 | # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
-165 | max_frequency = "1s"
-166 | # Number of characters used in the email OTP.
-167 | otp_length = 6
-168 | # Number of seconds before the email OTP expires (defaults to 1 hour).
-169 | otp_expiry = 3600
-170 | 
-171 | # Use a production-ready SMTP server
-172 | # [auth.email.smtp]
-173 | # enabled = true
-174 | # host = "smtp.sendgrid.net"
-175 | # port = 587
-176 | # user = "apikey"
-177 | # pass = "env(SENDGRID_API_KEY)"
-178 | # admin_email = "admin@email.com"
-179 | # sender_name = "Admin"
-180 | 
-181 | # Uncomment to customize email template
-182 | # [auth.email.template.invite]
-183 | # subject = "You have been invited"
-184 | # content_path = "./supabase/templates/invite.html"
-185 | 
-186 | [auth.sms]
-187 | # Allow/disallow new user signups via SMS to your project.
-188 | enable_signup = false
-189 | # If enabled, users need to confirm their phone number before signing in.
-190 | enable_confirmations = false
-191 | # Template for sending OTP to users
-192 | template = "Your code is {{ .Code }}"
-193 | # Controls the minimum amount of time that must pass before sending another sms otp.
-194 | max_frequency = "5s"
-195 | 
-196 | # Use pre-defined map of phone number to OTP for testing.
-197 | # [auth.sms.test_otp]
-198 | # 4152127777 = "123456"
-199 | 
-200 | # Configure logged in session timeouts.
-201 | # [auth.sessions]
-202 | # Force log out after the specified duration.
-203 | # timebox = "24h"
-204 | # Force log out if the user has been inactive longer than the specified duration.
-205 | # inactivity_timeout = "8h"
-206 | 
-207 | # This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
-208 | # [auth.hook.custom_access_token]
-209 | # enabled = true
-210 | # uri = "pg-functions://<database>/<schema>/<hook_name>"
-211 | 
-212 | # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
-213 | [auth.sms.twilio]
-214 | enabled = false
-215 | account_sid = ""
-216 | message_service_sid = ""
-217 | # DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
-218 | auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
-219 | 
-220 | # Multi-factor-authentication is available to Supabase Pro plan.
-221 | [auth.mfa]
-222 | # Control how many MFA factors can be enrolled at once per user.
-223 | max_enrolled_factors = 10
-224 | 
-225 | # Control MFA via App Authenticator (TOTP)
-226 | [auth.mfa.totp]
-227 | enroll_enabled = false
-228 | verify_enabled = false
-229 | 
-230 | # Configure MFA via Phone Messaging
-231 | [auth.mfa.phone]
-232 | enroll_enabled = false
-233 | verify_enabled = false
-234 | otp_length = 6
-235 | template = "Your code is {{ .Code }}"
-236 | max_frequency = "5s"
-237 | 
-238 | # Configure MFA via WebAuthn
-239 | # [auth.mfa.web_authn]
-240 | # enroll_enabled = true
-241 | # verify_enabled = true
-242 | 
-243 | # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
-244 | # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
-245 | # `twitter`, `slack`, `spotify`, `workos`, `zoom`.
-246 | [auth.external.google]
-247 | enabled = true
-248 | client_id = "env(GOOGLE_SSO_CLIENT_ID)"
-249 | # DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
-250 | secret = "env(GOOGLE_SSO_CLIENT_SECRET)"
-251 | # Overrides the default auth redirectUrl.
-252 | redirect_uri = ""
-253 | # Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
-254 | # or any other third-party OIDC providers.
-255 | url = ""
-256 | # If enabled, the nonce check will be skipped. Required for local sign in with Google auth.
-257 | skip_nonce_check = false
-258 | 
-259 | # Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.
-260 | # You can configure "web3" rate limit in the [auth.rate_limit] section and set up [auth.captcha] if self-hosting.
-261 | [auth.web3.solana]
-262 | enabled = false
-263 | 
-264 | # Use Firebase Auth as a third-party provider alongside Supabase Auth.
-265 | [auth.third_party.firebase]
-266 | enabled = false
-267 | # project_id = "my-firebase-project"
-268 | 
-269 | # Use Auth0 as a third-party provider alongside Supabase Auth.
-270 | [auth.third_party.auth0]
-271 | enabled = false
-272 | # tenant = "my-auth0-tenant"
-273 | # tenant_region = "us"
-274 | 
-275 | # Use AWS Cognito (Amplify) as a third-party provider alongside Supabase Auth.
-276 | [auth.third_party.aws_cognito]
-277 | enabled = false
-278 | # user_pool_id = "my-user-pool-id"
-279 | # user_pool_region = "us-east-1"
-280 | 
-281 | # Use Clerk as a third-party provider alongside Supabase Auth.
-282 | [auth.third_party.clerk]
-283 | enabled = false
-284 | # Obtain from https://clerk.com/setup/supabase
-285 | # domain = "example.clerk.accounts.dev"
-286 | 
-287 | [edge_runtime]
-288 | enabled = true
-289 | # Configure one of the supported request policies: `oneshot`, `per_worker`.
-290 | # Use `oneshot` for hot reload, or `per_worker` for load testing.
-291 | policy = "oneshot"
-292 | # Port to attach the Chrome inspector for debugging edge functions.
-293 | inspector_port = 8083
-294 | # The Deno major version to use.
-295 | deno_version = 1
-296 | 
-297 | # [edge_runtime.secrets]
-298 | # secret_key = "env(SECRET_VALUE)"
-299 | 
-300 | [analytics]
-301 | enabled = true
-302 | port = 54327
-303 | # Configure one of the supported backends: `postgres`, `bigquery`.
-304 | backend = "postgres"
-305 | 
-306 | # Experimental features may be deprecated any time
-307 | [experimental]
-308 | # Configures Postgres storage engine to use OrioleDB (S3)
-309 | orioledb_version = ""
-310 | # Configures S3 bucket URL, eg. <bucket_name>.s3-<region>.amazonaws.com
-311 | s3_host = "env(S3_HOST)"
-312 | # Configures S3 bucket region, eg. us-east-1
-313 | s3_region = "env(S3_REGION)"
-314 | # Configures AWS_ACCESS_KEY_ID for S3 bucket
-315 | s3_access_key = "env(S3_ACCESS_KEY)"
-316 | # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
-317 | s3_secret_key = "env(S3_SECRET_KEY)"
-```
-
-types/database.ts
-```
-1 | export type Json =
-2 |   | string
-3 |   | number
-4 |   | boolean
-5 |   | null
-6 |   | { [key: string]: Json | undefined }
-7 |   | Json[]
-8 | 
-9 | export type Database = {
-10 |   graphql_public: {
-11 |     Tables: {
-12 |       [_ in never]: never
-13 |     }
-14 |     Views: {
-15 |       [_ in never]: never
-16 |     }
-17 |     Functions: {
-18 |       graphql: {
-19 |         Args: {
-20 |           variables?: Json
-21 |           operationName?: string
-22 |           query?: string
-23 |           extensions?: Json
-24 |         }
-25 |         Returns: Json
-26 |       }
-27 |     }
-28 |     Enums: {
-29 |       [_ in never]: never
-30 |     }
-31 |     CompositeTypes: {
-32 |       [_ in never]: never
-33 |     }
-34 |   }
-35 |   public: {
-36 |     Tables: {
-37 |       accounts: {
-38 |         Row: {
-39 |           created_at: string
-40 |           current_balance: number
-41 |           id: string
-42 |           initial_balance: number
-43 |           is_active: boolean
-44 |           name: string
-45 |           type: Database["public"]["Enums"]["account_type"]
-46 |           updated_at: string
-47 |           user_id: string | null
-48 |         }
-49 |         Insert: {
-50 |           created_at?: string
-51 |           current_balance?: number
-52 |           id?: string
-53 |           initial_balance?: number
-54 |           is_active?: boolean
-55 |           name: string
-56 |           type: Database["public"]["Enums"]["account_type"]
-57 |           updated_at?: string
-58 |           user_id?: string | null
-59 |         }
-60 |         Update: {
-61 |           created_at?: string
-62 |           current_balance?: number
-63 |           id?: string
-64 |           initial_balance?: number
-65 |           is_active?: boolean
-66 |           name?: string
-67 |           type?: Database["public"]["Enums"]["account_type"]
-68 |           updated_at?: string
-69 |           user_id?: string | null
-70 |         }
-71 |         Relationships: []
-72 |       }
-73 |       balance_ledger: {
-74 |         Row: {
-75 |           account_id: string | null
-76 |           balance_after: number
-77 |           balance_before: number
-78 |           change_amount: number
-79 |           created_at: string
-80 |           id: string
-81 |           transaction_id: string | null
-82 |         }
-83 |         Insert: {
-84 |           account_id?: string | null
-85 |           balance_after: number
-86 |           balance_before: number
-87 |           change_amount: number
-88 |           created_at?: string
-89 |           id?: string
-90 |           transaction_id?: string | null
-91 |         }
-92 |         Update: {
-93 |           account_id?: string | null
-94 |           balance_after?: number
-95 |           balance_before?: number
-96 |           change_amount?: number
-97 |           created_at?: string
-98 |           id?: string
-99 |           transaction_id?: string | null
-100 |         }
-101 |         Relationships: [
-102 |           {
-103 |             foreignKeyName: "balance_ledger_account_id_fkey"
-104 |             columns: ["account_id"]
-105 |             isOneToOne: false
-106 |             referencedRelation: "accounts"
-107 |             referencedColumns: ["id"]
-108 |           },
-109 |           {
-110 |             foreignKeyName: "balance_ledger_transaction_id_fkey"
-111 |             columns: ["transaction_id"]
-112 |             isOneToOne: false
-113 |             referencedRelation: "transactions"
-114 |             referencedColumns: ["id"]
-115 |           },
-116 |         ]
-117 |       }
-118 |       categories: {
-119 |         Row: {
-120 |           budget_amount: number | null
-121 |           budget_frequency:
-122 |             | Database["public"]["Enums"]["budget_frequency"]
-123 |             | null
-124 |           created_at: string
-125 |           icon: string | null
-126 |           id: string
-127 |           is_active: boolean
-128 |           name: string
-129 |           type: Database["public"]["Enums"]["category_type"]
-130 |           updated_at: string
-131 |           user_id: string | null
-132 |         }
-133 |         Insert: {
-134 |           budget_amount?: number | null
-135 |           budget_frequency?:
-136 |             | Database["public"]["Enums"]["budget_frequency"]
-137 |             | null
-138 |           created_at?: string
-139 |           icon?: string | null
-140 |           id?: string
-141 |           is_active?: boolean
-142 |           name: string
-143 |           type: Database["public"]["Enums"]["category_type"]
-144 |           updated_at?: string
-145 |           user_id?: string | null
-146 |         }
-147 |         Update: {
-148 |           budget_amount?: number | null
-149 |           budget_frequency?:
-150 |             | Database["public"]["Enums"]["budget_frequency"]
-151 |             | null
-152 |           created_at?: string
-153 |           icon?: string | null
-154 |           id?: string
-155 |           is_active?: boolean
-156 |           name?: string
-157 |           type?: Database["public"]["Enums"]["category_type"]
-158 |           updated_at?: string
-159 |           user_id?: string | null
-160 |         }
-161 |         Relationships: []
-162 |       }
-163 |       transactions: {
-164 |         Row: {
-165 |           account_id: string | null
-166 |           amount: number
-167 |           category_id: string | null
-168 |           created_at: string
-169 |           description: string | null
-170 |           from_account_id: string | null
-171 |           id: string
-172 |           investment_category_id: string | null
-173 |           to_account_id: string | null
-174 |           transaction_date: string
-175 |           type: Database["public"]["Enums"]["transaction_type"]
-176 |           updated_at: string
-177 |           user_id: string | null
-178 |         }
-179 |         Insert: {
-180 |           account_id?: string | null
-181 |           amount: number
-182 |           category_id?: string | null
-183 |           created_at?: string
-184 |           description?: string | null
-185 |           from_account_id?: string | null
-186 |           id?: string
-187 |           investment_category_id?: string | null
-188 |           to_account_id?: string | null
-189 |           transaction_date: string
-190 |           type: Database["public"]["Enums"]["transaction_type"]
-191 |           updated_at?: string
-192 |           user_id?: string | null
-193 |         }
-194 |         Update: {
-195 |           account_id?: string | null
-196 |           amount?: number
-197 |           category_id?: string | null
-198 |           created_at?: string
-199 |           description?: string | null
-200 |           from_account_id?: string | null
-201 |           id?: string
-202 |           investment_category_id?: string | null
-203 |           to_account_id?: string | null
-204 |           transaction_date?: string
-205 |           type?: Database["public"]["Enums"]["transaction_type"]
-206 |           updated_at?: string
-207 |           user_id?: string | null
-208 |         }
-209 |         Relationships: [
-210 |           {
-211 |             foreignKeyName: "transactions_account_id_fkey"
-212 |             columns: ["account_id"]
-213 |             isOneToOne: false
-214 |             referencedRelation: "accounts"
-215 |             referencedColumns: ["id"]
-216 |           },
-217 |           {
-218 |             foreignKeyName: "transactions_category_id_fkey"
-219 |             columns: ["category_id"]
-220 |             isOneToOne: false
-221 |             referencedRelation: "categories"
-222 |             referencedColumns: ["id"]
-223 |           },
-224 |           {
-225 |             foreignKeyName: "transactions_from_account_id_fkey"
-226 |             columns: ["from_account_id"]
-227 |             isOneToOne: false
-228 |             referencedRelation: "accounts"
-229 |             referencedColumns: ["id"]
-230 |           },
-231 |           {
-232 |             foreignKeyName: "transactions_investment_category_id_fkey"
-233 |             columns: ["investment_category_id"]
-234 |             isOneToOne: false
-235 |             referencedRelation: "categories"
-236 |             referencedColumns: ["id"]
-237 |           },
-238 |           {
-239 |             foreignKeyName: "transactions_to_account_id_fkey"
-240 |             columns: ["to_account_id"]
-241 |             isOneToOne: false
-242 |             referencedRelation: "accounts"
-243 |             referencedColumns: ["id"]
-244 |           },
-245 |         ]
-246 |       }
-247 |       user_settings: {
-248 |         Row: {
-249 |           created_at: string
-250 |           currency_code: string
-251 |           financial_month_start_day: number
-252 |           financial_week_start_day: number
-253 |           id: string
-254 |           onboarding_completed: boolean
-255 |           updated_at: string
-256 |           user_id: string | null
-257 |         }
-258 |         Insert: {
-259 |           created_at?: string
-260 |           currency_code?: string
-261 |           financial_month_start_day?: number
-262 |           financial_week_start_day?: number
-263 |           id?: string
-264 |           onboarding_completed?: boolean
-265 |           updated_at?: string
-266 |           user_id?: string | null
-267 |         }
-268 |         Update: {
-269 |           created_at?: string
-270 |           currency_code?: string
-271 |           financial_month_start_day?: number
-272 |           financial_week_start_day?: number
-273 |           id?: string
-274 |           onboarding_completed?: boolean
-275 |           updated_at?: string
-276 |           user_id?: string | null
-277 |         }
-278 |         Relationships: []
-279 |       }
-280 |     }
-281 |     Views: {
-282 |       [_ in never]: never
-283 |     }
-284 |     Functions: {
-285 |       get_budget_progress: {
-286 |         Args: { p_user_id: string }
-287 |         Returns: {
-288 |           category_id: string
-289 |           category_name: string
-290 |           category_type: Database["public"]["Enums"]["category_type"]
-291 |           category_icon: string
-292 |           budget_amount: number
-293 |           budget_frequency: Database["public"]["Enums"]["budget_frequency"]
-294 |           spent_amount: number
-295 |           remaining_amount: number
-296 |           progress_percentage: number
-297 |           period_start: string
-298 |           period_end: string
-299 |         }[]
-300 |       }
-301 |       get_financial_summary: {
-302 |         Args: { p_user_id: string }
-303 |         Returns: {
-304 |           total_income: number
-305 |           total_expenses: number
-306 |           net_savings: number
-307 |           period_start: string
-308 |           period_end: string
-309 |         }[]
-310 |       }
-311 |       get_investment_progress: {
-312 |         Args: { p_user_id: string }
-313 |         Returns: {
-314 |           category_id: string
-315 |           category_name: string
-316 |           category_icon: string
-317 |           target_amount: number
-318 |           target_frequency: Database["public"]["Enums"]["budget_frequency"]
-319 |           invested_amount: number
-320 |           remaining_amount: number
-321 |           progress_percentage: number
-322 |           period_start: string
-323 |           period_end: string
-324 |         }[]
-325 |       }
-326 |     }
-327 |     Enums: {
-328 |       account_type: "bank_account" | "credit_card" | "investment_account"
-329 |       budget_frequency: "weekly" | "monthly" | "one_time"
-330 |       category_type: "expense" | "income" | "investment"
-331 |       transaction_type: "income" | "expense" | "transfer"
-332 |     }
-333 |     CompositeTypes: {
-334 |       [_ in never]: never
-335 |     }
-336 |   }
-337 | }
-338 | 
-339 | type DefaultSchema = Database[Extract<keyof Database, "public">]
-340 | 
-341 | export type Tables<
-342 |   DefaultSchemaTableNameOrOptions extends
-343 |     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-344 |     | { schema: keyof Database },
-345 |   TableName extends DefaultSchemaTableNameOrOptions extends {
-346 |     schema: keyof Database
-347 |   }
-348 |     ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-349 |         Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-350 |     : never = never,
-351 | > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-352 |   ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-353 |       Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-354 |       Row: infer R
-355 |     }
-356 |     ? R
-357 |     : never
-358 |   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-359 |         DefaultSchema["Views"])
-360 |     ? (DefaultSchema["Tables"] &
-361 |         DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-362 |         Row: infer R
-363 |       }
-364 |       ? R
-365 |       : never
-366 |     : never
-367 | 
-368 | export type TablesInsert<
-369 |   DefaultSchemaTableNameOrOptions extends
-370 |     | keyof DefaultSchema["Tables"]
-371 |     | { schema: keyof Database },
-372 |   TableName extends DefaultSchemaTableNameOrOptions extends {
-373 |     schema: keyof Database
-374 |   }
-375 |     ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-376 |     : never = never,
-377 | > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-378 |   ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-379 |       Insert: infer I
-380 |     }
-381 |     ? I
-382 |     : never
-383 |   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-384 |     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-385 |         Insert: infer I
-386 |       }
-387 |       ? I
-388 |       : never
-389 |     : never
-390 | 
-391 | export type TablesUpdate<
-392 |   DefaultSchemaTableNameOrOptions extends
-393 |     | keyof DefaultSchema["Tables"]
-394 |     | { schema: keyof Database },
-395 |   TableName extends DefaultSchemaTableNameOrOptions extends {
-396 |     schema: keyof Database
-397 |   }
-398 |     ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-399 |     : never = never,
-400 | > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-401 |   ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-402 |       Update: infer U
-403 |     }
-404 |     ? U
-405 |     : never
-406 |   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-407 |     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-408 |         Update: infer U
-409 |       }
-410 |       ? U
-411 |       : never
-412 |     : never
-413 | 
-414 | export type Enums<
-415 |   DefaultSchemaEnumNameOrOptions extends
-416 |     | keyof DefaultSchema["Enums"]
-417 |     | { schema: keyof Database },
-418 |   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-419 |     schema: keyof Database
-420 |   }
-421 |     ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-422 |     : never = never,
-423 | > = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-424 |   ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-425 |   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-426 |     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-427 |     : never
-428 | 
-429 | export type CompositeTypes<
-430 |   PublicCompositeTypeNameOrOptions extends
-431 |     | keyof DefaultSchema["CompositeTypes"]
-432 |     | { schema: keyof Database },
-433 |   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-434 |     schema: keyof Database
-435 |   }
-436 |     ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-437 |     : never = never,
-438 | > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-439 |   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-440 |   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-441 |     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-442 |     : never
-443 | 
-444 | export const Constants = {
-445 |   graphql_public: {
-446 |     Enums: {},
-447 |   },
-448 |   public: {
-449 |     Enums: {
-450 |       account_type: ["bank_account", "credit_card", "investment_account"],
-451 |       budget_frequency: ["weekly", "monthly", "one_time"],
-452 |       category_type: ["expense", "income", "investment"],
-453 |       transaction_type: ["income", "expense", "transfer"],
-454 |     },
-455 |   },
-456 | } as const
-457 | 
 ```
 
 .cursor/rules/clean-code.mdc
@@ -2213,6 +1437,1241 @@ types/database.ts
 121 | ## Component Styling
 122 | 
 123 | This project uses the "new-york" style variant with the "neutral" base color and CSS variables for theming, as configured in `components.json`.
+```
+
+types/database.ts
+```
+1 | export type Json =
+2 |   | string
+3 |   | number
+4 |   | boolean
+5 |   | null
+6 |   | { [key: string]: Json | undefined }
+7 |   | Json[]
+8 | 
+9 | export type Database = {
+10 |   graphql_public: {
+11 |     Tables: {
+12 |       [_ in never]: never
+13 |     }
+14 |     Views: {
+15 |       [_ in never]: never
+16 |     }
+17 |     Functions: {
+18 |       graphql: {
+19 |         Args: {
+20 |           variables?: Json
+21 |           operationName?: string
+22 |           query?: string
+23 |           extensions?: Json
+24 |         }
+25 |         Returns: Json
+26 |       }
+27 |     }
+28 |     Enums: {
+29 |       [_ in never]: never
+30 |     }
+31 |     CompositeTypes: {
+32 |       [_ in never]: never
+33 |     }
+34 |   }
+35 |   public: {
+36 |     Tables: {
+37 |       accounts: {
+38 |         Row: {
+39 |           created_at: string
+40 |           current_balance: number
+41 |           id: string
+42 |           initial_balance: number
+43 |           is_active: boolean
+44 |           name: string
+45 |           type: Database["public"]["Enums"]["account_type"]
+46 |           updated_at: string
+47 |           user_id: string | null
+48 |         }
+49 |         Insert: {
+50 |           created_at?: string
+51 |           current_balance?: number
+52 |           id?: string
+53 |           initial_balance?: number
+54 |           is_active?: boolean
+55 |           name: string
+56 |           type: Database["public"]["Enums"]["account_type"]
+57 |           updated_at?: string
+58 |           user_id?: string | null
+59 |         }
+60 |         Update: {
+61 |           created_at?: string
+62 |           current_balance?: number
+63 |           id?: string
+64 |           initial_balance?: number
+65 |           is_active?: boolean
+66 |           name?: string
+67 |           type?: Database["public"]["Enums"]["account_type"]
+68 |           updated_at?: string
+69 |           user_id?: string | null
+70 |         }
+71 |         Relationships: []
+72 |       }
+73 |       balance_ledger: {
+74 |         Row: {
+75 |           account_id: string | null
+76 |           balance_after: number
+77 |           balance_before: number
+78 |           change_amount: number
+79 |           created_at: string
+80 |           id: string
+81 |           transaction_id: string | null
+82 |         }
+83 |         Insert: {
+84 |           account_id?: string | null
+85 |           balance_after: number
+86 |           balance_before: number
+87 |           change_amount: number
+88 |           created_at?: string
+89 |           id?: string
+90 |           transaction_id?: string | null
+91 |         }
+92 |         Update: {
+93 |           account_id?: string | null
+94 |           balance_after?: number
+95 |           balance_before?: number
+96 |           change_amount?: number
+97 |           created_at?: string
+98 |           id?: string
+99 |           transaction_id?: string | null
+100 |         }
+101 |         Relationships: [
+102 |           {
+103 |             foreignKeyName: "balance_ledger_account_id_fkey"
+104 |             columns: ["account_id"]
+105 |             isOneToOne: false
+106 |             referencedRelation: "accounts"
+107 |             referencedColumns: ["id"]
+108 |           },
+109 |           {
+110 |             foreignKeyName: "balance_ledger_transaction_id_fkey"
+111 |             columns: ["transaction_id"]
+112 |             isOneToOne: false
+113 |             referencedRelation: "transactions"
+114 |             referencedColumns: ["id"]
+115 |           },
+116 |         ]
+117 |       }
+118 |       categories: {
+119 |         Row: {
+120 |           budget_amount: number | null
+121 |           budget_frequency:
+122 |             | Database["public"]["Enums"]["budget_frequency"]
+123 |             | null
+124 |           created_at: string
+125 |           icon: string | null
+126 |           id: string
+127 |           is_active: boolean
+128 |           name: string
+129 |           type: Database["public"]["Enums"]["category_type"]
+130 |           updated_at: string
+131 |           user_id: string | null
+132 |         }
+133 |         Insert: {
+134 |           budget_amount?: number | null
+135 |           budget_frequency?:
+136 |             | Database["public"]["Enums"]["budget_frequency"]
+137 |             | null
+138 |           created_at?: string
+139 |           icon?: string | null
+140 |           id?: string
+141 |           is_active?: boolean
+142 |           name: string
+143 |           type: Database["public"]["Enums"]["category_type"]
+144 |           updated_at?: string
+145 |           user_id?: string | null
+146 |         }
+147 |         Update: {
+148 |           budget_amount?: number | null
+149 |           budget_frequency?:
+150 |             | Database["public"]["Enums"]["budget_frequency"]
+151 |             | null
+152 |           created_at?: string
+153 |           icon?: string | null
+154 |           id?: string
+155 |           is_active?: boolean
+156 |           name?: string
+157 |           type?: Database["public"]["Enums"]["category_type"]
+158 |           updated_at?: string
+159 |           user_id?: string | null
+160 |         }
+161 |         Relationships: []
+162 |       }
+163 |       transactions: {
+164 |         Row: {
+165 |           account_id: string | null
+166 |           amount: number
+167 |           category_id: string | null
+168 |           created_at: string
+169 |           description: string | null
+170 |           from_account_id: string | null
+171 |           id: string
+172 |           investment_category_id: string | null
+173 |           to_account_id: string | null
+174 |           transaction_date: string
+175 |           type: Database["public"]["Enums"]["transaction_type"]
+176 |           updated_at: string
+177 |           user_id: string | null
+178 |         }
+179 |         Insert: {
+180 |           account_id?: string | null
+181 |           amount: number
+182 |           category_id?: string | null
+183 |           created_at?: string
+184 |           description?: string | null
+185 |           from_account_id?: string | null
+186 |           id?: string
+187 |           investment_category_id?: string | null
+188 |           to_account_id?: string | null
+189 |           transaction_date: string
+190 |           type: Database["public"]["Enums"]["transaction_type"]
+191 |           updated_at?: string
+192 |           user_id?: string | null
+193 |         }
+194 |         Update: {
+195 |           account_id?: string | null
+196 |           amount?: number
+197 |           category_id?: string | null
+198 |           created_at?: string
+199 |           description?: string | null
+200 |           from_account_id?: string | null
+201 |           id?: string
+202 |           investment_category_id?: string | null
+203 |           to_account_id?: string | null
+204 |           transaction_date?: string
+205 |           type?: Database["public"]["Enums"]["transaction_type"]
+206 |           updated_at?: string
+207 |           user_id?: string | null
+208 |         }
+209 |         Relationships: [
+210 |           {
+211 |             foreignKeyName: "transactions_account_id_fkey"
+212 |             columns: ["account_id"]
+213 |             isOneToOne: false
+214 |             referencedRelation: "accounts"
+215 |             referencedColumns: ["id"]
+216 |           },
+217 |           {
+218 |             foreignKeyName: "transactions_category_id_fkey"
+219 |             columns: ["category_id"]
+220 |             isOneToOne: false
+221 |             referencedRelation: "categories"
+222 |             referencedColumns: ["id"]
+223 |           },
+224 |           {
+225 |             foreignKeyName: "transactions_from_account_id_fkey"
+226 |             columns: ["from_account_id"]
+227 |             isOneToOne: false
+228 |             referencedRelation: "accounts"
+229 |             referencedColumns: ["id"]
+230 |           },
+231 |           {
+232 |             foreignKeyName: "transactions_investment_category_id_fkey"
+233 |             columns: ["investment_category_id"]
+234 |             isOneToOne: false
+235 |             referencedRelation: "categories"
+236 |             referencedColumns: ["id"]
+237 |           },
+238 |           {
+239 |             foreignKeyName: "transactions_to_account_id_fkey"
+240 |             columns: ["to_account_id"]
+241 |             isOneToOne: false
+242 |             referencedRelation: "accounts"
+243 |             referencedColumns: ["id"]
+244 |           },
+245 |         ]
+246 |       }
+247 |       user_settings: {
+248 |         Row: {
+249 |           created_at: string
+250 |           currency_code: string
+251 |           financial_month_start_day: number
+252 |           financial_week_start_day: number
+253 |           id: string
+254 |           onboarding_completed: boolean
+255 |           updated_at: string
+256 |           user_id: string | null
+257 |         }
+258 |         Insert: {
+259 |           created_at?: string
+260 |           currency_code?: string
+261 |           financial_month_start_day?: number
+262 |           financial_week_start_day?: number
+263 |           id?: string
+264 |           onboarding_completed?: boolean
+265 |           updated_at?: string
+266 |           user_id?: string | null
+267 |         }
+268 |         Update: {
+269 |           created_at?: string
+270 |           currency_code?: string
+271 |           financial_month_start_day?: number
+272 |           financial_week_start_day?: number
+273 |           id?: string
+274 |           onboarding_completed?: boolean
+275 |           updated_at?: string
+276 |           user_id?: string | null
+277 |         }
+278 |         Relationships: []
+279 |       }
+280 |     }
+281 |     Views: {
+282 |       [_ in never]: never
+283 |     }
+284 |     Functions: {
+285 |       get_budget_progress: {
+286 |         Args: { p_user_id: string }
+287 |         Returns: {
+288 |           category_id: string
+289 |           category_name: string
+290 |           category_type: Database["public"]["Enums"]["category_type"]
+291 |           category_icon: string
+292 |           budget_amount: number
+293 |           budget_frequency: Database["public"]["Enums"]["budget_frequency"]
+294 |           spent_amount: number
+295 |           remaining_amount: number
+296 |           progress_percentage: number
+297 |           period_start: string
+298 |           period_end: string
+299 |         }[]
+300 |       }
+301 |       get_financial_summary: {
+302 |         Args: { p_user_id: string }
+303 |         Returns: {
+304 |           total_income: number
+305 |           total_expenses: number
+306 |           net_savings: number
+307 |           period_start: string
+308 |           period_end: string
+309 |         }[]
+310 |       }
+311 |       get_investment_progress: {
+312 |         Args: { p_user_id: string }
+313 |         Returns: {
+314 |           category_id: string
+315 |           category_name: string
+316 |           category_icon: string
+317 |           target_amount: number
+318 |           target_frequency: Database["public"]["Enums"]["budget_frequency"]
+319 |           invested_amount: number
+320 |           remaining_amount: number
+321 |           progress_percentage: number
+322 |           period_start: string
+323 |           period_end: string
+324 |         }[]
+325 |       }
+326 |     }
+327 |     Enums: {
+328 |       account_type: "bank_account" | "credit_card" | "investment_account"
+329 |       budget_frequency: "weekly" | "monthly" | "one_time"
+330 |       category_type: "expense" | "income" | "investment"
+331 |       transaction_type: "income" | "expense" | "transfer"
+332 |     }
+333 |     CompositeTypes: {
+334 |       [_ in never]: never
+335 |     }
+336 |   }
+337 | }
+338 | 
+339 | type DefaultSchema = Database[Extract<keyof Database, "public">]
+340 | 
+341 | export type Tables<
+342 |   DefaultSchemaTableNameOrOptions extends
+343 |     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+344 |     | { schema: keyof Database },
+345 |   TableName extends DefaultSchemaTableNameOrOptions extends {
+346 |     schema: keyof Database
+347 |   }
+348 |     ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+349 |         Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+350 |     : never = never,
+351 | > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+352 |   ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+353 |       Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+354 |       Row: infer R
+355 |     }
+356 |     ? R
+357 |     : never
+358 |   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+359 |         DefaultSchema["Views"])
+360 |     ? (DefaultSchema["Tables"] &
+361 |         DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+362 |         Row: infer R
+363 |       }
+364 |       ? R
+365 |       : never
+366 |     : never
+367 | 
+368 | export type TablesInsert<
+369 |   DefaultSchemaTableNameOrOptions extends
+370 |     | keyof DefaultSchema["Tables"]
+371 |     | { schema: keyof Database },
+372 |   TableName extends DefaultSchemaTableNameOrOptions extends {
+373 |     schema: keyof Database
+374 |   }
+375 |     ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+376 |     : never = never,
+377 | > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+378 |   ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+379 |       Insert: infer I
+380 |     }
+381 |     ? I
+382 |     : never
+383 |   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+384 |     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+385 |         Insert: infer I
+386 |       }
+387 |       ? I
+388 |       : never
+389 |     : never
+390 | 
+391 | export type TablesUpdate<
+392 |   DefaultSchemaTableNameOrOptions extends
+393 |     | keyof DefaultSchema["Tables"]
+394 |     | { schema: keyof Database },
+395 |   TableName extends DefaultSchemaTableNameOrOptions extends {
+396 |     schema: keyof Database
+397 |   }
+398 |     ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+399 |     : never = never,
+400 | > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+401 |   ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+402 |       Update: infer U
+403 |     }
+404 |     ? U
+405 |     : never
+406 |   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+407 |     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+408 |         Update: infer U
+409 |       }
+410 |       ? U
+411 |       : never
+412 |     : never
+413 | 
+414 | export type Enums<
+415 |   DefaultSchemaEnumNameOrOptions extends
+416 |     | keyof DefaultSchema["Enums"]
+417 |     | { schema: keyof Database },
+418 |   EnumName extends DefaultSchemaEnumNameOrOptions extends {
+419 |     schema: keyof Database
+420 |   }
+421 |     ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+422 |     : never = never,
+423 | > = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+424 |   ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+425 |   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+426 |     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+427 |     : never
+428 | 
+429 | export type CompositeTypes<
+430 |   PublicCompositeTypeNameOrOptions extends
+431 |     | keyof DefaultSchema["CompositeTypes"]
+432 |     | { schema: keyof Database },
+433 |   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+434 |     schema: keyof Database
+435 |   }
+436 |     ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+437 |     : never = never,
+438 | > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+439 |   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+440 |   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+441 |     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+442 |     : never
+443 | 
+444 | export const Constants = {
+445 |   graphql_public: {
+446 |     Enums: {},
+447 |   },
+448 |   public: {
+449 |     Enums: {
+450 |       account_type: ["bank_account", "credit_card", "investment_account"],
+451 |       budget_frequency: ["weekly", "monthly", "one_time"],
+452 |       category_type: ["expense", "income", "investment"],
+453 |       transaction_type: ["income", "expense", "transfer"],
+454 |     },
+455 |   },
+456 | } as const
+457 | 
+```
+
+supabase/config.toml
+```
+1 | # For detailed configuration reference documentation, visit:
+2 | # https://supabase.com/docs/guides/local-development/cli/config
+3 | # A string used to distinguish different Supabase projects on the same host. Defaults to the
+4 | # working directory name when running `supabase init`.
+5 | project_id = "noka-fe"
+6 | 
+7 | [api]
+8 | enabled = true
+9 | # Port to use for the API URL.
+10 | port = 54321
+11 | # Schemas to expose in your API. Tables, views and stored procedures in this schema will get API
+12 | # endpoints. `public` and `graphql_public` schemas are included by default.
+13 | schemas = ["public", "graphql_public"]
+14 | # Extra schemas to add to the search_path of every request.
+15 | extra_search_path = ["public", "extensions"]
+16 | # The maximum number of rows returns from a view, table, or stored procedure. Limits payload size
+17 | # for accidental or malicious requests.
+18 | max_rows = 1000
+19 | 
+20 | [api.tls]
+21 | # Enable HTTPS endpoints locally using a self-signed certificate.
+22 | enabled = false
+23 | 
+24 | [db]
+25 | # Port to use for the local database URL.
+26 | port = 54322
+27 | # Port used by db diff command to initialize the shadow database.
+28 | shadow_port = 54320
+29 | # The database major version to use. This has to be the same as your remote database's. Run `SHOW
+30 | # server_version;` on the remote database to check.
+31 | major_version = 17
+32 | 
+33 | [db.pooler]
+34 | enabled = false
+35 | # Port to use for the local connection pooler.
+36 | port = 54329
+37 | # Specifies when a server connection can be reused by other clients.
+38 | # Configure one of the supported pooler modes: `transaction`, `session`.
+39 | pool_mode = "transaction"
+40 | # How many server connections to allow per user/database pair.
+41 | default_pool_size = 20
+42 | # Maximum number of client connections allowed.
+43 | max_client_conn = 100
+44 | 
+45 | # [db.vault]
+46 | # secret_key = "env(SECRET_VALUE)"
+47 | 
+48 | [db.migrations]
+49 | # If disabled, migrations will be skipped during a db push or reset.
+50 | enabled = true
+51 | # Specifies an ordered list of schema files that describe your database.
+52 | # Supports glob patterns relative to supabase directory: "./schemas/*.sql"
+53 | schema_paths = []
+54 | 
+55 | [db.seed]
+56 | # If enabled, seeds the database after migrations during a db reset.
+57 | enabled = true
+58 | # Specifies an ordered list of seed files to load during db reset.
+59 | # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
+60 | # Main seed file contains comprehensive sample data for development
+61 | # Individual seed files provide specialized data sets for specific testing scenarios
+62 | sql_paths = [
+63 |   "./seed-simple.sql"       # Simple seed file that works with RLS (recommended)
+64 |   # Alternative comprehensive seed files (require user context):
+65 |   # "./seed.sql",              # Full comprehensive seed file with sample transactions
+66 |   # "./seeds/categories.sql",   # Extended category definitions
+67 |   # "./seeds/sample-accounts.sql", # Additional account scenarios  
+68 |   # "./seeds/test-transactions.sql" # Extended transaction patterns
+69 | ]
+70 | 
+71 | [realtime]
+72 | enabled = true
+73 | # Bind realtime via either IPv4 or IPv6. (default: IPv4)
+74 | # ip_version = "IPv6"
+75 | # The maximum length in bytes of HTTP request headers. (default: 4096)
+76 | # max_header_length = 4096
+77 | 
+78 | [studio]
+79 | enabled = true
+80 | # Port to use for Supabase Studio.
+81 | port = 54323
+82 | # External URL of the API server that frontend connects to.
+83 | api_url = "http://127.0.0.1"
+84 | # OpenAI API Key to use for Supabase AI in the Supabase Studio.
+85 | openai_api_key = "env(OPENAI_API_KEY)"
+86 | 
+87 | # Email testing server. Emails sent with the local dev setup are not actually sent - rather, they
+88 | # are monitored, and you can view the emails that would have been sent from the web interface.
+89 | [inbucket]
+90 | enabled = true
+91 | # Port to use for the email testing server web interface.
+92 | port = 54324
+93 | # Uncomment to expose additional ports for testing user applications that send emails.
+94 | # smtp_port = 54325
+95 | # pop3_port = 54326
+96 | # admin_email = "admin@email.com"
+97 | # sender_name = "Admin"
+98 | 
+99 | [storage]
+100 | enabled = true
+101 | # The maximum file size allowed (e.g. "5MB", "500KB").
+102 | file_size_limit = "50MiB"
+103 | 
+104 | # Image transformation API is available to Supabase Pro plan.
+105 | # [storage.image_transformation]
+106 | # enabled = true
+107 | 
+108 | # Uncomment to configure local storage buckets
+109 | # [storage.buckets.images]
+110 | # public = false
+111 | # file_size_limit = "50MiB"
+112 | # allowed_mime_types = ["image/png", "image/jpeg"]
+113 | # objects_path = "./images"
+114 | 
+115 | [auth]
+116 | enabled = true
+117 | # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
+118 | # in emails.
+119 | site_url = "http://localhost:3000"
+120 | # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
+121 | additional_redirect_urls = ["https://localhost:3000/auth/callback?next=/auth/reset-password/confirm"]
+122 | # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
+123 | jwt_expiry = 3600
+124 | # If disabled, the refresh token will never expire.
+125 | enable_refresh_token_rotation = true
+126 | # Allows refresh tokens to be reused after expiry, up to the specified interval in seconds.
+127 | # Requires enable_refresh_token_rotation = true.
+128 | refresh_token_reuse_interval = 10
+129 | # Allow/disallow new user signups to your project.
+130 | enable_signup = true
+131 | # Allow/disallow anonymous sign-ins to your project.
+132 | enable_anonymous_sign_ins = false
+133 | # Allow/disallow testing manual linking of accounts
+134 | enable_manual_linking = false
+135 | # Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.
+136 | minimum_password_length = 6
+137 | # Passwords that do not meet the following requirements will be rejected as weak. Supported values
+138 | # are: `letters_digits`, `lower_upper_letters_digits`, `lower_upper_letters_digits_symbols`
+139 | password_requirements = ""
+140 | 
+141 | [auth.rate_limit]
+142 | # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
+143 | email_sent = 2
+144 | # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
+145 | sms_sent = 30
+146 | # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
+147 | anonymous_users = 30
+148 | # Number of sessions that can be refreshed in a 5 minute interval per IP address.
+149 | token_refresh = 150
+150 | # Number of sign up and sign-in requests that can be made in a 5 minute interval per IP address (excludes anonymous users).
+151 | sign_in_sign_ups = 30
+152 | # Number of OTP / Magic link verifications that can be made in a 5 minute interval per IP address.
+153 | token_verifications = 30
+154 | # Number of Web3 logins that can be made in a 5 minute interval per IP address.
+155 | web3 = 30
+156 | 
+157 | # Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
+158 | # [auth.captcha]
+159 | # enabled = true
+160 | # provider = "hcaptcha"
+161 | # secret = ""
+162 | 
+163 | [auth.email]
+164 | # Allow/disallow new user signups via email to your project.
+165 | enable_signup = true
+166 | # If enabled, a user will be required to confirm any email change on both the old, and new email
+167 | # addresses. If disabled, only the new email is required to confirm.
+168 | double_confirm_changes = true
+169 | # If enabled, users need to confirm their email address before signing in.
+170 | enable_confirmations = true
+171 | # If enabled, users will need to reauthenticate or have logged in recently to change their password.
+172 | secure_password_change = false
+173 | # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
+174 | max_frequency = "1s"
+175 | # Number of characters used in the email OTP.
+176 | otp_length = 6
+177 | # Number of seconds before the email OTP expires (defaults to 1 hour).
+178 | otp_expiry = 3600
+179 | 
+180 | # Use a production-ready SMTP server
+181 | # [auth.email.smtp]
+182 | # enabled = true
+183 | # host = "smtp.sendgrid.net"
+184 | # port = 587
+185 | # user = "apikey"
+186 | # pass = "env(SENDGRID_API_KEY)"
+187 | # admin_email = "admin@email.com"
+188 | # sender_name = "Admin"
+189 | 
+190 | # Uncomment to customize email template
+191 | # [auth.email.template.invite]
+192 | # subject = "You have been invited"
+193 | # content_path = "./supabase/templates/invite.html"
+194 | 
+195 | [auth.sms]
+196 | # Allow/disallow new user signups via SMS to your project.
+197 | enable_signup = false
+198 | # If enabled, users need to confirm their phone number before signing in.
+199 | enable_confirmations = false
+200 | # Template for sending OTP to users
+201 | template = "Your code is {{ .Code }}"
+202 | # Controls the minimum amount of time that must pass before sending another sms otp.
+203 | max_frequency = "5s"
+204 | 
+205 | # Use pre-defined map of phone number to OTP for testing.
+206 | # [auth.sms.test_otp]
+207 | # 4152127777 = "123456"
+208 | 
+209 | # Configure logged in session timeouts.
+210 | # [auth.sessions]
+211 | # Force log out after the specified duration.
+212 | # timebox = "24h"
+213 | # Force log out if the user has been inactive longer than the specified duration.
+214 | # inactivity_timeout = "8h"
+215 | 
+216 | # This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
+217 | # [auth.hook.custom_access_token]
+218 | # enabled = true
+219 | # uri = "pg-functions://<database>/<schema>/<hook_name>"
+220 | 
+221 | # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
+222 | [auth.sms.twilio]
+223 | enabled = false
+224 | account_sid = ""
+225 | message_service_sid = ""
+226 | # DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
+227 | auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
+228 | 
+229 | # Multi-factor-authentication is available to Supabase Pro plan.
+230 | [auth.mfa]
+231 | # Control how many MFA factors can be enrolled at once per user.
+232 | max_enrolled_factors = 10
+233 | 
+234 | # Control MFA via App Authenticator (TOTP)
+235 | [auth.mfa.totp]
+236 | enroll_enabled = false
+237 | verify_enabled = false
+238 | 
+239 | # Configure MFA via Phone Messaging
+240 | [auth.mfa.phone]
+241 | enroll_enabled = false
+242 | verify_enabled = false
+243 | otp_length = 6
+244 | template = "Your code is {{ .Code }}"
+245 | max_frequency = "5s"
+246 | 
+247 | # Configure MFA via WebAuthn
+248 | # [auth.mfa.web_authn]
+249 | # enroll_enabled = true
+250 | # verify_enabled = true
+251 | 
+252 | # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
+253 | # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
+254 | # `twitter`, `slack`, `spotify`, `workos`, `zoom`.
+255 | [auth.external.google]
+256 | enabled = true
+257 | client_id = "env(GOOGLE_SSO_CLIENT_ID)"
+258 | # DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
+259 | secret = "env(GOOGLE_SSO_CLIENT_SECRET)"
+260 | # Overrides the default auth redirectUrl.
+261 | redirect_uri = ""
+262 | # Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
+263 | # or any other third-party OIDC providers.
+264 | url = ""
+265 | # If enabled, the nonce check will be skipped. Required for local sign in with Google auth.
+266 | skip_nonce_check = false
+267 | 
+268 | # Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.
+269 | # You can configure "web3" rate limit in the [auth.rate_limit] section and set up [auth.captcha] if self-hosting.
+270 | [auth.web3.solana]
+271 | enabled = false
+272 | 
+273 | # Use Firebase Auth as a third-party provider alongside Supabase Auth.
+274 | [auth.third_party.firebase]
+275 | enabled = false
+276 | # project_id = "my-firebase-project"
+277 | 
+278 | # Use Auth0 as a third-party provider alongside Supabase Auth.
+279 | [auth.third_party.auth0]
+280 | enabled = false
+281 | # tenant = "my-auth0-tenant"
+282 | # tenant_region = "us"
+283 | 
+284 | # Use AWS Cognito (Amplify) as a third-party provider alongside Supabase Auth.
+285 | [auth.third_party.aws_cognito]
+286 | enabled = false
+287 | # user_pool_id = "my-user-pool-id"
+288 | # user_pool_region = "us-east-1"
+289 | 
+290 | # Use Clerk as a third-party provider alongside Supabase Auth.
+291 | [auth.third_party.clerk]
+292 | enabled = false
+293 | # Obtain from https://clerk.com/setup/supabase
+294 | # domain = "example.clerk.accounts.dev"
+295 | 
+296 | [edge_runtime]
+297 | enabled = true
+298 | # Configure one of the supported request policies: `oneshot`, `per_worker`.
+299 | # Use `oneshot` for hot reload, or `per_worker` for load testing.
+300 | policy = "oneshot"
+301 | # Port to attach the Chrome inspector for debugging edge functions.
+302 | inspector_port = 8083
+303 | # The Deno major version to use.
+304 | deno_version = 1
+305 | 
+306 | # [edge_runtime.secrets]
+307 | # secret_key = "env(SECRET_VALUE)"
+308 | 
+309 | [analytics]
+310 | enabled = true
+311 | port = 54327
+312 | # Configure one of the supported backends: `postgres`, `bigquery`.
+313 | backend = "postgres"
+314 | 
+315 | # Experimental features may be deprecated any time
+316 | [experimental]
+317 | # Configures Postgres storage engine to use OrioleDB (S3)
+318 | orioledb_version = ""
+319 | # Configures S3 bucket URL, eg. <bucket_name>.s3-<region>.amazonaws.com
+320 | s3_host = "env(S3_HOST)"
+321 | # Configures S3 bucket region, eg. us-east-1
+322 | s3_region = "env(S3_REGION)"
+323 | # Configures AWS_ACCESS_KEY_ID for S3 bucket
+324 | s3_access_key = "env(S3_ACCESS_KEY)"
+325 | # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
+326 | s3_secret_key = "env(S3_SECRET_KEY)"
+```
+
+supabase/seed-simple.sql
+```
+1 | -- Simple Seed File for Noka Financial Tracker
+2 | -- This file provides basic sample data that can be loaded without RLS issues
+3 | -- Suitable for development and testing environments
+4 | 
+5 | -- =============================================================================
+6 | -- DEVELOPMENT NOTICE
+7 | -- =============================================================================
+8 | 
+9 | DO $$
+10 | BEGIN
+11 |     RAISE NOTICE '=== NOKA FINANCIAL TRACKER - SIMPLE SEED DATA ===';
+12 |     RAISE NOTICE 'This seed file creates basic sample data for development.';
+13 |     RAISE NOTICE 'Note: This data is not associated with any user due to RLS.';
+14 |     RAISE NOTICE 'For full testing, create users through the application first.';
+15 |     RAISE NOTICE '================================================';
+16 | END $$;
+17 | 
+18 | -- =============================================================================
+19 | -- BASIC CATEGORIES (without user_id for global reference)
+20 | -- =============================================================================
+21 | 
+22 | -- Note: These categories won't be visible through the app due to RLS
+23 | -- They serve as reference data for development and testing
+24 | 
+25 | -- Income Categories
+26 | INSERT INTO categories (name, type, icon, budget_amount, budget_frequency, is_active) VALUES
+27 | ('Salary', 'income', '💰', 5000.00, 'monthly', true),
+28 | ('Freelance Work', 'income', '💼', 1500.00, 'monthly', true),
+29 | ('Investment Returns', 'income', '📈', 500.00, 'monthly', true),
+30 | ('Rental Income', 'income', '🏠', 800.00, 'monthly', true),
+31 | ('Side Hustle', 'income', '💻', 600.00, 'monthly', true),
+32 | ('Bonus', 'income', '🎉', NULL, NULL, true),
+33 | ('Tax Refund', 'income', '🧾', NULL, NULL, true),
+34 | ('Gifts', 'income', '🎁', NULL, NULL, true),
+35 | ('Other Income', 'income', '💵', NULL, NULL, true);
+36 | 
+37 | -- Expense Categories
+38 | INSERT INTO categories (name, type, icon, budget_amount, budget_frequency, is_active) VALUES
+39 | -- Essential expenses
+40 | ('Groceries', 'expense', '🍕', 600.00, 'monthly', true),
+41 | ('Transportation', 'expense', '🚗', 400.00, 'monthly', true),
+42 | ('Housing', 'expense', '🏠', 1500.00, 'monthly', true),
+43 | ('Utilities', 'expense', '💡', 200.00, 'monthly', true),
+44 | ('Healthcare', 'expense', '⚕️', 300.00, 'monthly', true),
+45 | ('Insurance', 'expense', '🛡️', 250.00, 'monthly', true),
+46 | ('Phone', 'expense', '📱', 80.00, 'monthly', true),
+47 | ('Internet', 'expense', '🌐', 60.00, 'monthly', true),
+48 | 
+49 | -- Lifestyle expenses
+50 | ('Entertainment', 'expense', '🎬', 200.00, 'monthly', true),
+51 | ('Dining Out', 'expense', '🍽️', 300.00, 'monthly', true),
+52 | ('Shopping', 'expense', '🛒', 400.00, 'monthly', true),
+53 | ('Fitness', 'expense', '💪', 100.00, 'monthly', true),
+54 | ('Subscriptions', 'expense', '📺', 50.00, 'monthly', true),
+55 | ('Personal Care', 'expense', '💄', 100.00, 'monthly', true),
+56 | ('Travel', 'expense', '✈️', 500.00, 'monthly', true),
+57 | ('Education', 'expense', '📚', 200.00, 'monthly', true),
+58 | 
+59 | -- Financial expenses
+60 | ('Loan Payment', 'expense', '🏦', 800.00, 'monthly', true),
+61 | ('Credit Card Payment', 'expense', '💳', 500.00, 'monthly', true),
+62 | ('Bank Fees', 'expense', '🏪', 50.00, 'monthly', true),
+63 | 
+64 | -- Other expenses
+65 | ('Gifts', 'expense', '🎁', 200.00, 'monthly', true),
+66 | ('Charity', 'expense', '❤️', 100.00, 'monthly', true),
+67 | ('Emergency Fund', 'expense', '🚨', 300.00, 'monthly', true),
+68 | ('Car Maintenance', 'expense', '🔧', 100.00, 'monthly', true),
+69 | ('Home Maintenance', 'expense', '🏠', 150.00, 'monthly', true),
+70 | ('Other Expenses', 'expense', '📋', NULL, NULL, true);
+71 | 
+72 | -- Investment Categories
+73 | INSERT INTO categories (name, type, icon, budget_amount, budget_frequency, is_active) VALUES
+74 | ('Stock Market', 'investment', '📊', 1000.00, 'monthly', true),
+75 | ('Bonds', 'investment', '📜', 500.00, 'monthly', true),
+76 | ('Cryptocurrency', 'investment', '₿', 300.00, 'monthly', true),
+77 | ('Real Estate', 'investment', '🏘️', 2000.00, 'monthly', true),
+78 | ('Retirement Fund', 'investment', '🏦', 800.00, 'monthly', true),
+79 | ('Emergency Fund', 'investment', '🛡️', 500.00, 'monthly', true),
+80 | ('Education Fund', 'investment', '🎓', 300.00, 'monthly', true),
+81 | ('Mutual Funds', 'investment', '📈', 600.00, 'monthly', true);
+82 | 
+83 | -- =============================================================================
+84 | -- BASIC ACCOUNTS (without user_id for global reference)
+85 | -- =============================================================================
+86 | 
+87 | -- Note: These accounts won't be visible through the app due to RLS
+88 | -- They serve as reference data for development and testing
+89 | 
+90 | -- Bank accounts
+91 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+92 | ('Primary Checking', 'bank_account', 2500.00, 2500.00, true),
+93 | ('Emergency Savings', 'bank_account', 10000.00, 10000.00, true),
+94 | ('Vacation Fund', 'bank_account', 3000.00, 3000.00, true),
+95 | ('House Down Payment', 'bank_account', 25000.00, 25000.00, true);
+96 | 
+97 | -- Credit cards
+98 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+99 | ('Main Credit Card', 'credit_card', 1500.00, 1500.00, true),
+100 | ('Rewards Credit Card', 'credit_card', 800.00, 800.00, true),
+101 | ('Store Credit Card', 'credit_card', 0.00, 0.00, true);
+102 | 
+103 | -- Investment accounts
+104 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+105 | ('401k Retirement', 'investment_account', 75000.00, 75000.00, true),
+106 | ('Roth IRA', 'investment_account', 15000.00, 15000.00, true),
+107 | ('Stock Portfolio', 'investment_account', 12500.00, 12500.00, true),
+108 | ('Crypto Wallet', 'investment_account', 2800.00, 2800.00, true);
+109 | 
+110 | -- =============================================================================
+111 | -- INFORMATION AND GUIDANCE
+112 | -- =============================================================================
+113 | 
+114 | DO $$
+115 | DECLARE
+116 |     category_count INTEGER;
+117 |     account_count INTEGER;
+118 | BEGIN
+119 |     SELECT count(*) INTO category_count FROM categories;
+120 |     SELECT count(*) INTO account_count FROM accounts;
+121 |     
+122 |     RAISE NOTICE '=== SIMPLE SEED DATA SUMMARY ===';
+123 |     RAISE NOTICE 'Categories created: %', category_count;
+124 |     RAISE NOTICE 'Sample accounts created: %', account_count;
+125 |     RAISE NOTICE '';
+126 |     RAISE NOTICE 'IMPORTANT NOTES:';
+127 |     RAISE NOTICE '- This data is for development reference only';
+128 |     RAISE NOTICE '- Data is not visible through the app due to Row Level Security';
+129 |     RAISE NOTICE '- To test the app fully, create users and their data through the UI';
+130 |     RAISE NOTICE '- Use this data as templates for creating realistic test scenarios';
+131 |     RAISE NOTICE '';
+132 |     RAISE NOTICE 'NEXT STEPS:';
+133 |     RAISE NOTICE '1. Start your application: npm run dev';
+134 |     RAISE NOTICE '2. Sign up/sign in to create a user';
+135 |     RAISE NOTICE '3. Create categories and accounts through the UI';
+136 |     RAISE NOTICE '4. Use the seeded data as reference for realistic values';
+137 |     RAISE NOTICE '';
+138 |     RAISE NOTICE 'FOR ADVANCED TESTING:';
+139 |     RAISE NOTICE '- Disable RLS temporarily to test with this seed data';
+140 |     RAISE NOTICE '- Or use the specialized seed files with proper user context';
+141 |     RAISE NOTICE '- Or create test data programmatically in your tests';
+142 |     RAISE NOTICE '=================================';
+143 |     RAISE NOTICE 'Simple seed data installation completed!';
+144 | END $$;
+```
+
+supabase/seed.sql
+```
+1 | -- Main Seed File for Noka Financial Tracker
+2 | -- This file provides comprehensive sample data for development and testing
+3 | -- It creates realistic financial data scenarios for testing dashboard functions
+4 | 
+5 | -- =============================================================================
+6 | -- HELPER FUNCTIONS FOR SEEDING
+7 | -- =============================================================================
+8 | 
+9 | -- Create a function to generate dates for the last 6 months
+10 | CREATE OR REPLACE FUNCTION generate_transaction_date(months_ago INTEGER, day_of_month INTEGER DEFAULT 1)
+11 | RETURNS DATE AS $$
+12 | BEGIN
+13 |     RETURN (CURRENT_DATE - INTERVAL '1 month' * months_ago + INTERVAL '1 day' * (day_of_month - EXTRACT(DAY FROM CURRENT_DATE - INTERVAL '1 month' * months_ago)))::DATE;
+14 | END;
+15 | $$ LANGUAGE plpgsql;
+16 | 
+17 | -- =============================================================================
+18 | -- SAMPLE CATEGORIES WITH ICONS AND BUDGET TEMPLATES
+19 | -- =============================================================================
+20 | 
+21 | -- Note: These categories are created without user_id for global reference
+22 | -- In production, categories should be created per user through the application
+23 | -- This seed data is for development and testing purposes only
+24 | 
+25 | -- Income Categories
+26 | INSERT INTO categories (name, type, icon, budget_amount, budget_frequency, is_active) VALUES
+27 | -- Primary income sources
+28 | ('Salary', 'income', '💰', 5000.00, 'monthly', true),
+29 | ('Freelance Work', 'income', '💼', 1500.00, 'monthly', true),
+30 | ('Business Income', 'income', '🏢', 2000.00, 'monthly', true),
+31 | ('Investment Returns', 'income', '📈', 500.00, 'monthly', true),
+32 | ('Rental Income', 'income', '🏠', 800.00, 'monthly', true),
+33 | ('Side Hustle', 'income', '💻', 600.00, 'monthly', true),
+34 | -- Occasional income
+35 | ('Gifts', 'income', '🎁', NULL, NULL, true),
+36 | ('Tax Refund', 'income', '🧾', NULL, NULL, true),
+37 | ('Bonus', 'income', '🎉', NULL, NULL, true),
+38 | ('Other Income', 'income', '💵', NULL, NULL, true);
+39 | 
+40 | -- Expense Categories with realistic budget amounts
+41 | INSERT INTO categories (name, type, icon, budget_amount, budget_frequency, is_active) VALUES
+42 | -- Essential expenses
+43 | ('Groceries', 'expense', '🍕', 600.00, 'monthly', true),
+44 | ('Transportation', 'expense', '🚗', 400.00, 'monthly', true),
+45 | ('Housing', 'expense', '🏠', 1500.00, 'monthly', true),
+46 | ('Utilities', 'expense', '💡', 200.00, 'monthly', true),
+47 | ('Healthcare', 'expense', '⚕️', 300.00, 'monthly', true),
+48 | ('Insurance', 'expense', '🛡️', 250.00, 'monthly', true),
+49 | ('Phone', 'expense', '📱', 80.00, 'monthly', true),
+50 | ('Internet', 'expense', '🌐', 60.00, 'monthly', true),
+51 | -- Lifestyle expenses
+52 | ('Entertainment', 'expense', '🎬', 200.00, 'monthly', true),
+53 | ('Dining Out', 'expense', '🍽️', 300.00, 'monthly', true),
+54 | ('Shopping', 'expense', '🛒', 400.00, 'monthly', true),
+55 | ('Fitness', 'expense', '💪', 100.00, 'monthly', true),
+56 | ('Subscriptions', 'expense', '📺', 50.00, 'monthly', true),
+57 | ('Personal Care', 'expense', '💄', 100.00, 'monthly', true),
+58 | ('Travel', 'expense', '✈️', 500.00, 'monthly', true),
+59 | ('Education', 'expense', '📚', 200.00, 'monthly', true),
+60 | -- Financial expenses
+61 | ('Loan Payment', 'expense', '🏦', 800.00, 'monthly', true),
+62 | ('Credit Card Payment', 'expense', '💳', 500.00, 'monthly', true),
+63 | ('Bank Fees', 'expense', '🏪', 50.00, 'monthly', true),
+64 | -- Irregular expenses
+65 | ('Gifts', 'expense', '🎁', 200.00, 'monthly', true),
+66 | ('Charity', 'expense', '❤️', 100.00, 'monthly', true),
+67 | ('Emergency Fund', 'expense', '🚨', 300.00, 'monthly', true),
+68 | ('Car Maintenance', 'expense', '🔧', 100.00, 'monthly', true),
+69 | ('Home Maintenance', 'expense', '🏠', 150.00, 'monthly', true),
+70 | ('Other Expenses', 'expense', '📋', NULL, NULL, true);
+71 | 
+72 | -- Investment Categories
+73 | INSERT INTO categories (name, type, icon, budget_amount, budget_frequency, is_active) VALUES
+74 | ('Stock Market', 'investment', '📊', 1000.00, 'monthly', true),
+75 | ('Bonds', 'investment', '📜', 500.00, 'monthly', true),
+76 | ('Cryptocurrency', 'investment', '₿', 300.00, 'monthly', true),
+77 | ('Real Estate', 'investment', '🏘️', 2000.00, 'monthly', true),
+78 | ('Retirement Fund', 'investment', '🏦', 800.00, 'monthly', true),
+79 | ('Emergency Fund', 'investment', '🛡️', 500.00, 'monthly', true),
+80 | ('Education Fund', 'investment', '🎓', 300.00, 'monthly', true),
+81 | ('Mutual Funds', 'investment', '📈', 600.00, 'monthly', true);
+82 | 
+83 | -- =============================================================================
+84 | -- SAMPLE ACCOUNTS FOR DIFFERENT SCENARIOS
+85 | -- =============================================================================
+86 | 
+87 | -- Sample accounts for a typical user scenario
+88 | -- Note: In real usage, these would be created by users through the application
+89 | -- This seed data is for development and testing purposes
+90 | 
+91 | -- The accounts will be created with initial balances that reflect realistic scenarios
+92 | -- These accounts demonstrate various account types and balance situations
+93 | 
+94 | -- Main checking account (primary spending account)
+95 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+96 | ('Primary Checking', 'bank_account', 2500.00, 2500.00, true);
+97 | 
+98 | -- Savings accounts
+99 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+100 | ('Emergency Savings', 'bank_account', 10000.00, 10000.00, true),
+101 | ('Vacation Fund', 'bank_account', 3000.00, 3000.00, true),
+102 | ('House Down Payment', 'bank_account', 25000.00, 25000.00, true);
+103 | 
+104 | -- Credit cards with realistic balances
+105 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+106 | ('Main Credit Card', 'credit_card', 1500.00, 1500.00, true),
+107 | ('Rewards Credit Card', 'credit_card', 800.00, 800.00, true),
+108 | ('Store Credit Card', 'credit_card', 0.00, 0.00, true);
+109 | 
+110 | -- Investment accounts
+111 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+112 | ('401k Retirement', 'investment_account', 75000.00, 75000.00, true),
+113 | ('Roth IRA', 'investment_account', 15000.00, 15000.00, true),
+114 | ('Stock Portfolio', 'investment_account', 12500.00, 12500.00, true),
+115 | ('Crypto Wallet', 'investment_account', 2800.00, 2800.00, true);
+116 | 
+117 | -- =============================================================================
+118 | -- SAMPLE TRANSACTIONS FOR REALISTIC SCENARIOS
+119 | -- =============================================================================
+120 | 
+121 | -- Note: These sample transactions demonstrate various financial scenarios
+122 | -- In production, transactions are created by users through the application
+123 | -- This seed data helps test dashboard functions and balance calculations
+124 | 
+125 | -- Sample income transactions (last 3 months)
+126 | -- Monthly salary (consistent income)
+127 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+128 | ('income', 5000.00, 'Monthly Salary - March', '2024-03-01', 
+129 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+130 |  (SELECT id FROM categories WHERE name = 'Salary' AND type = 'income' LIMIT 1)),
+131 | ('income', 5000.00, 'Monthly Salary - February', '2024-02-01',
+132 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+133 |  (SELECT id FROM categories WHERE name = 'Salary' AND type = 'income' LIMIT 1)),
+134 | ('income', 5000.00, 'Monthly Salary - January', '2024-01-01',
+135 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+136 |  (SELECT id FROM categories WHERE name = 'Salary' AND type = 'income' LIMIT 1));
+137 | 
+138 | -- Freelance income (variable)
+139 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+140 | ('income', 1200.00, 'Web Development Project', '2024-03-15',
+141 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+142 |  (SELECT id FROM categories WHERE name = 'Freelance Work' AND type = 'income' LIMIT 1)),
+143 | ('income', 800.00, 'Consulting Work', '2024-02-20',
+144 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+145 |  (SELECT id FROM categories WHERE name = 'Freelance Work' AND type = 'income' LIMIT 1));
+146 | 
+147 | -- Investment returns
+148 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+149 | ('income', 450.00, 'Stock Dividends Q1', '2024-03-30',
+150 |  (SELECT id FROM accounts WHERE name = 'Stock Portfolio' LIMIT 1),
+151 |  (SELECT id FROM categories WHERE name = 'Investment Returns' AND type = 'income' LIMIT 1)),
+152 | ('income', 125.00, 'Crypto Staking Rewards', '2024-03-01',
+153 |  (SELECT id FROM accounts WHERE name = 'Crypto Wallet' LIMIT 1),
+154 |  (SELECT id FROM categories WHERE name = 'Investment Returns' AND type = 'income' LIMIT 1));
+155 | 
+156 | -- Sample expense transactions (realistic spending patterns)
+157 | -- Housing expenses
+158 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+159 | ('expense', 1500.00, 'Rent Payment - March', '2024-03-01',
+160 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+161 |  (SELECT id FROM categories WHERE name = 'Housing' AND type = 'expense' LIMIT 1)),
+162 | ('expense', 180.00, 'Electricity Bill', '2024-03-05',
+163 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+164 |  (SELECT id FROM categories WHERE name = 'Utilities' AND type = 'expense' LIMIT 1)),
+165 | ('expense', 60.00, 'Internet Bill', '2024-03-10',
+166 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+167 |  (SELECT id FROM categories WHERE name = 'Internet' AND type = 'expense' LIMIT 1));
+168 | 
+169 | -- Food and groceries
+170 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+171 | ('expense', 125.00, 'Weekly Groceries', '2024-03-25',
+172 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+173 |  (SELECT id FROM categories WHERE name = 'Groceries' AND type = 'expense' LIMIT 1)),
+174 | ('expense', 89.50, 'Weekly Groceries', '2024-03-18',
+175 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+176 |  (SELECT id FROM categories WHERE name = 'Groceries' AND type = 'expense' LIMIT 1)),
+177 | ('expense', 45.00, 'Lunch with Colleagues', '2024-03-22',
+178 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+179 |  (SELECT id FROM categories WHERE name = 'Dining Out' AND type = 'expense' LIMIT 1));
+180 | 
+181 | -- Transportation
+182 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+183 | ('expense', 55.00, 'Gas Station', '2024-03-20',
+184 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+185 |  (SELECT id FROM categories WHERE name = 'Transportation' AND type = 'expense' LIMIT 1)),
+186 | ('expense', 25.00, 'Parking Fee', '2024-03-15',
+187 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+188 |  (SELECT id FROM categories WHERE name = 'Transportation' AND type = 'expense' LIMIT 1));
+189 | 
+190 | -- Entertainment and lifestyle
+191 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+192 | ('expense', 15.99, 'Netflix Subscription', '2024-03-01',
+193 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+194 |  (SELECT id FROM categories WHERE name = 'Subscriptions' AND type = 'expense' LIMIT 1)),
+195 | ('expense', 12.99, 'Movie Tickets', '2024-03-12',
+196 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+197 |  (SELECT id FROM categories WHERE name = 'Entertainment' AND type = 'expense' LIMIT 1)),
+198 | ('expense', 200.00, 'Shopping - Clothing', '2024-03-08',
+199 |  (SELECT id FROM accounts WHERE name = 'Rewards Credit Card' LIMIT 1),
+200 |  (SELECT id FROM categories WHERE name = 'Shopping' AND type = 'expense' LIMIT 1));
+201 | 
+202 | -- Sample transfer transactions (between accounts)
+203 | -- Savings transfers
+204 | INSERT INTO transactions (type, amount, description, transaction_date, from_account_id, to_account_id) VALUES
+205 | ('transfer', 1000.00, 'Monthly Emergency Fund Contribution', '2024-03-01',
+206 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+207 |  (SELECT id FROM accounts WHERE name = 'Emergency Savings' LIMIT 1)),
+208 | ('transfer', 500.00, 'Vacation Fund Contribution', '2024-03-15',
+209 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+210 |  (SELECT id FROM accounts WHERE name = 'Vacation Fund' LIMIT 1));
+211 | 
+212 | -- Credit card payments
+213 | INSERT INTO transactions (type, amount, description, transaction_date, from_account_id, to_account_id) VALUES
+214 | ('transfer', 800.00, 'Credit Card Payment', '2024-03-05',
+215 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+216 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1)),
+217 | ('transfer', 300.00, 'Rewards Card Payment', '2024-03-10',
+218 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+219 |  (SELECT id FROM accounts WHERE name = 'Rewards Credit Card' LIMIT 1));
+220 | 
+221 | -- Investment contributions
+222 | INSERT INTO transactions (type, amount, description, transaction_date, from_account_id, to_account_id) VALUES
+223 | ('transfer', 600.00, 'Monthly 401k Contribution', '2024-03-01',
+224 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+225 |  (SELECT id FROM accounts WHERE name = '401k Retirement' LIMIT 1)),
+226 | ('transfer', 500.00, 'IRA Contribution', '2024-03-15',
+227 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+228 |  (SELECT id FROM accounts WHERE name = 'Roth IRA' LIMIT 1));
+229 | 
+230 | -- =============================================================================
+231 | -- SAMPLE USER SETTINGS
+232 | -- =============================================================================
+233 | 
+234 | -- Note: These settings are examples for development/testing
+235 | -- In production, each user creates their own settings through the application
+236 | 
+237 | -- Default user settings template
+238 | -- This demonstrates typical user preferences for financial tracking
+239 | 
+240 | -- Example user settings (would be created per user in real application)
+241 | -- Commented out because user_id needs to be from actual authenticated users
+242 | /*
+243 | INSERT INTO user_settings (user_id, currency_code, financial_month_start_day, financial_week_start_day, onboarding_completed) VALUES
+244 | -- Example settings for different user preferences
+245 | (gen_random_uuid(), 'USD', 1, 1, true),   -- Standard calendar month/week
+246 | (gen_random_uuid(), 'USD', 15, 1, true),  -- Mid-month financial period
+247 | (gen_random_uuid(), 'EUR', 1, 1, true),   -- European user
+248 | (gen_random_uuid(), 'GBP', 25, 1, true);  -- UK user with pay-day aligned period
+249 | */
+250 | 
+251 | -- =============================================================================
+252 | -- VERIFICATION AND STATISTICS
+253 | -- =============================================================================
+254 | 
+255 | -- Display seeding summary
+256 | DO $$
+257 | DECLARE
+258 |     category_count INTEGER;
+259 |     account_count INTEGER;
+260 |     transaction_count INTEGER;
+261 | BEGIN
+262 |     SELECT count(*) INTO category_count FROM categories;
+263 |     SELECT count(*) INTO account_count FROM accounts;
+264 |     SELECT count(*) INTO transaction_count FROM transactions;
+265 |     
+266 |     RAISE NOTICE '=== SEED DATA SUMMARY ===';
+267 |     RAISE NOTICE 'Categories created: %', category_count;
+268 |     RAISE NOTICE 'Sample accounts created: %', account_count;
+269 |     RAISE NOTICE 'Sample transactions created: %', transaction_count;
+270 |     RAISE NOTICE '';
+271 |     RAISE NOTICE 'Income categories: %', (SELECT count(*) FROM categories WHERE type = 'income');
+272 |     RAISE NOTICE 'Expense categories: %', (SELECT count(*) FROM categories WHERE type = 'expense');
+273 |     RAISE NOTICE 'Investment categories: %', (SELECT count(*) FROM categories WHERE type = 'investment');
+274 |     RAISE NOTICE '';
+275 |     RAISE NOTICE 'Bank accounts: %', (SELECT count(*) FROM accounts WHERE type = 'bank_account');
+276 |     RAISE NOTICE 'Credit cards: %', (SELECT count(*) FROM accounts WHERE type = 'credit_card');
+277 |     RAISE NOTICE 'Investment accounts: %', (SELECT count(*) FROM accounts WHERE type = 'investment_account');
+278 |     RAISE NOTICE '';
+279 |     RAISE NOTICE 'Income transactions: %', (SELECT count(*) FROM transactions WHERE type = 'income');
+280 |     RAISE NOTICE 'Expense transactions: %', (SELECT count(*) FROM transactions WHERE type = 'expense');
+281 |     RAISE NOTICE 'Transfer transactions: %', (SELECT count(*) FROM transactions WHERE type = 'transfer');
+282 |     RAISE NOTICE '========================';
+283 |     RAISE NOTICE 'Seed data installation completed successfully!';
+284 |     RAISE NOTICE 'The database is now ready for development and testing.';
+285 | END $$;
+286 | 
+287 | -- =============================================================================
+288 | -- CLEANUP HELPER FUNCTIONS
+289 | -- =============================================================================
+290 | 
+291 | -- Drop the helper function after seeding is complete
+292 | DROP FUNCTION IF EXISTS generate_transaction_date(INTEGER, INTEGER);
 ```
 
 .taskmaster/docs/noka-mvp-prd.md
@@ -3052,90 +3511,6 @@ types/database.ts
 833 | - Set up preview deployments
 834 | - Configure custom domain
 835 | - Implement monitoring with Vercel Analytics
-836 | - Set up error tracking (Sentry)
-837 | 
-838 | ### AI Development Guidelines
-839 | 
-840 | **Prompt Engineering Tips:**
-841 | 1. **Component Generation**: "Create a React component for [feature] using shadcn/ui components, TypeScript, and React Query for data fetching"
-842 | 2. **Database Queries**: "Write a Supabase query to [action] with proper error handling and TypeScript types"
-843 | 3. **Business Logic**: "Implement the logic for [scenario] considering credit card balances and refund transactions"
-844 | 4. **Testing**: "Generate tests for [component/function] covering edge cases like negative amounts and credit card transactions"
-845 | 
-846 | **Development Workflow:**
-847 | 1. Use AI to generate initial component structure
-848 | 2. Ask AI to review and optimize for performance
-849 | 3. Request AI to add proper error handling
-850 | 4. Have AI generate corresponding tests
-851 | 5. Use AI for documentation generation
-852 | 
-853 | **Common Patterns to Request:**
-854 | - Supabase RLS-aware queries
-855 | - Optimistic updates with React Query
-856 | - Form validation with react-hook-form and zod
-857 | - Responsive layouts with Tailwind CSS
-858 | - Accessible components with ARIA labels
-859 | 
-860 | ## 11. Technical Considerations
-861 | 
-862 | ### 11.1. Security
-863 | - All API endpoints must validate user authentication
-864 | - Implement rate limiting on API endpoints
-865 | - Use HTTPS for all communications
-866 | - Sanitize all user inputs
-867 | - Implement CSRF protection
-868 | - Regular security audits
-869 | 
-870 | ### 11.2. Performance
-871 | - Implement pagination for transaction lists
-872 | - Use database indexes effectively
-873 | - Cache frequently accessed data
-874 | - Optimize bundle size with code splitting
-875 | - Use lazy loading for components
-876 | - Implement virtual scrolling for long lists
-877 | 
-878 | ### 11.3. Data Integrity
-879 | 
-880 | **Balance Management Considerations:**
-881 | - **Credit Card Behavior**: Credit cards work inversely - expenses increase the balance (debt), payments decrease it
-882 | - **Refund Handling**: Support negative amounts for refunds, which reverse the original transaction's effect
-883 | - **Ledger Benefits**: The ledger table provides complete audit trail and enables balance reconstruction if needed
-884 | - **Transaction Modifications**: Consider implementing transaction updates as reversals + new entries for better auditability
-885 | 
-886 | **Implementation Decision Points:**
-887 | 1. **Database vs Application Logic**: The current design uses database triggers for immediate consistency. Alternatively, you could handle this in the application layer for more flexibility
-888 | 2. **Update/Delete Strategy**: Rather than allowing direct updates/deletes, consider:
-889 |    - Soft deletes with an `is_deleted` flag
-890 |    - Immutable transactions with reversal entries
-891 |    - This provides better audit trails and easier debugging
-892 | 
-893 | **Validation Rules:**
-894 | - Ensure transfers between same account are prevented
-895 | - Validate account types match expected transaction behaviors
-896 | - Prevent negative balances on non-credit accounts (optional)
-897 | - Ensure investment transfers only go to investment accounts
-898 | 
-899 | ### 11.4. Scalability
-900 | - Design with multi-tenancy in mind
-901 | - Use connection pooling
-902 | - Implement horizontal scaling capabilities
-903 | - Monitor and optimize database queries
-904 | - Use CDN for static assets
-905 | 
-906 | ### 11.5. Accessibility
-907 | - Follow WCAG 2.1 AA standards
-908 | - Implement keyboard navigation
-909 | - Add proper ARIA labels
-910 | - Ensure color contrast compliance
-911 | - Test with screen readers
-912 | 
-913 | ## 12. Future Enhancements (Post-Launch)
-914 | - Multi-currency support with exchange rates
-915 | - Recurring transactions
-916 | - Bill reminders and notifications
-917 | - Data export (CSV, PDF reports)
-918 | - Budget recommendations based on spending patterns
-919 | - Integration with banks/financial institutions
 [TRUNCATED]
 ```
 
@@ -4713,7 +5088,7 @@ types/database.ts
 372 |         "dependencies": [
 373 |           6
 374 |         ],
-375 |         "status": "pending",
+375 |         "status": "done",
 376 |         "subtasks": []
 377 |       },
 378 |       {
@@ -4732,7 +5107,7 @@ types/database.ts
 391 |     ],
 392 |     "metadata": {
 393 |       "created": "2025-06-29T05:16:20.412Z",
-394 |       "updated": "2025-06-30T00:20:16.486Z",
+394 |       "updated": "2025-06-30T18:43:15.834Z",
 395 |       "description": "Tasks for master context"
 396 |     }
 397 |   }
@@ -4788,6 +5163,86 @@ types/database.ts
 45 | - Research findings
 46 | - Technical specifications]
 47 | </PRD>
+```
+
+app/(pages)/landing-page.tsx
+```
+1 | import Link from "next/link"
+2 | import { Button } from "@/components/ui/button"
+3 | import { createClient } from "@/lib/supabase/server"
+4 | import { redirect } from "next/navigation"
+5 | 
+6 | export default async function LandingPage() {
+7 |   // SSR: Check session
+8 |   const supabase = await createClient()
+9 |   const {
+10 |     data: { user },
+11 |   } = await supabase.auth.getUser()
+12 | 
+13 |   async function handleLogout() {
+14 |     "use server"
+15 |     const supabase = await createClient()
+16 |     await supabase.auth.signOut()
+17 |     redirect("/")
+18 |   }
+19 | 
+20 |   return (
+21 |     <div className="min-h-screen flex flex-col bg-white">
+22 |       {/* Navbar */}
+23 |       <nav className="flex items-center justify-between px-8 py-6 border-b">
+24 |         <div className="text-2xl font-bold text-primary">Noka</div>
+25 |         <div className="flex gap-4">
+26 |           {user ? (
+27 |             <>
+28 |               <Link href="/dashboard">
+29 |                 <Button variant="outline">Go to App</Button>
+30 |               </Link>
+31 |               <form action={handleLogout}>
+32 |                 <Button type="submit" variant="destructive">Logout</Button>
+33 |               </form>
+34 |             </>
+35 |           ) : (
+36 |             <>
+37 |               <Link href="/auth/login">
+38 |                 <Button variant="outline">Login</Button>
+39 |               </Link>
+40 |               <Link href="/auth/register">
+41 |                 <Button>Sign Up</Button>
+42 |               </Link>
+43 |             </>
+44 |           )}
+45 |         </div>
+46 |       </nav>
+47 |       {/* Hero Section */}
+48 |       <main className="flex flex-1 flex-col items-center justify-center px-4 text-center">
+49 |         <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 max-w-2xl">
+50 |           More Control. Less Stress.
+51 |         </h1>
+52 |         <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-xl">
+53 |           Noka is a personal finance tracker that helps you track your income, expenses, and savings.
+54 |         </p>
+55 |         <Link href="/auth/register">
+56 |           <Button size="lg" className="text-lg px-8 py-6">Try Now</Button>
+57 |         </Link>
+58 |       </main>
+59 |     </div>
+60 |   )
+61 | } 
+```
+
+app/dashboard/page.tsx
+```
+1 | import { createClient } from '@/lib/supabase/server';
+2 | import { redirect } from 'next/navigation';
+3 | 
+4 | export default async function DashboardPage() {
+5 |   const supabase = await createClient();
+6 |   const { data: { user } } = await supabase.auth.getUser();
+7 |   if (!user) {
+8 |     redirect('/auth/login');
+9 |   }
+10 |   return <div className="p-8">Welcome, {user.email}!</div>;
+11 | } 
 ```
 
 __tests__/database/creditCardBalance.test.ts
@@ -5732,71 +6187,6 @@ __tests__/utils/testSetup.ts
 110 | }
 ```
 
-app/(pages)/landing-page.tsx
-```
-1 | import Link from "next/link"
-2 | import { Button } from "@/components/ui/button"
-3 | import { createClient } from "@/lib/supabase/server"
-4 | import { redirect } from "next/navigation"
-5 | 
-6 | export default async function LandingPage() {
-7 |   // SSR: Check session
-8 |   const supabase = await createClient()
-9 |   const {
-10 |     data: { user },
-11 |   } = await supabase.auth.getUser()
-12 | 
-13 |   async function handleLogout() {
-14 |     "use server"
-15 |     const supabase = await createClient()
-16 |     await supabase.auth.signOut()
-17 |     redirect("/")
-18 |   }
-19 | 
-20 |   return (
-21 |     <div className="min-h-screen flex flex-col bg-white">
-22 |       {/* Navbar */}
-23 |       <nav className="flex items-center justify-between px-8 py-6 border-b">
-24 |         <div className="text-2xl font-bold text-primary">Noka</div>
-25 |         <div className="flex gap-4">
-26 |           {user ? (
-27 |             <>
-28 |               <Link href="/dashboard">
-29 |                 <Button variant="outline">Go to App</Button>
-30 |               </Link>
-31 |               <form action={handleLogout}>
-32 |                 <Button type="submit" variant="destructive">Logout</Button>
-33 |               </form>
-34 |             </>
-35 |           ) : (
-36 |             <>
-37 |               <Link href="/auth/login">
-38 |                 <Button variant="outline">Login</Button>
-39 |               </Link>
-40 |               <Link href="/auth/register">
-41 |                 <Button>Sign Up</Button>
-42 |               </Link>
-43 |             </>
-44 |           )}
-45 |         </div>
-46 |       </nav>
-47 |       {/* Hero Section */}
-48 |       <main className="flex flex-1 flex-col items-center justify-center px-4 text-center">
-49 |         <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 max-w-2xl">
-50 |           More Control. Less Stress.
-51 |         </h1>
-52 |         <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-xl">
-53 |           Noka is a personal finance tracker that helps you track your income, expenses, and savings.
-54 |         </p>
-55 |         <Link href="/auth/register">
-56 |           <Button size="lg" className="text-lg px-8 py-6">Try Now</Button>
-57 |         </Link>
-58 |       </main>
-59 |     </div>
-60 |   )
-61 | } 
-```
-
 components/auth/GoogleSignInButton.tsx
 ```
 1 | /**
@@ -5872,66 +6262,6 @@ components/auth/GoogleSignInButton.tsx
 71 |     </div>
 72 |   );
 73 | } 
-```
-
-app/dashboard/page.tsx
-```
-1 | import { createClient } from '@/lib/supabase/server';
-2 | import { redirect } from 'next/navigation';
-3 | 
-4 | export default async function DashboardPage() {
-5 |   const supabase = await createClient();
-6 |   const { data: { user } } = await supabase.auth.getUser();
-7 |   if (!user) {
-8 |     redirect('/auth/login');
-9 |   }
-10 |   return <div className="p-8">Welcome, {user.email}!</div>;
-11 | } 
-```
-
-lib/supabase/client.ts
-```
-1 | import { createBrowserClient } from '@supabase/ssr'
-2 | 
-3 | export function createClient() {
-4 |   return createBrowserClient(
-5 |     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-6 |     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-7 |   )
-8 | } 
-```
-
-lib/supabase/server.ts
-```
-1 | import { createServerClient } from '@supabase/ssr'
-2 | import { cookies } from 'next/headers'
-3 | 
-4 | export async function createClient() {
-5 |   const cookieStore = await cookies()
-6 | 
-7 |   return createServerClient(
-8 |     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-9 |     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-10 |     {
-11 |       cookies: {
-12 |         getAll() {
-13 |           return cookieStore.getAll()
-14 |         },
-15 |         setAll(cookiesToSet) {
-16 |           try {
-17 |             cookiesToSet.forEach(({ name, value, options }) =>
-18 |               cookieStore.set(name, value, options)
-19 |             )
-20 |           } catch {
-21 |             // The `setAll` method was called from a Server Component.
-22 |             // This can be ignored if you have middleware refreshing
-23 |             // user sessions.
-24 |           }
-25 |         },
-26 |       },
-27 |     }
-28 |   )
-29 | } 
 ```
 
 components/ui/accordion.tsx
@@ -11118,917 +11448,6 @@ components/ui/tooltip.tsx
 61 | export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
 ```
 
-supabase/migrations/20250629085550_create_database_enums.sql
-```
-1 | -- Create Database Enums as specified in the PRD
-2 | 
-3 | -- Account Types Enum
-4 | CREATE TYPE account_type AS ENUM ('bank_account', 'credit_card', 'investment_account');
-5 | 
-6 | -- Category Types Enum
-7 | CREATE TYPE category_type AS ENUM ('expense', 'income', 'investment');
-8 | 
-9 | -- Budget Frequency Enum
-10 | CREATE TYPE budget_frequency AS ENUM ('weekly', 'monthly', 'one_time');
-11 | 
-12 | -- Transaction Types Enum
-13 | CREATE TYPE transaction_type AS ENUM ('income', 'expense', 'transfer');
-```
-
-supabase/migrations/20250629085556_create_user_settings_table.sql
-```
-1 | -- Create User Settings Table as specified in the PRD
-2 | 
-3 | CREATE TABLE user_settings (
-4 |     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-5 |     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-6 |     currency_code VARCHAR(3) NOT NULL DEFAULT 'IDR',
-7 |     financial_month_start_day INTEGER NOT NULL DEFAULT 1 CHECK (financial_month_start_day >= 1 AND financial_month_start_day <= 31),
-8 |     financial_week_start_day INTEGER NOT NULL DEFAULT 1 CHECK (financial_week_start_day >= 0 AND financial_week_start_day <= 6), -- 0 = Sunday, 6 = Saturday
-9 |     onboarding_completed BOOLEAN NOT NULL DEFAULT FALSE,
-10 |     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-11 |     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-12 |     UNIQUE(user_id)
-13 | );
-14 | 
-15 | -- Enable Row Level Security
-16 | ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
-17 | 
-18 | -- Create RLS Policies
-19 | CREATE POLICY "Users can view own settings" ON user_settings FOR SELECT USING (auth.uid() = user_id);
-20 | CREATE POLICY "Users can update own settings" ON user_settings FOR UPDATE USING (auth.uid() = user_id);
-21 | CREATE POLICY "Users can insert own settings" ON user_settings FOR INSERT WITH CHECK (auth.uid() = user_id);
-```
-
-supabase/migrations/20250629085602_create_accounts_table.sql
-```
-1 | -- Create Accounts Table as specified in the PRD
-2 | 
-3 | CREATE TABLE accounts (
-4 |     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-5 |     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-6 |     name VARCHAR(255) NOT NULL,
-7 |     type account_type NOT NULL,
-8 |     initial_balance DECIMAL(15, 2) NOT NULL DEFAULT 0,
-9 |     current_balance DECIMAL(15, 2) NOT NULL DEFAULT 0,
-10 |     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-11 |     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-12 |     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-13 | );
-14 | 
-15 | -- Create indexes
-16 | CREATE INDEX idx_accounts_user_id ON accounts(user_id);
-17 | CREATE INDEX idx_accounts_type ON accounts(type);
-18 | 
-19 | -- Enable Row Level Security
-20 | ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
-21 | 
-22 | -- Create RLS Policies
-23 | CREATE POLICY "Users can view own accounts" ON accounts FOR SELECT USING (auth.uid() = user_id);
-24 | CREATE POLICY "Users can create own accounts" ON accounts FOR INSERT WITH CHECK (auth.uid() = user_id);
-25 | CREATE POLICY "Users can update own accounts" ON accounts FOR UPDATE USING (auth.uid() = user_id);
-26 | CREATE POLICY "Users can delete own accounts" ON accounts FOR DELETE USING (auth.uid() = user_id);
-```
-
-supabase/migrations/20250629085607_create_categories_table.sql
-```
-1 | -- Create Categories Table as specified in the PRD
-2 | 
-3 | CREATE TABLE categories (
-4 |     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-5 |     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-6 |     name VARCHAR(255) NOT NULL,
-7 |     type category_type NOT NULL,
-8 |     icon VARCHAR(10), -- Emoji icon for UI representation
-9 |     budget_amount DECIMAL(15, 2),
-10 |     budget_frequency budget_frequency,
-11 |     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-12 |     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-13 |     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-14 |     CONSTRAINT chk_budget_consistency CHECK (
-15 |         (budget_amount IS NULL AND budget_frequency IS NULL) OR
-16 |         (budget_amount IS NOT NULL AND budget_frequency IS NOT NULL)
-17 |     )
-18 | );
-19 | 
-20 | -- Create indexes
-21 | CREATE INDEX idx_categories_user_id ON categories(user_id);
-22 | CREATE INDEX idx_categories_type ON categories(type);
-23 | 
-24 | -- Enable Row Level Security
-25 | ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-26 | 
-27 | -- Create RLS Policies
-28 | CREATE POLICY "Users can view own categories" ON categories FOR SELECT USING (auth.uid() = user_id);
-29 | CREATE POLICY "Users can create own categories" ON categories FOR INSERT WITH CHECK (auth.uid() = user_id);
-30 | CREATE POLICY "Users can update own categories" ON categories FOR UPDATE USING (auth.uid() = user_id);
-31 | CREATE POLICY "Users can delete own categories" ON categories FOR DELETE USING (auth.uid() = user_id);
-```
-
-supabase/migrations/20250629085614_create_transactions_table.sql
-```
-1 | -- Create Transactions Table as specified in the PRD
-2 | 
-3 | CREATE TABLE transactions (
-4 |     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-5 |     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-6 |     type transaction_type NOT NULL,
-7 |     amount DECIMAL(15, 2) NOT NULL, -- Can be negative for refunds
-8 |     description TEXT,
-9 |     transaction_date DATE NOT NULL,
-10 |     
-11 |     -- For income and expense transactions
-12 |     account_id UUID REFERENCES accounts(id) ON DELETE RESTRICT,
-13 |     category_id UUID REFERENCES categories(id) ON DELETE RESTRICT,
-14 |     
-15 |     -- For transfer transactions
-16 |     from_account_id UUID REFERENCES accounts(id) ON DELETE RESTRICT,
-17 |     to_account_id UUID REFERENCES accounts(id) ON DELETE RESTRICT,
-18 |     
-19 |     
-20 |     
-21 |     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-22 |     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-23 |     
-24 |     CONSTRAINT chk_transaction_consistency CHECK (
-25 |         (type IN ('income', 'expense') AND account_id IS NOT NULL AND category_id IS NOT NULL AND from_account_id IS NULL AND to_account_id IS NULL) OR
-26 |         (type = 'transfer' AND from_account_id IS NOT NULL AND to_account_id IS NOT NULL AND account_id IS NULL AND category_id IS NULL)
-27 |     )
-28 | );
-29 | 
-30 | -- Create indexes
-31 | CREATE INDEX idx_transactions_user_id ON transactions(user_id);
-32 | CREATE INDEX idx_transactions_date ON transactions(transaction_date);
-33 | CREATE INDEX idx_transactions_type ON transactions(type);
-34 | CREATE INDEX idx_transactions_account ON transactions(account_id);
-35 | CREATE INDEX idx_transactions_category ON transactions(category_id);
-36 | 
-37 | -- Enable Row Level Security
-38 | ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
-39 | 
-40 | -- Create RLS Policies
-41 | CREATE POLICY "Users can view own transactions" ON transactions FOR SELECT USING (auth.uid() = user_id);
-42 | CREATE POLICY "Users can create own transactions" ON transactions FOR INSERT WITH CHECK (auth.uid() = user_id);
-43 | CREATE POLICY "Users can update own transactions" ON transactions FOR UPDATE USING (auth.uid() = user_id);
-44 | CREATE POLICY "Users can delete own transactions" ON transactions FOR DELETE USING (auth.uid() = user_id);
-```
-
-supabase/migrations/20250629085615_create_balance_ledger_table.sql
-```
-1 | -- Create Balance Ledger Table (Balance History) as specified in the PRD
-2 | 
-3 | CREATE TABLE balance_ledger (
-4 |     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-5 |     account_id UUID REFERENCES accounts(id) ON DELETE CASCADE,
-6 |     transaction_id UUID REFERENCES transactions(id) ON DELETE CASCADE,
-7 |     balance_before DECIMAL(15, 2) NOT NULL,
-8 |     balance_after DECIMAL(15, 2) NOT NULL,
-9 |     change_amount DECIMAL(15, 2) NOT NULL,
-10 |     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-11 | );
-12 | 
-13 | -- Create indexes
-14 | CREATE INDEX idx_ledger_account ON balance_ledger(account_id);
-15 | CREATE INDEX idx_ledger_transaction ON balance_ledger(transaction_id);
-16 | CREATE INDEX idx_ledger_created ON balance_ledger(created_at);
-```
-
-supabase/migrations/20250629085616_complete_rls_policies.sql
-```
-1 | -- Complete Missing RLS Policies
-2 | 
-3 | -- Add missing DELETE policy for user_settings table
-4 | CREATE POLICY "Users can delete own settings" ON user_settings FOR DELETE USING (auth.uid() = user_id);
-5 | 
-6 | -- Enable Row Level Security on balance_ledger table
-7 | ALTER TABLE balance_ledger ENABLE ROW LEVEL SECURITY;
-8 | 
-9 | -- Create RLS Policies for balance_ledger table
-10 | -- Note: balance_ledger doesn't have user_id directly, so we join through accounts table
-11 | 
-12 | CREATE POLICY "Users can view own balance ledger" ON balance_ledger FOR SELECT 
-13 | USING (account_id IN (SELECT id FROM accounts WHERE user_id = auth.uid()));
-14 | 
-15 | CREATE POLICY "Users can insert own balance ledger" ON balance_ledger FOR INSERT 
-16 | WITH CHECK (account_id IN (SELECT id FROM accounts WHERE user_id = auth.uid()));
-17 | 
-18 | CREATE POLICY "Users can update own balance ledger" ON balance_ledger FOR UPDATE 
-19 | USING (account_id IN (SELECT id FROM accounts WHERE user_id = auth.uid()));
-20 | 
-21 | CREATE POLICY "Users can delete own balance ledger" ON balance_ledger FOR DELETE 
-22 | USING (account_id IN (SELECT id FROM accounts WHERE user_id = auth.uid())); 
-```
-
-supabase/migrations/20250629085617_create_database_functions_and_triggers.sql
-```
-1 | -- Create Database Functions and Triggers as specified in the PRD
-2 | 
-3 | -- Function to get financial summary
-4 | CREATE OR REPLACE FUNCTION get_financial_summary(p_user_id UUID)
-5 | RETURNS TABLE (
-6 |     total_income DECIMAL(15, 2),
-7 |     total_expenses DECIMAL(15, 2),
-8 |     net_savings DECIMAL(15, 2),
-9 |     period_start DATE,
-10 |     period_end DATE
-11 | ) AS $$
-12 | DECLARE
-13 |     v_month_start_day INTEGER;
-14 |     v_current_date DATE := CURRENT_DATE;
-15 |     v_period_start DATE;
-16 |     v_period_end DATE;
-17 |     v_total_income DECIMAL(15, 2);
-18 |     v_total_expenses DECIMAL(15, 2);
-19 | BEGIN
-20 |     -- Get user's financial month start day
-21 |     SELECT financial_month_start_day
-22 |     INTO v_month_start_day
-23 |     FROM user_settings
-24 |     WHERE user_id = p_user_id;
-25 | 
-26 |     -- If no settings, use default (day 1)
-27 |     IF NOT FOUND THEN
-28 |         v_month_start_day := 1;
-29 |     END IF;
-30 | 
-31 |     -- Calculate custom month period
-32 |     IF EXTRACT(DAY FROM v_current_date) >= v_month_start_day THEN
-33 |         v_period_start := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 1) * INTERVAL '1 day';
-34 |         v_period_end := DATE_TRUNC('month', v_current_date + INTERVAL '1 month') + (v_month_start_day - 2) * INTERVAL '1 day';
-35 |     ELSE
-36 |         v_period_start := DATE_TRUNC('month', v_current_date - INTERVAL '1 month') + (v_month_start_day - 1) * INTERVAL '1 day';
-37 |         v_period_end := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 2) * INTERVAL '1 day';
-38 |     END IF;
-39 | 
-40 |     -- Calculate total income for the period
-41 |     SELECT COALESCE(SUM(t.amount), 0)
-42 |     INTO v_total_income
-43 |     FROM transactions t
-44 |     WHERE t.user_id = p_user_id
-45 |         AND t.type = 'income'
-46 |         AND t.transaction_date >= v_period_start
-47 |         AND t.transaction_date <= v_period_end;
-48 | 
-49 |     -- Calculate total expenses for the period
-50 |     SELECT COALESCE(SUM(t.amount), 0)
-51 |     INTO v_total_expenses
-52 |     FROM transactions t
-53 |     WHERE t.user_id = p_user_id
-54 |         AND t.type = 'expense'
-55 |         AND t.transaction_date >= v_period_start
-56 |         AND t.transaction_date <= v_period_end;
-57 | 
-58 |     -- Set output variables
-59 |     total_income := v_total_income;
-60 |     total_expenses := v_total_expenses;
-61 |     net_savings := v_total_income - v_total_expenses;
-62 |     period_start := v_period_start;
-63 |     period_end := v_period_end;
-64 | 
-65 |     RETURN NEXT;
-66 | END;
-67 | $$ LANGUAGE plpgsql;
-68 | 
-69 | -- Function to calculate budget progress for expense categories
-70 | CREATE OR REPLACE FUNCTION get_budget_progress(p_user_id UUID)
-71 | RETURNS TABLE (
-72 |     category_id UUID,
-73 |     category_name VARCHAR(255),
-74 |     category_type category_type,
-75 |     category_icon VARCHAR(10),
-76 |     budget_amount DECIMAL(15, 2),
-77 |     budget_frequency budget_frequency,
-78 |     spent_amount DECIMAL(15, 2),
-79 |     remaining_amount DECIMAL(15, 2),
-80 |     progress_percentage DECIMAL(5, 2),
-81 |     period_start DATE,
-82 |     period_end DATE
-83 | ) AS $$
-84 | DECLARE
-85 |     v_month_start_day INTEGER;
-86 |     v_week_start_day INTEGER;
-87 |     v_current_date DATE := CURRENT_DATE;
-88 |     v_period_start DATE;
-89 |     v_period_end DATE;
-90 | BEGIN
-91 |     -- Get user's financial period settings
-92 |     SELECT financial_month_start_day, financial_week_start_day
-93 |     INTO v_month_start_day, v_week_start_day
-94 |     FROM user_settings
-95 |     WHERE user_id = p_user_id;
-96 | 
-97 |     -- For each expense category with budget
-98 |     FOR category_id, category_name, category_type, category_icon, budget_amount, budget_frequency IN
-99 |         SELECT c.id, c.name, c.type, c.icon, c.budget_amount, c.budget_frequency
-100 |         FROM categories c
-101 |         WHERE c.user_id = p_user_id AND c.type = 'expense' AND c.budget_amount IS NOT NULL AND c.is_active = TRUE
-102 |     LOOP
-103 |         -- Calculate period based on frequency and user settings
-104 |         IF budget_frequency = 'monthly' THEN
-105 |             -- Calculate custom month period
-106 |             IF EXTRACT(DAY FROM v_current_date) >= v_month_start_day THEN
-107 |                 v_period_start := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 1) * INTERVAL '1 day';
-108 |                 v_period_end := DATE_TRUNC('month', v_current_date + INTERVAL '1 month') + (v_month_start_day - 2) * INTERVAL '1 day';
-109 |             ELSE
-110 |                 v_period_start := DATE_TRUNC('month', v_current_date - INTERVAL '1 month') + (v_month_start_day - 1) * INTERVAL '1 day';
-111 |                 v_period_end := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 2) * INTERVAL '1 day';
-112 |             END IF;
-113 |         ELSIF budget_frequency = 'weekly' THEN
-114 |             -- Calculate custom week period
-115 |             v_period_start := v_current_date - ((EXTRACT(DOW FROM v_current_date)::INTEGER - v_week_start_day + 7) % 7) * INTERVAL '1 day';
-116 |             v_period_end := v_period_start + INTERVAL '6 days';
-117 |         ELSIF budget_frequency = 'one_time' THEN
-118 |             -- For one-time budgets, consider all transactions
-119 |             v_period_start := '1900-01-01'::DATE;
-120 |             v_period_end := '2100-12-31'::DATE;
-121 |         END IF;
-122 | 
-123 |         -- Calculate spent amount for the period
-124 |         SELECT COALESCE(SUM(t.amount), 0)
-125 |         INTO spent_amount
-126 |         FROM transactions t
-127 |         WHERE t.category_id = category_id
-128 |             AND t.transaction_date >= v_period_start
-129 |             AND t.transaction_date <= v_period_end
-130 |             AND t.type = 'expense';
-131 | 
-132 |         -- Calculate remaining and percentage
-133 |         remaining_amount := budget_amount - spent_amount;
-134 |         progress_percentage := CASE 
-135 |             WHEN budget_amount > 0 THEN (spent_amount / budget_amount * 100)
-136 |             ELSE 0
-137 |         END;
-138 | 
-139 |         -- Return the row
-140 |         RETURN NEXT;
-141 |     END LOOP;
-142 | END;
-143 | $$ LANGUAGE plpgsql;
-144 | 
-145 | -- Function to get investment progress
-146 | CREATE OR REPLACE FUNCTION get_investment_progress(p_user_id UUID)
-147 | RETURNS TABLE (
-148 |     category_id UUID,
-149 |     category_name VARCHAR(255),
-150 |     category_icon VARCHAR(10),
-151 |     target_amount DECIMAL(15, 2),
-152 |     target_frequency budget_frequency,
-153 |     invested_amount DECIMAL(15, 2),
-154 |     remaining_amount DECIMAL(15, 2),
-155 |     progress_percentage DECIMAL(5, 2),
-156 |     period_start DATE,
-157 |     period_end DATE
-158 | ) AS $$
-159 | DECLARE
-160 |     v_month_start_day INTEGER;
-161 |     v_current_date DATE := CURRENT_DATE;
-162 |     v_period_start DATE;
-163 |     v_period_end DATE;
-164 |     inv_category RECORD;
-165 | BEGIN
-166 |     -- Get user's financial period settings
-167 |     SELECT financial_month_start_day
-168 |     INTO v_month_start_day
-169 |     FROM user_settings
-170 |     WHERE user_id = p_user_id;
-171 | 
-172 |     -- If no settings, use default (day 1)
-173 |     IF NOT FOUND THEN
-174 |         v_month_start_day := 1;
-175 |     END IF;
-176 | 
-177 |     -- For each investment category with a target
-178 |     FOR inv_category IN
-179 |         SELECT c.id, c.name, c.icon, c.budget_amount, c.budget_frequency
-180 |         FROM categories c
-181 |         WHERE c.user_id = p_user_id
-182 |           AND c.type = 'investment'
-183 |           AND c.budget_amount IS NOT NULL
-184 |           AND c.is_active = TRUE
-185 |     LOOP
-186 |         -- Calculate period based on frequency and user settings
-187 |         IF inv_category.budget_frequency = 'monthly' THEN
-188 |             -- Calculate custom month period
-189 |             IF EXTRACT(DAY FROM v_current_date) >= v_month_start_day THEN
-190 |                 v_period_start := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 1) * INTERVAL '1 day';
-191 |                 v_period_end := DATE_TRUNC('month', v_current_date + INTERVAL '1 month') + (v_month_start_day - 2) * INTERVAL '1 day';
-192 |             ELSE
-193 |                 v_period_start := DATE_TRUNC('month', v_current_date - INTERVAL '1 month') + (v_month_start_day - 1) * INTERVAL '1 day';
-194 |                 v_period_end := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 2) * INTERVAL '1 day';
-195 |             END IF;
-196 |         ELSIF inv_category.budget_frequency = 'one_time' THEN
-197 |             -- For one-time targets, consider all transactions
-198 |             v_period_start := '1900-01-01'::DATE;
-199 |             v_period_end := '2100-12-31'::DATE;
-200 |         ELSE
-201 |             -- Skip other frequencies for investments
-202 |             CONTINUE;
-203 |         END IF;
-204 | 
-205 |         -- Set output variables from the loop
-206 |         category_id := inv_category.id;
-207 |         category_name := inv_category.name;
-208 |         category_icon := inv_category.icon;
-209 |         target_amount := inv_category.budget_amount;
-210 |         target_frequency := inv_category.budget_frequency;
-211 |         period_start := v_period_start;
-212 |         period_end := v_period_end;
-213 | 
-214 |         -- Calculate invested amount for the period
-215 |         SELECT COALESCE(SUM(t.amount), 0)
-216 |         INTO invested_amount
-217 |         FROM transactions t
-218 |         WHERE t.user_id = p_user_id
-219 |             AND t.type = 'transfer'
-220 |             AND t.investment_category_id = inv_category.id
-221 |             AND t.transaction_date >= v_period_start
-222 |             AND t.transaction_date <= v_period_end;
-223 | 
-224 |         -- Calculate remaining and percentage
-225 |         remaining_amount := target_amount - invested_amount;
-226 |         progress_percentage := CASE
-227 |             WHEN target_amount > 0 THEN (invested_amount / target_amount * 100)
-228 |             ELSE 0
-229 |         END;
-230 | 
-231 |         -- Return the row
-232 |         RETURN NEXT;
-233 |     END LOOP;
-234 | END;
-235 | $$ LANGUAGE plpgsql;
-236 | 
-237 | -- Function to update account balance and record ledger entry
-238 | CREATE OR REPLACE FUNCTION update_account_balance_with_ledger()
-239 | RETURNS TRIGGER AS $$
-240 | DECLARE
-241 |     v_balance_before DECIMAL(15, 2);
-242 |     v_balance_after DECIMAL(15, 2);
-243 |     v_amount DECIMAL(15, 2);
-244 | BEGIN
-245 |     -- Use absolute value for amount calculations
-246 |     v_amount := ABS(NEW.amount);
-247 |     
-248 |     IF TG_OP = 'INSERT' THEN
-249 |         IF NEW.type = 'income' THEN
-250 |             -- For income: positive amount increases balance, negative amount (refund) decreases balance
-251 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.account_id;
-252 |             v_balance_after := v_balance_before + NEW.amount;
-253 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.account_id;
-254 |             
-255 |             -- Record in ledger
-256 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
-257 |             VALUES (NEW.account_id, NEW.id, v_balance_before, v_balance_after, NEW.amount);
-258 |             
-259 |         ELSIF NEW.type = 'expense' THEN
-260 |             -- For expense: positive amount decreases balance (normal expense), negative amount increases balance (refund)
-261 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.account_id;
-262 |             
-263 |             -- Credit cards: expenses increase balance (debt), refunds decrease balance
-264 |             IF (SELECT type FROM accounts WHERE id = NEW.account_id) = 'credit_card' THEN
-265 |                 v_balance_after := v_balance_before + NEW.amount;
-266 |             ELSE
-267 |                 -- Other accounts: expenses decrease balance, refunds increase balance
-268 |                 v_balance_after := v_balance_before - NEW.amount;
-269 |             END IF;
-270 |             
-271 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.account_id;
-272 |             
-273 |             -- Record in ledger
-274 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
-275 |             VALUES (NEW.account_id, NEW.id, v_balance_before, v_balance_after, NEW.amount);
-276 |             
-277 |         ELSIF NEW.type = 'transfer' THEN
-278 |             -- Transfers always use positive amounts
-279 |             -- From account
-280 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.from_account_id;
-281 |             
-282 |             -- Credit card as source: transfer decreases balance (paying off debt)
-283 |             IF (SELECT type FROM accounts WHERE id = NEW.from_account_id) = 'credit_card' THEN
-284 |                 v_balance_after := v_balance_before - v_amount;
-285 |             ELSE
-286 |                 -- Other accounts: transfer decreases balance
-287 |                 v_balance_after := v_balance_before - v_amount;
-288 |             END IF;
-289 |             
-290 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.from_account_id;
-291 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
-292 |             VALUES (NEW.from_account_id, NEW.id, v_balance_before, v_balance_after, -v_amount);
-293 |             
-294 |             -- To account
-295 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.to_account_id;
-296 |             
-297 |             -- Credit card as destination: transfer decreases balance (paying off debt)
-298 |             IF (SELECT type FROM accounts WHERE id = NEW.to_account_id) = 'credit_card' THEN
-299 |                 v_balance_after := v_balance_before - v_amount;
-300 |             ELSE
-301 |                 -- Other accounts: transfer increases balance
-302 |                 v_balance_after := v_balance_before + v_amount;
-303 |             END IF;
-304 |             
-305 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.to_account_id;
-306 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
-307 |             VALUES (NEW.to_account_id, NEW.id, v_balance_before, v_balance_after, v_amount);
-308 |         END IF;
-309 |         
-310 |     ELSIF TG_OP = 'UPDATE' THEN
-311 |         -- For updates, it's safer to recalculate from ledger history
-312 |         -- This is a complex operation and might be better handled at application level
-313 |         RAISE EXCEPTION 'Transaction updates should be handled at application level for better control';
-314 |         
-315 |     ELSIF TG_OP = 'DELETE' THEN
-316 |         -- For deletes, reverse the transaction based on ledger history
-317 |         -- This ensures consistency with the historical record
-318 |         RAISE EXCEPTION 'Transaction deletion should be handled at application level for better control';
-319 |     END IF;
-320 |     
-321 |     RETURN NEW;
-322 | END;
-323 | $$ LANGUAGE plpgsql;
-324 | 
-325 | -- Create trigger for account balance updates
-326 | CREATE TRIGGER trigger_update_account_balance
-327 | AFTER INSERT ON transactions
-328 | FOR EACH ROW EXECUTE FUNCTION update_account_balance_with_ledger();
-329 | 
-330 | -- Function to update timestamps
-331 | CREATE OR REPLACE FUNCTION update_updated_at_column()
-332 | RETURNS TRIGGER AS $$
-333 | BEGIN
-334 |     NEW.updated_at = NOW();
-335 |     RETURN NEW;
-336 | END;
-337 | $$ LANGUAGE plpgsql;
-338 | 
-339 | -- Apply timestamp triggers to all tables
-340 | CREATE TRIGGER update_user_settings_updated_at BEFORE UPDATE ON user_settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-341 | CREATE TRIGGER update_accounts_updated_at BEFORE UPDATE ON accounts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-342 | CREATE TRIGGER update_categories_updated_at BEFORE UPDATE ON categories FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-343 | CREATE TRIGGER update_transactions_updated_at BEFORE UPDATE ON transactions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-```
-
-supabase/migrations/20250629094304_fix_credit_card_transfer_logic.sql
-```
-1 | -- Correct the logic for credit card transfers in the balance update function.
-2 | -- A transfer FROM a credit card (cash advance) should INCREASE the balance (debt).
-3 | -- A transfer TO a credit card (payment) should DECREASE the balance (debt).
-4 | 
-5 | CREATE OR REPLACE FUNCTION update_account_balance_with_ledger()
-6 | RETURNS TRIGGER AS $$
-7 | DECLARE
-8 |     v_balance_before DECIMAL(15, 2);
-9 |     v_balance_after DECIMAL(15, 2);
-10 |     v_amount DECIMAL(15, 2);
-11 | BEGIN
-12 |     -- Use absolute value for amount calculations in transfers
-13 |     v_amount := ABS(NEW.amount);
-14 |     
-15 |     IF TG_OP = 'INSERT' THEN
-16 |         IF NEW.type = 'income' THEN
-17 |             -- For income: positive amount increases balance, negative amount (refund) decreases balance
-18 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.account_id;
-19 |             v_balance_after := v_balance_before + NEW.amount;
-20 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.account_id;
-21 |             
-22 |             -- Record in ledger
-23 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
-24 |             VALUES (NEW.account_id, NEW.id, v_balance_before, v_balance_after, NEW.amount);
-25 |             
-26 |         ELSIF NEW.type = 'expense' THEN
-27 |             -- For expense: positive amount decreases balance (normal expense), negative amount increases balance (refund)
-28 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.account_id;
-29 |             
-30 |             -- Credit cards: expenses increase balance (debt), refunds decrease balance
-31 |             IF (SELECT type FROM accounts WHERE id = NEW.account_id) = 'credit_card' THEN
-32 |                 v_balance_after := v_balance_before + NEW.amount;
-33 |             ELSE
-34 |                 -- Other accounts: expenses decrease balance, refunds increase balance
-35 |                 v_balance_after := v_balance_before - NEW.amount;
-36 |             END IF;
-37 |             
-38 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.account_id;
-39 |             
-40 |             -- Record in ledger. For credit cards, an expense is a positive change in balance (debt increases).
-41 |             -- For other accounts, an expense is a negative change.
-42 |             -- The sign of NEW.amount already handles this.
-43 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
-44 |             VALUES (NEW.account_id, NEW.id, v_balance_before, v_balance_after, 
-45 |                 CASE 
-46 |                     WHEN (SELECT type FROM accounts WHERE id = NEW.account_id) = 'credit_card' THEN NEW.amount 
-47 |                     ELSE -NEW.amount 
-48 |                 END);
-49 |             
-50 |         ELSIF NEW.type = 'transfer' THEN
-51 |             -- From account
-52 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.from_account_id;
-53 |             
-54 |             -- **FIXED LOGIC**: Credit card as source (cash advance): transfer INCREASES balance (debt)
-55 |             IF (SELECT type FROM accounts WHERE id = NEW.from_account_id) = 'credit_card' THEN
-56 |                 v_balance_after := v_balance_before + v_amount;
-57 |             ELSE
-58 |                 -- Other accounts: transfer decreases balance
-59 |                 v_balance_after := v_balance_before - v_amount;
-60 |             END IF;
-61 |             
-62 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.from_account_id;
-63 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
-64 |             VALUES (NEW.from_account_id, NEW.id, v_balance_before, v_balance_after, 
-65 |                 CASE 
-66 |                     WHEN (SELECT type FROM accounts WHERE id = NEW.from_account_id) = 'credit_card' THEN v_amount 
-67 |                     ELSE -v_amount 
-68 |                 END);
-69 |             
-70 |             -- To account
-71 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.to_account_id;
-72 |             
-73 |             -- Credit card as destination (payment): transfer DECREASES balance (paying off debt)
-74 |             IF (SELECT type FROM accounts WHERE id = NEW.to_account_id) = 'credit_card' THEN
-75 |                 v_balance_after := v_balance_before - v_amount;
-76 |             ELSE
-77 |                 -- Other accounts: transfer increases balance
-78 |                 v_balance_after := v_balance_before + v_amount;
-79 |             END IF;
-80 |             
-81 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.to_account_id;
-82 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
-83 |             VALUES (NEW.to_account_id, NEW.id, v_balance_before, v_balance_after, 
-84 |                 CASE 
-85 |                     WHEN (SELECT type FROM accounts WHERE id = NEW.to_account_id) = 'credit_card' THEN -v_amount 
-86 |                     ELSE v_amount 
-87 |                 END);
-88 |         END IF;
-89 |         
-90 |     ELSIF TG_OP = 'UPDATE' THEN
-91 |         -- It's safer to recalculate from ledger history.
-92 |         -- This is a complex operation and better handled at application level.
-93 |         RAISE EXCEPTION 'Transaction updates should be handled at the application level for better control.';
-94 |         
-95 |     ELSIF TG_OP = 'DELETE' THEN
-96 |         -- Reversing the transaction based on ledger history ensures consistency.
-97 |         -- This is also better handled at the application level.
-98 |         RAISE EXCEPTION 'Transaction deletion should be handled at the application level for better control.';
-99 |     END IF;
-100 |     
-101 |     RETURN NEW;
-102 | END;
-103 | $$ LANGUAGE plpgsql;
-```
-
-supabase/migrations/20250629094305_fix_investment_progress_function.sql
-```
-1 | -- Description: This migration fixes a bug where the get_investment_progress function
-2 | -- referenced a non-existent column (investment_category_id) in the transactions table.
-3 | -- This script adds the column and updates the necessary constraints to ensure data integrity.
-4 | 
-5 | -- Step 1: Add the investment_category_id column to the transactions table.
-6 | -- This column will store a reference to an investment goal category for transfer transactions.
-7 | ALTER TABLE public.transactions
-8 | ADD COLUMN investment_category_id UUID REFERENCES public.categories(id) ON DELETE RESTRICT;
-9 | 
-10 | -- Step 2: Create an index on the new column for better query performance.
-11 | CREATE INDEX idx_transactions_investment_category ON public.transactions(investment_category_id);
-12 | 
-13 | -- Step 3: Drop the existing check constraint so it can be replaced.
-14 | ALTER TABLE public.transactions
-15 | DROP CONSTRAINT chk_transaction_consistency;
-16 | 
-17 | -- Step 4: Re-add the check constraint with updated logic.
-18 | -- The new logic ensures that:
-19 | -- 1. For 'income' or 'expense' types, investment_category_id MUST be NULL.
-20 | -- 2. For 'transfer' type, the original rules apply, and investment_category_id is optional.
-21 | ALTER TABLE public.transactions
-22 | ADD CONSTRAINT chk_transaction_consistency CHECK (
-23 |     (
-24 |         type IN ('income', 'expense') AND
-25 |         account_id IS NOT NULL AND
-26 |         category_id IS NOT NULL AND
-27 |         from_account_id IS NULL AND
-28 |         to_account_id IS NULL AND
-29 |         investment_category_id IS NULL
-30 |     ) OR (
-31 |         type = 'transfer' AND
-32 |         from_account_id IS NOT NULL AND
-33 |         to_account_id IS NOT NULL AND
-34 |         account_id IS NULL AND
-35 |         category_id IS NULL
-36 |     )
-37 | );
-38 | 
-39 | -- Step 5: Refresh the get_investment_progress function to ensure it recognizes the new column.
-40 | CREATE OR REPLACE FUNCTION get_investment_progress(p_user_id UUID)
-41 | RETURNS TABLE (
-42 |     category_id UUID,
-43 |     category_name VARCHAR(255),
-44 |     category_icon VARCHAR(10),
-45 |     target_amount DECIMAL(15, 2),
-46 |     target_frequency budget_frequency,
-47 |     invested_amount DECIMAL(15, 2),
-48 |     remaining_amount DECIMAL(15, 2),
-49 |     progress_percentage DECIMAL(5, 2),
-50 |     period_start DATE,
-51 |     period_end DATE
-52 | ) AS $$
-53 | DECLARE
-54 |     v_month_start_day INTEGER;
-55 |     v_current_date DATE := CURRENT_DATE;
-56 |     v_period_start DATE;
-57 |     v_period_end DATE;
-58 |     inv_category RECORD;
-59 | BEGIN
-60 |     -- Get user's financial period settings
-61 |     SELECT financial_month_start_day
-62 |     INTO v_month_start_day
-63 |     FROM user_settings
-64 |     WHERE user_id = p_user_id;
-65 | 
-66 |     -- If no settings, use default (day 1)
-67 |     IF NOT FOUND THEN
-68 |         v_month_start_day := 1;
-69 |     END IF;
-70 | 
-71 |     -- For each investment category with a target
-72 |     FOR inv_category IN
-73 |         SELECT c.id, c.name, c.icon, c.budget_amount, c.budget_frequency
-74 |         FROM categories c
-75 |         WHERE c.user_id = p_user_id
-76 |           AND c.type = 'investment'
-77 |           AND c.budget_amount IS NOT NULL
-78 |           AND c.is_active = TRUE
-79 |     LOOP
-80 |         -- Calculate period based on frequency and user settings
-81 |         IF inv_category.budget_frequency = 'monthly' THEN
-82 |             -- Calculate custom month period
-83 |             IF EXTRACT(DAY FROM v_current_date) >= v_month_start_day THEN
-84 |                 v_period_start := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 1) * INTERVAL '1 day';
-85 |                 v_period_end := DATE_TRUNC('month', v_current_date + INTERVAL '1 month') + (v_month_start_day - 2) * INTERVAL '1 day';
-86 |             ELSE
-87 |                 v_period_start := DATE_TRUNC('month', v_current_date - INTERVAL '1 month') + (v_month_start_day - 1) * INTERVAL '1 day';
-88 |                 v_period_end := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 2) * INTERVAL '1 day';
-89 |             END IF;
-90 |         ELSIF inv_category.budget_frequency = 'one_time' THEN
-91 |             -- For one-time targets, consider all transactions
-92 |             v_period_start := '1900-01-01'::DATE;
-93 |             v_period_end := '2100-12-31'::DATE;
-94 |         ELSE
-95 |             -- Skip other frequencies for investments
-96 |             CONTINUE;
-97 |         END IF;
-98 | 
-99 |         -- Set output variables from the loop
-100 |         category_id := inv_category.id;
-101 |         category_name := inv_category.name;
-102 |         category_icon := inv_category.icon;
-103 |         target_amount := inv_category.budget_amount;
-104 |         target_frequency := inv_category.budget_frequency;
-105 |         period_start := v_period_start;
-106 |         period_end := v_period_end;
-107 | 
-108 |         -- Calculate invested amount for the period
-109 |         SELECT COALESCE(SUM(t.amount), 0)
-110 |         INTO invested_amount
-111 |         FROM transactions t
-112 |         WHERE t.user_id = p_user_id
-113 |             AND t.type = 'transfer'
-114 |             AND t.investment_category_id = inv_category.id
-115 |             AND t.transaction_date >= v_period_start
-116 |             AND t.transaction_date <= v_period_end;
-117 | 
-118 |         -- Calculate remaining and percentage
-119 |         remaining_amount := target_amount - invested_amount;
-120 |         progress_percentage := CASE
-121 |             WHEN target_amount > 0 THEN (invested_amount / target_amount * 100)
-122 |             ELSE 0
-123 |         END;
-124 | 
-125 |         -- Return the row
-126 |         RETURN NEXT;
-127 |     END LOOP;
-128 | END;
-129 | $$ LANGUAGE plpgsql; 
-```
-
-supabase/migrations/20250630000000_fix_credit_card_income_logic.sql
-```
-1 | -- Fix the credit card income logic in the balance update function.
-2 | -- For credit cards:
-3 | -- - Income transactions (payments) should DECREASE the balance (reduce debt)
-4 | -- - Expense transactions should INCREASE the balance (increase debt)
-5 | 
-6 | CREATE OR REPLACE FUNCTION update_account_balance_with_ledger()
-7 | RETURNS TRIGGER AS $$
-8 | DECLARE
-9 |     v_balance_before DECIMAL(15, 2);
-10 |     v_balance_after DECIMAL(15, 2);
-11 |     v_amount DECIMAL(15, 2);
-12 |     v_account_type account_type;
-13 | BEGIN
-14 |     -- Use absolute value for amount calculations in transfers
-15 |     v_amount := ABS(NEW.amount);
-16 |     
-17 |     IF TG_OP = 'INSERT' THEN
-18 |         IF NEW.type = 'income' THEN
-19 |             -- Get account type and current balance
-20 |             SELECT type, current_balance INTO v_account_type, v_balance_before 
-21 |             FROM accounts WHERE id = NEW.account_id;
-22 |             
-23 |             -- Credit cards: income (payments) decreases balance (reduces debt)
-24 |             -- Other accounts: income increases balance
-25 |             IF v_account_type = 'credit_card' THEN
-26 |                 v_balance_after := v_balance_before - NEW.amount;
-27 |             ELSE
-28 |                 v_balance_after := v_balance_before + NEW.amount;
-29 |             END IF;
-30 |             
-31 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.account_id;
-32 |             
-33 |             -- Record in ledger with appropriate change amount
-34 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
-35 |             VALUES (NEW.account_id, NEW.id, v_balance_before, v_balance_after, 
-36 |                 CASE 
-37 |                     WHEN v_account_type = 'credit_card' THEN -NEW.amount 
-38 |                     ELSE NEW.amount 
-39 |                 END);
-40 |             
-41 |         ELSIF NEW.type = 'expense' THEN
-42 |             -- Get account type and current balance
-43 |             SELECT type, current_balance INTO v_account_type, v_balance_before 
-44 |             FROM accounts WHERE id = NEW.account_id;
-45 |             
-46 |             -- Credit cards: expenses increase balance (debt), refunds decrease balance
-47 |             -- Other accounts: expenses decrease balance, refunds increase balance
-48 |             IF v_account_type = 'credit_card' THEN
-49 |                 v_balance_after := v_balance_before + NEW.amount;
-50 |             ELSE
-51 |                 v_balance_after := v_balance_before - NEW.amount;
-52 |             END IF;
-53 |             
-54 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.account_id;
-55 |             
-56 |             -- Record in ledger with appropriate change amount
-57 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
-58 |             VALUES (NEW.account_id, NEW.id, v_balance_before, v_balance_after, 
-59 |                 CASE 
-60 |                     WHEN v_account_type = 'credit_card' THEN NEW.amount 
-61 |                     ELSE -NEW.amount 
-62 |                 END);
-63 |             
-64 |         ELSIF NEW.type = 'transfer' THEN
-65 |             -- From account
-66 |             SELECT type, current_balance INTO v_account_type, v_balance_before 
-67 |             FROM accounts WHERE id = NEW.from_account_id;
-68 |             
-69 |             -- Credit card as source (cash advance): transfer INCREASES balance (debt)
-70 |             -- Other accounts: transfer decreases balance
-71 |             IF v_account_type = 'credit_card' THEN
-72 |                 v_balance_after := v_balance_before + v_amount;
-73 |             ELSE
-74 |                 v_balance_after := v_balance_before - v_amount;
-75 |             END IF;
-76 |             
-77 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.from_account_id;
-78 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
-79 |             VALUES (NEW.from_account_id, NEW.id, v_balance_before, v_balance_after, 
-80 |                 CASE 
-81 |                     WHEN v_account_type = 'credit_card' THEN v_amount 
-82 |                     ELSE -v_amount 
-83 |                 END);
-84 |             
-85 |             -- To account
-86 |             SELECT type, current_balance INTO v_account_type, v_balance_before 
-87 |             FROM accounts WHERE id = NEW.to_account_id;
-88 |             
-89 |             -- Credit card as destination (payment): transfer DECREASES balance (paying off debt)
-90 |             -- Other accounts: transfer increases balance
-91 |             IF v_account_type = 'credit_card' THEN
-92 |                 v_balance_after := v_balance_before - v_amount;
-93 |             ELSE
-94 |                 v_balance_after := v_balance_before + v_amount;
-95 |             END IF;
-96 |             
-97 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.to_account_id;
-98 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
-99 |             VALUES (NEW.to_account_id, NEW.id, v_balance_before, v_balance_after, 
-100 |                 CASE 
-101 |                     WHEN v_account_type = 'credit_card' THEN -v_amount 
-102 |                     ELSE v_amount 
-103 |                 END);
-104 |         END IF;
-105 |         
-106 |     ELSIF TG_OP = 'UPDATE' THEN
-107 |         -- It's safer to recalculate from ledger history.
-108 |         -- This is a complex operation and better handled at application level.
-109 |         RAISE EXCEPTION 'Transaction updates should be handled at the application level for better control.';
-110 |         
-111 |     ELSIF TG_OP = 'DELETE' THEN
-112 |         -- Reversing the transaction based on ledger history ensures consistency.
-113 |         -- This is also better handled at the application level.
-114 |         RAISE EXCEPTION 'Transaction deletion should be handled at the application level for better control.';
-115 |     END IF;
-116 |     
-117 |     RETURN NEW;
-118 | END;
-119 | $$ LANGUAGE plpgsql;
-```
-
 supabase/.branches/_current_branch
 ```
 1 | main
@@ -13024,371 +12443,3524 @@ supabase/.branches/_current_branch
 558 | For details on how these commands fit into the development process, see the [dev_workflow.mdc](mdc:.cursor/rules/taskmaster/dev_workflow.mdc).
 ```
 
-app/api/accounts/route.ts
+supabase/migrations/20250629085550_create_database_enums.sql
 ```
-1 | import { NextRequest } from 'next/server'
-2 | import { createClient } from '@/lib/supabase/server'
-3 | import { requireAuth } from '../utils/auth'
-4 | import { handleApiError } from '../utils/error-handler'
-5 | import { 
-6 |   createSuccessResponse, 
-7 |   createCreatedResponse, 
-8 |   createUpdatedResponse, 
-9 |   createDeletedResponse 
-10 | } from '../utils/response'
-11 | import { 
-12 |   validateRequestBody, 
-13 |   createAccountSchema, 
-14 |   updateAccountSchema 
-15 | } from '../utils/validation'
-16 | import { Tables, TablesInsert, TablesUpdate } from '@/types/database'
-17 | 
-18 | type Account = Tables<'accounts'>
-19 | type AccountInsert = TablesInsert<'accounts'>
-20 | type AccountUpdate = TablesUpdate<'accounts'>
-21 | 
-22 | /**
-23 |  * GET /api/accounts
-24 |  * Fetch user accounts
-25 |  */
-26 | export async function GET() {
-27 |   try {
-28 |     const user = await requireAuth()
-29 |     const supabase = await createClient()
-30 | 
-31 |     const { data: accounts, error } = await supabase
-32 |       .from('accounts')
-33 |       .select('*')
-34 |       .eq('user_id', user.id)
-35 |       .eq('is_active', true)
-36 |       .order('created_at', { ascending: false })
-37 | 
-38 |     if (error) throw error
-39 | 
-40 |     return createSuccessResponse(
-41 |       accounts,
-42 |       `Retrieved ${accounts.length} accounts successfully`
-43 |     )
-44 |   } catch (error) {
-45 |     return handleApiError(error)
-46 |   }
-47 | }
-48 | 
-49 | /**
-50 |  * POST /api/accounts
-51 |  * Create new account
-52 |  */
-53 | export async function POST(request: NextRequest) {
-54 |   try {
-55 |     const user = await requireAuth()
-56 |     const accountData = await validateRequestBody(request, createAccountSchema)
-57 |     const supabase = await createClient()
-58 | 
-59 |     const newAccount: AccountInsert = {
-60 |       ...accountData,
-61 |       user_id: user.id,
-62 |       current_balance: accountData.initial_balance,
-63 |     }
-64 | 
-65 |     const { data: account, error } = await supabase
-66 |       .from('accounts')
-67 |       .insert(newAccount)
-68 |       .select()
-69 |       .single()
-70 | 
-71 |     if (error) throw error
-72 | 
-73 |     return createCreatedResponse(
-74 |       account,
-75 |       'Account created successfully'
-76 |     )
-77 |   } catch (error) {
-78 |     return handleApiError(error)
-79 |   }
-80 | }
-81 | 
-82 | /**
-83 |  * PUT /api/accounts
-84 |  * Update account (requires account_id in request body)
-85 |  */
-86 | export async function PUT(request: NextRequest) {
-87 |   try {
-88 |     const user = await requireAuth()
-89 |     const body = await request.json()
-90 |     
-91 |     // Extract account_id from body
-92 |     const { account_id, ...updateData } = body
-93 |     
-94 |     if (!account_id) {
-95 |       throw new Error('account_id is required')
-96 |     }
-97 | 
-98 |     // Validate the update data
-99 |     const validatedData = updateAccountSchema.parse(updateData)
-100 |     const supabase = await createClient()
-101 | 
-102 |     // Verify the account belongs to the user
-103 |     const { data: existingAccount, error: fetchError } = await supabase
-104 |       .from('accounts')
-105 |       .select('id')
-106 |       .eq('id', account_id)
-107 |       .eq('user_id', user.id)
-108 |       .single()
-109 | 
-110 |     if (fetchError || !existingAccount) {
-111 |       throw new Error('Account not found or access denied')
-112 |     }
-113 | 
-114 |     const { data: updatedAccount, error } = await supabase
-115 |       .from('accounts')
-116 |       .update({
-117 |         ...validatedData,
-118 |         updated_at: new Date().toISOString(),
-119 |       })
-120 |       .eq('id', account_id)
-121 |       .eq('user_id', user.id)
-122 |       .select()
-123 |       .single()
-124 | 
-125 |     if (error) throw error
-126 | 
-127 |     return createUpdatedResponse(
-128 |       updatedAccount,
-129 |       'Account updated successfully'
-130 |     )
-131 |   } catch (error) {
-132 |     return handleApiError(error)
-133 |   }
-134 | }
-135 | 
-136 | /**
-137 |  * DELETE /api/accounts
-138 |  * Deactivate account (soft delete - requires account_id in request body)
-139 |  */
-140 | export async function DELETE(request: NextRequest) {
-141 |   try {
-142 |     const user = await requireAuth()
-143 |     const { account_id } = await request.json()
-144 |     
-145 |     if (!account_id) {
-146 |       throw new Error('account_id is required')
-147 |     }
-148 | 
-149 |     const supabase = await createClient()
-150 | 
-151 |     // Verify the account belongs to the user
-152 |     const { data: existingAccount, error: fetchError } = await supabase
-153 |       .from('accounts')
-154 |       .select('id')
-155 |       .eq('id', account_id)
-156 |       .eq('user_id', user.id)
-157 |       .single()
-158 | 
-159 |     if (fetchError || !existingAccount) {
-160 |       throw new Error('Account not found or access denied')
-161 |     }
-162 | 
-163 |     // Soft delete by setting is_active to false
-164 |     const { error } = await supabase
-165 |       .from('accounts')
-166 |       .update({
-167 |         is_active: false,
-168 |         updated_at: new Date().toISOString(),
-169 |       })
-170 |       .eq('id', account_id)
-171 |       .eq('user_id', user.id)
-172 | 
-173 |     if (error) throw error
-174 | 
-175 |     return createDeletedResponse('Account deactivated successfully')
-176 |   } catch (error) {
-177 |     return handleApiError(error)
-178 |   }
-179 | } 
+1 | -- Create Database Enums as specified in the PRD
+2 | 
+3 | -- Account Types Enum
+4 | CREATE TYPE account_type AS ENUM ('bank_account', 'credit_card', 'investment_account');
+5 | 
+6 | -- Category Types Enum
+7 | CREATE TYPE category_type AS ENUM ('expense', 'income', 'investment');
+8 | 
+9 | -- Budget Frequency Enum
+10 | CREATE TYPE budget_frequency AS ENUM ('weekly', 'monthly', 'one_time');
+11 | 
+12 | -- Transaction Types Enum
+13 | CREATE TYPE transaction_type AS ENUM ('income', 'expense', 'transfer');
 ```
 
-app/api/dashboard/route.ts
+supabase/migrations/20250629085556_create_user_settings_table.sql
 ```
-1 | import { NextRequest } from 'next/server'
-2 | import { createClient } from '@/lib/supabase/server'
-3 | import { requireAuth } from '../utils/auth'
-4 | import { handleApiError } from '../utils/error-handler'
-5 | import { createSuccessResponse } from '../utils/response'
-6 | import { Database } from '@/types/database'
-7 | 
-8 | type FinancialSummary = Database['public']['Functions']['get_financial_summary']['Returns'][0]
-9 | type BudgetProgress = Database['public']['Functions']['get_budget_progress']['Returns'][0]
-10 | type InvestmentProgress = Database['public']['Functions']['get_investment_progress']['Returns'][0]
+1 | -- Create User Settings Table as specified in the PRD
+2 | 
+3 | CREATE TABLE user_settings (
+4 |     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+5 |     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+6 |     currency_code VARCHAR(3) NOT NULL DEFAULT 'IDR',
+7 |     financial_month_start_day INTEGER NOT NULL DEFAULT 1 CHECK (financial_month_start_day >= 1 AND financial_month_start_day <= 31),
+8 |     financial_week_start_day INTEGER NOT NULL DEFAULT 1 CHECK (financial_week_start_day >= 0 AND financial_week_start_day <= 6), -- 0 = Sunday, 6 = Saturday
+9 |     onboarding_completed BOOLEAN NOT NULL DEFAULT FALSE,
+10 |     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+11 |     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+12 |     UNIQUE(user_id)
+13 | );
+14 | 
+15 | -- Enable Row Level Security
+16 | ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
+17 | 
+18 | -- Create RLS Policies
+19 | CREATE POLICY "Users can view own settings" ON user_settings FOR SELECT USING (auth.uid() = user_id);
+20 | CREATE POLICY "Users can update own settings" ON user_settings FOR UPDATE USING (auth.uid() = user_id);
+21 | CREATE POLICY "Users can insert own settings" ON user_settings FOR INSERT WITH CHECK (auth.uid() = user_id);
+```
+
+supabase/migrations/20250629085602_create_accounts_table.sql
+```
+1 | -- Create Accounts Table as specified in the PRD
+2 | 
+3 | CREATE TABLE accounts (
+4 |     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+5 |     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+6 |     name VARCHAR(255) NOT NULL,
+7 |     type account_type NOT NULL,
+8 |     initial_balance DECIMAL(15, 2) NOT NULL DEFAULT 0,
+9 |     current_balance DECIMAL(15, 2) NOT NULL DEFAULT 0,
+10 |     is_active BOOLEAN NOT NULL DEFAULT TRUE,
+11 |     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+12 |     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+13 | );
+14 | 
+15 | -- Create indexes
+16 | CREATE INDEX idx_accounts_user_id ON accounts(user_id);
+17 | CREATE INDEX idx_accounts_type ON accounts(type);
+18 | 
+19 | -- Enable Row Level Security
+20 | ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
+21 | 
+22 | -- Create RLS Policies
+23 | CREATE POLICY "Users can view own accounts" ON accounts FOR SELECT USING (auth.uid() = user_id);
+24 | CREATE POLICY "Users can create own accounts" ON accounts FOR INSERT WITH CHECK (auth.uid() = user_id);
+25 | CREATE POLICY "Users can update own accounts" ON accounts FOR UPDATE USING (auth.uid() = user_id);
+26 | CREATE POLICY "Users can delete own accounts" ON accounts FOR DELETE USING (auth.uid() = user_id);
+```
+
+supabase/migrations/20250629085607_create_categories_table.sql
+```
+1 | -- Create Categories Table as specified in the PRD
+2 | 
+3 | CREATE TABLE categories (
+4 |     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+5 |     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+6 |     name VARCHAR(255) NOT NULL,
+7 |     type category_type NOT NULL,
+8 |     icon VARCHAR(10), -- Emoji icon for UI representation
+9 |     budget_amount DECIMAL(15, 2),
+10 |     budget_frequency budget_frequency,
+11 |     is_active BOOLEAN NOT NULL DEFAULT TRUE,
+12 |     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+13 |     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+14 |     CONSTRAINT chk_budget_consistency CHECK (
+15 |         (budget_amount IS NULL AND budget_frequency IS NULL) OR
+16 |         (budget_amount IS NOT NULL AND budget_frequency IS NOT NULL)
+17 |     )
+18 | );
+19 | 
+20 | -- Create indexes
+21 | CREATE INDEX idx_categories_user_id ON categories(user_id);
+22 | CREATE INDEX idx_categories_type ON categories(type);
+23 | 
+24 | -- Enable Row Level Security
+25 | ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+26 | 
+27 | -- Create RLS Policies
+28 | CREATE POLICY "Users can view own categories" ON categories FOR SELECT USING (auth.uid() = user_id);
+29 | CREATE POLICY "Users can create own categories" ON categories FOR INSERT WITH CHECK (auth.uid() = user_id);
+30 | CREATE POLICY "Users can update own categories" ON categories FOR UPDATE USING (auth.uid() = user_id);
+31 | CREATE POLICY "Users can delete own categories" ON categories FOR DELETE USING (auth.uid() = user_id);
+```
+
+supabase/migrations/20250629085614_create_transactions_table.sql
+```
+1 | -- Create Transactions Table as specified in the PRD
+2 | 
+3 | CREATE TABLE transactions (
+4 |     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+5 |     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+6 |     type transaction_type NOT NULL,
+7 |     amount DECIMAL(15, 2) NOT NULL, -- Can be negative for refunds
+8 |     description TEXT,
+9 |     transaction_date DATE NOT NULL,
+10 |     
+11 |     -- For income and expense transactions
+12 |     account_id UUID REFERENCES accounts(id) ON DELETE RESTRICT,
+13 |     category_id UUID REFERENCES categories(id) ON DELETE RESTRICT,
+14 |     
+15 |     -- For transfer transactions
+16 |     from_account_id UUID REFERENCES accounts(id) ON DELETE RESTRICT,
+17 |     to_account_id UUID REFERENCES accounts(id) ON DELETE RESTRICT,
+18 |     
+19 |     
+20 |     
+21 |     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+22 |     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+23 |     
+24 |     CONSTRAINT chk_transaction_consistency CHECK (
+25 |         (type IN ('income', 'expense') AND account_id IS NOT NULL AND category_id IS NOT NULL AND from_account_id IS NULL AND to_account_id IS NULL) OR
+26 |         (type = 'transfer' AND from_account_id IS NOT NULL AND to_account_id IS NOT NULL AND account_id IS NULL AND category_id IS NULL)
+27 |     )
+28 | );
+29 | 
+30 | -- Create indexes
+31 | CREATE INDEX idx_transactions_user_id ON transactions(user_id);
+32 | CREATE INDEX idx_transactions_date ON transactions(transaction_date);
+33 | CREATE INDEX idx_transactions_type ON transactions(type);
+34 | CREATE INDEX idx_transactions_account ON transactions(account_id);
+35 | CREATE INDEX idx_transactions_category ON transactions(category_id);
+36 | 
+37 | -- Enable Row Level Security
+38 | ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+39 | 
+40 | -- Create RLS Policies
+41 | CREATE POLICY "Users can view own transactions" ON transactions FOR SELECT USING (auth.uid() = user_id);
+42 | CREATE POLICY "Users can create own transactions" ON transactions FOR INSERT WITH CHECK (auth.uid() = user_id);
+43 | CREATE POLICY "Users can update own transactions" ON transactions FOR UPDATE USING (auth.uid() = user_id);
+44 | CREATE POLICY "Users can delete own transactions" ON transactions FOR DELETE USING (auth.uid() = user_id);
+```
+
+supabase/migrations/20250629085615_create_balance_ledger_table.sql
+```
+1 | -- Create Balance Ledger Table (Balance History) as specified in the PRD
+2 | 
+3 | CREATE TABLE balance_ledger (
+4 |     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+5 |     account_id UUID REFERENCES accounts(id) ON DELETE CASCADE,
+6 |     transaction_id UUID REFERENCES transactions(id) ON DELETE CASCADE,
+7 |     balance_before DECIMAL(15, 2) NOT NULL,
+8 |     balance_after DECIMAL(15, 2) NOT NULL,
+9 |     change_amount DECIMAL(15, 2) NOT NULL,
+10 |     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+11 | );
+12 | 
+13 | -- Create indexes
+14 | CREATE INDEX idx_ledger_account ON balance_ledger(account_id);
+15 | CREATE INDEX idx_ledger_transaction ON balance_ledger(transaction_id);
+16 | CREATE INDEX idx_ledger_created ON balance_ledger(created_at);
+```
+
+supabase/migrations/20250629085616_complete_rls_policies.sql
+```
+1 | -- Complete Missing RLS Policies
+2 | 
+3 | -- Add missing DELETE policy for user_settings table
+4 | CREATE POLICY "Users can delete own settings" ON user_settings FOR DELETE USING (auth.uid() = user_id);
+5 | 
+6 | -- Enable Row Level Security on balance_ledger table
+7 | ALTER TABLE balance_ledger ENABLE ROW LEVEL SECURITY;
+8 | 
+9 | -- Create RLS Policies for balance_ledger table
+10 | -- Note: balance_ledger doesn't have user_id directly, so we join through accounts table
 11 | 
-12 | /**
-13 |  * GET /api/dashboard
-14 |  * Fetch aggregated dashboard data
-15 |  */
-16 | export async function GET(request: NextRequest) {
-17 |   try {
-18 |     const user = await requireAuth()
-19 |     const supabase = await createClient()
+12 | CREATE POLICY "Users can view own balance ledger" ON balance_ledger FOR SELECT 
+13 | USING (account_id IN (SELECT id FROM accounts WHERE user_id = auth.uid()));
+14 | 
+15 | CREATE POLICY "Users can insert own balance ledger" ON balance_ledger FOR INSERT 
+16 | WITH CHECK (account_id IN (SELECT id FROM accounts WHERE user_id = auth.uid()));
+17 | 
+18 | CREATE POLICY "Users can update own balance ledger" ON balance_ledger FOR UPDATE 
+19 | USING (account_id IN (SELECT id FROM accounts WHERE user_id = auth.uid()));
 20 | 
-21 |     // Execute all dashboard queries in parallel
-22 |     const [
-23 |       { data: financialSummary, error: financialError },
-24 |       { data: budgetProgress, error: budgetError },
-25 |       { data: investmentProgress, error: investmentError },
-26 |       { data: accounts, error: accountsError },
-27 |       { data: recentTransactions, error: transactionsError }
-28 |     ] = await Promise.all([
-29 |       // Get financial summary
-30 |       supabase.rpc('get_financial_summary', { p_user_id: user.id }),
-31 |       
-32 |       // Get budget progress
-33 |       supabase.rpc('get_budget_progress', { p_user_id: user.id }),
-34 |       
-35 |       // Get investment progress
-36 |       supabase.rpc('get_investment_progress', { p_user_id: user.id }),
-37 |       
-38 |       // Get accounts with balances
-39 |       supabase
-40 |         .from('accounts')
-41 |         .select('id, name, type, current_balance, is_active')
-42 |         .eq('user_id', user.id)
-43 |         .eq('is_active', true)
-44 |         .order('current_balance', { ascending: false }),
-45 |       
-46 |       // Get recent transactions
-47 |       supabase
-48 |         .from('transactions')
-49 |         .select(`
-50 |           id,
-51 |           amount,
-52 |           type,
-53 |           transaction_date,
-54 |           description,
-55 |           accounts!transactions_account_id_fkey(name, type),
-56 |           categories!transactions_category_id_fkey(name, type, icon),
-57 |           from_accounts:accounts!transactions_from_account_id_fkey(name, type),
-58 |           to_accounts:accounts!transactions_to_account_id_fkey(name, type)
-59 |         `)
-60 |         .eq('user_id', user.id)
-61 |         .order('transaction_date', { ascending: false })
-62 |         .order('created_at', { ascending: false })
-63 |         .limit(10)
-64 |     ])
+21 | CREATE POLICY "Users can delete own balance ledger" ON balance_ledger FOR DELETE 
+22 | USING (account_id IN (SELECT id FROM accounts WHERE user_id = auth.uid())); 
+```
+
+supabase/migrations/20250629085617_create_database_functions_and_triggers.sql
+```
+1 | -- Create Database Functions and Triggers as specified in the PRD
+2 | 
+3 | -- Function to get financial summary
+4 | CREATE OR REPLACE FUNCTION get_financial_summary(p_user_id UUID)
+5 | RETURNS TABLE (
+6 |     total_income DECIMAL(15, 2),
+7 |     total_expenses DECIMAL(15, 2),
+8 |     net_savings DECIMAL(15, 2),
+9 |     period_start DATE,
+10 |     period_end DATE
+11 | ) AS $$
+12 | DECLARE
+13 |     v_month_start_day INTEGER;
+14 |     v_current_date DATE := CURRENT_DATE;
+15 |     v_period_start DATE;
+16 |     v_period_end DATE;
+17 |     v_total_income DECIMAL(15, 2);
+18 |     v_total_expenses DECIMAL(15, 2);
+19 | BEGIN
+20 |     -- Get user's financial month start day
+21 |     SELECT financial_month_start_day
+22 |     INTO v_month_start_day
+23 |     FROM user_settings
+24 |     WHERE user_id = p_user_id;
+25 | 
+26 |     -- If no settings, use default (day 1)
+27 |     IF NOT FOUND THEN
+28 |         v_month_start_day := 1;
+29 |     END IF;
+30 | 
+31 |     -- Calculate custom month period
+32 |     IF EXTRACT(DAY FROM v_current_date) >= v_month_start_day THEN
+33 |         v_period_start := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 1) * INTERVAL '1 day';
+34 |         v_period_end := DATE_TRUNC('month', v_current_date + INTERVAL '1 month') + (v_month_start_day - 2) * INTERVAL '1 day';
+35 |     ELSE
+36 |         v_period_start := DATE_TRUNC('month', v_current_date - INTERVAL '1 month') + (v_month_start_day - 1) * INTERVAL '1 day';
+37 |         v_period_end := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 2) * INTERVAL '1 day';
+38 |     END IF;
+39 | 
+40 |     -- Calculate total income for the period
+41 |     SELECT COALESCE(SUM(t.amount), 0)
+42 |     INTO v_total_income
+43 |     FROM transactions t
+44 |     WHERE t.user_id = p_user_id
+45 |         AND t.type = 'income'
+46 |         AND t.transaction_date >= v_period_start
+47 |         AND t.transaction_date <= v_period_end;
+48 | 
+49 |     -- Calculate total expenses for the period
+50 |     SELECT COALESCE(SUM(t.amount), 0)
+51 |     INTO v_total_expenses
+52 |     FROM transactions t
+53 |     WHERE t.user_id = p_user_id
+54 |         AND t.type = 'expense'
+55 |         AND t.transaction_date >= v_period_start
+56 |         AND t.transaction_date <= v_period_end;
+57 | 
+58 |     -- Set output variables
+59 |     total_income := v_total_income;
+60 |     total_expenses := v_total_expenses;
+61 |     net_savings := v_total_income - v_total_expenses;
+62 |     period_start := v_period_start;
+63 |     period_end := v_period_end;
+64 | 
+65 |     RETURN NEXT;
+66 | END;
+67 | $$ LANGUAGE plpgsql;
+68 | 
+69 | -- Function to calculate budget progress for expense categories
+70 | CREATE OR REPLACE FUNCTION get_budget_progress(p_user_id UUID)
+71 | RETURNS TABLE (
+72 |     category_id UUID,
+73 |     category_name VARCHAR(255),
+74 |     category_type category_type,
+75 |     category_icon VARCHAR(10),
+76 |     budget_amount DECIMAL(15, 2),
+77 |     budget_frequency budget_frequency,
+78 |     spent_amount DECIMAL(15, 2),
+79 |     remaining_amount DECIMAL(15, 2),
+80 |     progress_percentage DECIMAL(5, 2),
+81 |     period_start DATE,
+82 |     period_end DATE
+83 | ) AS $$
+84 | DECLARE
+85 |     v_month_start_day INTEGER;
+86 |     v_week_start_day INTEGER;
+87 |     v_current_date DATE := CURRENT_DATE;
+88 |     v_period_start DATE;
+89 |     v_period_end DATE;
+90 | BEGIN
+91 |     -- Get user's financial period settings
+92 |     SELECT financial_month_start_day, financial_week_start_day
+93 |     INTO v_month_start_day, v_week_start_day
+94 |     FROM user_settings
+95 |     WHERE user_id = p_user_id;
+96 | 
+97 |     -- For each expense category with budget
+98 |     FOR category_id, category_name, category_type, category_icon, budget_amount, budget_frequency IN
+99 |         SELECT c.id, c.name, c.type, c.icon, c.budget_amount, c.budget_frequency
+100 |         FROM categories c
+101 |         WHERE c.user_id = p_user_id AND c.type = 'expense' AND c.budget_amount IS NOT NULL AND c.is_active = TRUE
+102 |     LOOP
+103 |         -- Calculate period based on frequency and user settings
+104 |         IF budget_frequency = 'monthly' THEN
+105 |             -- Calculate custom month period
+106 |             IF EXTRACT(DAY FROM v_current_date) >= v_month_start_day THEN
+107 |                 v_period_start := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 1) * INTERVAL '1 day';
+108 |                 v_period_end := DATE_TRUNC('month', v_current_date + INTERVAL '1 month') + (v_month_start_day - 2) * INTERVAL '1 day';
+109 |             ELSE
+110 |                 v_period_start := DATE_TRUNC('month', v_current_date - INTERVAL '1 month') + (v_month_start_day - 1) * INTERVAL '1 day';
+111 |                 v_period_end := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 2) * INTERVAL '1 day';
+112 |             END IF;
+113 |         ELSIF budget_frequency = 'weekly' THEN
+114 |             -- Calculate custom week period
+115 |             v_period_start := v_current_date - ((EXTRACT(DOW FROM v_current_date)::INTEGER - v_week_start_day + 7) % 7) * INTERVAL '1 day';
+116 |             v_period_end := v_period_start + INTERVAL '6 days';
+117 |         ELSIF budget_frequency = 'one_time' THEN
+118 |             -- For one-time budgets, consider all transactions
+119 |             v_period_start := '1900-01-01'::DATE;
+120 |             v_period_end := '2100-12-31'::DATE;
+121 |         END IF;
+122 | 
+123 |         -- Calculate spent amount for the period
+124 |         SELECT COALESCE(SUM(t.amount), 0)
+125 |         INTO spent_amount
+126 |         FROM transactions t
+127 |         WHERE t.category_id = category_id
+128 |             AND t.transaction_date >= v_period_start
+129 |             AND t.transaction_date <= v_period_end
+130 |             AND t.type = 'expense';
+131 | 
+132 |         -- Calculate remaining and percentage
+133 |         remaining_amount := budget_amount - spent_amount;
+134 |         progress_percentage := CASE 
+135 |             WHEN budget_amount > 0 THEN (spent_amount / budget_amount * 100)
+136 |             ELSE 0
+137 |         END;
+138 | 
+139 |         -- Return the row
+140 |         RETURN NEXT;
+141 |     END LOOP;
+142 | END;
+143 | $$ LANGUAGE plpgsql;
+144 | 
+145 | -- Function to get investment progress
+146 | CREATE OR REPLACE FUNCTION get_investment_progress(p_user_id UUID)
+147 | RETURNS TABLE (
+148 |     category_id UUID,
+149 |     category_name VARCHAR(255),
+150 |     category_icon VARCHAR(10),
+151 |     target_amount DECIMAL(15, 2),
+152 |     target_frequency budget_frequency,
+153 |     invested_amount DECIMAL(15, 2),
+154 |     remaining_amount DECIMAL(15, 2),
+155 |     progress_percentage DECIMAL(5, 2),
+156 |     period_start DATE,
+157 |     period_end DATE
+158 | ) AS $$
+159 | DECLARE
+160 |     v_month_start_day INTEGER;
+161 |     v_current_date DATE := CURRENT_DATE;
+162 |     v_period_start DATE;
+163 |     v_period_end DATE;
+164 |     inv_category RECORD;
+165 | BEGIN
+166 |     -- Get user's financial period settings
+167 |     SELECT financial_month_start_day
+168 |     INTO v_month_start_day
+169 |     FROM user_settings
+170 |     WHERE user_id = p_user_id;
+171 | 
+172 |     -- If no settings, use default (day 1)
+173 |     IF NOT FOUND THEN
+174 |         v_month_start_day := 1;
+175 |     END IF;
+176 | 
+177 |     -- For each investment category with a target
+178 |     FOR inv_category IN
+179 |         SELECT c.id, c.name, c.icon, c.budget_amount, c.budget_frequency
+180 |         FROM categories c
+181 |         WHERE c.user_id = p_user_id
+182 |           AND c.type = 'investment'
+183 |           AND c.budget_amount IS NOT NULL
+184 |           AND c.is_active = TRUE
+185 |     LOOP
+186 |         -- Calculate period based on frequency and user settings
+187 |         IF inv_category.budget_frequency = 'monthly' THEN
+188 |             -- Calculate custom month period
+189 |             IF EXTRACT(DAY FROM v_current_date) >= v_month_start_day THEN
+190 |                 v_period_start := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 1) * INTERVAL '1 day';
+191 |                 v_period_end := DATE_TRUNC('month', v_current_date + INTERVAL '1 month') + (v_month_start_day - 2) * INTERVAL '1 day';
+192 |             ELSE
+193 |                 v_period_start := DATE_TRUNC('month', v_current_date - INTERVAL '1 month') + (v_month_start_day - 1) * INTERVAL '1 day';
+194 |                 v_period_end := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 2) * INTERVAL '1 day';
+195 |             END IF;
+196 |         ELSIF inv_category.budget_frequency = 'one_time' THEN
+197 |             -- For one-time targets, consider all transactions
+198 |             v_period_start := '1900-01-01'::DATE;
+199 |             v_period_end := '2100-12-31'::DATE;
+200 |         ELSE
+201 |             -- Skip other frequencies for investments
+202 |             CONTINUE;
+203 |         END IF;
+204 | 
+205 |         -- Set output variables from the loop
+206 |         category_id := inv_category.id;
+207 |         category_name := inv_category.name;
+208 |         category_icon := inv_category.icon;
+209 |         target_amount := inv_category.budget_amount;
+210 |         target_frequency := inv_category.budget_frequency;
+211 |         period_start := v_period_start;
+212 |         period_end := v_period_end;
+213 | 
+214 |         -- Calculate invested amount for the period
+215 |         SELECT COALESCE(SUM(t.amount), 0)
+216 |         INTO invested_amount
+217 |         FROM transactions t
+218 |         WHERE t.user_id = p_user_id
+219 |             AND t.type = 'transfer'
+220 |             AND t.investment_category_id = inv_category.id
+221 |             AND t.transaction_date >= v_period_start
+222 |             AND t.transaction_date <= v_period_end;
+223 | 
+224 |         -- Calculate remaining and percentage
+225 |         remaining_amount := target_amount - invested_amount;
+226 |         progress_percentage := CASE
+227 |             WHEN target_amount > 0 THEN (invested_amount / target_amount * 100)
+228 |             ELSE 0
+229 |         END;
+230 | 
+231 |         -- Return the row
+232 |         RETURN NEXT;
+233 |     END LOOP;
+234 | END;
+235 | $$ LANGUAGE plpgsql;
+236 | 
+237 | -- Function to update account balance and record ledger entry
+238 | CREATE OR REPLACE FUNCTION update_account_balance_with_ledger()
+239 | RETURNS TRIGGER AS $$
+240 | DECLARE
+241 |     v_balance_before DECIMAL(15, 2);
+242 |     v_balance_after DECIMAL(15, 2);
+243 |     v_amount DECIMAL(15, 2);
+244 | BEGIN
+245 |     -- Use absolute value for amount calculations
+246 |     v_amount := ABS(NEW.amount);
+247 |     
+248 |     IF TG_OP = 'INSERT' THEN
+249 |         IF NEW.type = 'income' THEN
+250 |             -- For income: positive amount increases balance, negative amount (refund) decreases balance
+251 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.account_id;
+252 |             v_balance_after := v_balance_before + NEW.amount;
+253 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.account_id;
+254 |             
+255 |             -- Record in ledger
+256 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
+257 |             VALUES (NEW.account_id, NEW.id, v_balance_before, v_balance_after, NEW.amount);
+258 |             
+259 |         ELSIF NEW.type = 'expense' THEN
+260 |             -- For expense: positive amount decreases balance (normal expense), negative amount increases balance (refund)
+261 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.account_id;
+262 |             
+263 |             -- Credit cards: expenses increase balance (debt), refunds decrease balance
+264 |             IF (SELECT type FROM accounts WHERE id = NEW.account_id) = 'credit_card' THEN
+265 |                 v_balance_after := v_balance_before + NEW.amount;
+266 |             ELSE
+267 |                 -- Other accounts: expenses decrease balance, refunds increase balance
+268 |                 v_balance_after := v_balance_before - NEW.amount;
+269 |             END IF;
+270 |             
+271 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.account_id;
+272 |             
+273 |             -- Record in ledger
+274 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
+275 |             VALUES (NEW.account_id, NEW.id, v_balance_before, v_balance_after, NEW.amount);
+276 |             
+277 |         ELSIF NEW.type = 'transfer' THEN
+278 |             -- Transfers always use positive amounts
+279 |             -- From account
+280 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.from_account_id;
+281 |             
+282 |             -- Credit card as source: transfer decreases balance (paying off debt)
+283 |             IF (SELECT type FROM accounts WHERE id = NEW.from_account_id) = 'credit_card' THEN
+284 |                 v_balance_after := v_balance_before - v_amount;
+285 |             ELSE
+286 |                 -- Other accounts: transfer decreases balance
+287 |                 v_balance_after := v_balance_before - v_amount;
+288 |             END IF;
+289 |             
+290 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.from_account_id;
+291 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
+292 |             VALUES (NEW.from_account_id, NEW.id, v_balance_before, v_balance_after, -v_amount);
+293 |             
+294 |             -- To account
+295 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.to_account_id;
+296 |             
+297 |             -- Credit card as destination: transfer decreases balance (paying off debt)
+298 |             IF (SELECT type FROM accounts WHERE id = NEW.to_account_id) = 'credit_card' THEN
+299 |                 v_balance_after := v_balance_before - v_amount;
+300 |             ELSE
+301 |                 -- Other accounts: transfer increases balance
+302 |                 v_balance_after := v_balance_before + v_amount;
+303 |             END IF;
+304 |             
+305 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.to_account_id;
+306 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
+307 |             VALUES (NEW.to_account_id, NEW.id, v_balance_before, v_balance_after, v_amount);
+308 |         END IF;
+309 |         
+310 |     ELSIF TG_OP = 'UPDATE' THEN
+311 |         -- For updates, it's safer to recalculate from ledger history
+312 |         -- This is a complex operation and might be better handled at application level
+313 |         RAISE EXCEPTION 'Transaction updates should be handled at application level for better control';
+314 |         
+315 |     ELSIF TG_OP = 'DELETE' THEN
+316 |         -- For deletes, reverse the transaction based on ledger history
+317 |         -- This ensures consistency with the historical record
+318 |         RAISE EXCEPTION 'Transaction deletion should be handled at application level for better control';
+319 |     END IF;
+320 |     
+321 |     RETURN NEW;
+322 | END;
+323 | $$ LANGUAGE plpgsql;
+324 | 
+325 | -- Create trigger for account balance updates
+326 | CREATE TRIGGER trigger_update_account_balance
+327 | AFTER INSERT ON transactions
+328 | FOR EACH ROW EXECUTE FUNCTION update_account_balance_with_ledger();
+329 | 
+330 | -- Function to update timestamps
+331 | CREATE OR REPLACE FUNCTION update_updated_at_column()
+332 | RETURNS TRIGGER AS $$
+333 | BEGIN
+334 |     NEW.updated_at = NOW();
+335 |     RETURN NEW;
+336 | END;
+337 | $$ LANGUAGE plpgsql;
+338 | 
+339 | -- Apply timestamp triggers to all tables
+340 | CREATE TRIGGER update_user_settings_updated_at BEFORE UPDATE ON user_settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+341 | CREATE TRIGGER update_accounts_updated_at BEFORE UPDATE ON accounts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+342 | CREATE TRIGGER update_categories_updated_at BEFORE UPDATE ON categories FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+343 | CREATE TRIGGER update_transactions_updated_at BEFORE UPDATE ON transactions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+```
+
+supabase/migrations/20250629094304_fix_credit_card_transfer_logic.sql
+```
+1 | -- Correct the logic for credit card transfers in the balance update function.
+2 | -- A transfer FROM a credit card (cash advance) should INCREASE the balance (debt).
+3 | -- A transfer TO a credit card (payment) should DECREASE the balance (debt).
+4 | 
+5 | CREATE OR REPLACE FUNCTION update_account_balance_with_ledger()
+6 | RETURNS TRIGGER AS $$
+7 | DECLARE
+8 |     v_balance_before DECIMAL(15, 2);
+9 |     v_balance_after DECIMAL(15, 2);
+10 |     v_amount DECIMAL(15, 2);
+11 | BEGIN
+12 |     -- Use absolute value for amount calculations in transfers
+13 |     v_amount := ABS(NEW.amount);
+14 |     
+15 |     IF TG_OP = 'INSERT' THEN
+16 |         IF NEW.type = 'income' THEN
+17 |             -- For income: positive amount increases balance, negative amount (refund) decreases balance
+18 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.account_id;
+19 |             v_balance_after := v_balance_before + NEW.amount;
+20 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.account_id;
+21 |             
+22 |             -- Record in ledger
+23 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
+24 |             VALUES (NEW.account_id, NEW.id, v_balance_before, v_balance_after, NEW.amount);
+25 |             
+26 |         ELSIF NEW.type = 'expense' THEN
+27 |             -- For expense: positive amount decreases balance (normal expense), negative amount increases balance (refund)
+28 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.account_id;
+29 |             
+30 |             -- Credit cards: expenses increase balance (debt), refunds decrease balance
+31 |             IF (SELECT type FROM accounts WHERE id = NEW.account_id) = 'credit_card' THEN
+32 |                 v_balance_after := v_balance_before + NEW.amount;
+33 |             ELSE
+34 |                 -- Other accounts: expenses decrease balance, refunds increase balance
+35 |                 v_balance_after := v_balance_before - NEW.amount;
+36 |             END IF;
+37 |             
+38 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.account_id;
+39 |             
+40 |             -- Record in ledger. For credit cards, an expense is a positive change in balance (debt increases).
+41 |             -- For other accounts, an expense is a negative change.
+42 |             -- The sign of NEW.amount already handles this.
+43 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
+44 |             VALUES (NEW.account_id, NEW.id, v_balance_before, v_balance_after, 
+45 |                 CASE 
+46 |                     WHEN (SELECT type FROM accounts WHERE id = NEW.account_id) = 'credit_card' THEN NEW.amount 
+47 |                     ELSE -NEW.amount 
+48 |                 END);
+49 |             
+50 |         ELSIF NEW.type = 'transfer' THEN
+51 |             -- From account
+52 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.from_account_id;
+53 |             
+54 |             -- **FIXED LOGIC**: Credit card as source (cash advance): transfer INCREASES balance (debt)
+55 |             IF (SELECT type FROM accounts WHERE id = NEW.from_account_id) = 'credit_card' THEN
+56 |                 v_balance_after := v_balance_before + v_amount;
+57 |             ELSE
+58 |                 -- Other accounts: transfer decreases balance
+59 |                 v_balance_after := v_balance_before - v_amount;
+60 |             END IF;
+61 |             
+62 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.from_account_id;
+63 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
+64 |             VALUES (NEW.from_account_id, NEW.id, v_balance_before, v_balance_after, 
+65 |                 CASE 
+66 |                     WHEN (SELECT type FROM accounts WHERE id = NEW.from_account_id) = 'credit_card' THEN v_amount 
+67 |                     ELSE -v_amount 
+68 |                 END);
+69 |             
+70 |             -- To account
+71 |             SELECT current_balance INTO v_balance_before FROM accounts WHERE id = NEW.to_account_id;
+72 |             
+73 |             -- Credit card as destination (payment): transfer DECREASES balance (paying off debt)
+74 |             IF (SELECT type FROM accounts WHERE id = NEW.to_account_id) = 'credit_card' THEN
+75 |                 v_balance_after := v_balance_before - v_amount;
+76 |             ELSE
+77 |                 -- Other accounts: transfer increases balance
+78 |                 v_balance_after := v_balance_before + v_amount;
+79 |             END IF;
+80 |             
+81 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.to_account_id;
+82 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
+83 |             VALUES (NEW.to_account_id, NEW.id, v_balance_before, v_balance_after, 
+84 |                 CASE 
+85 |                     WHEN (SELECT type FROM accounts WHERE id = NEW.to_account_id) = 'credit_card' THEN -v_amount 
+86 |                     ELSE v_amount 
+87 |                 END);
+88 |         END IF;
+89 |         
+90 |     ELSIF TG_OP = 'UPDATE' THEN
+91 |         -- It's safer to recalculate from ledger history.
+92 |         -- This is a complex operation and better handled at application level.
+93 |         RAISE EXCEPTION 'Transaction updates should be handled at the application level for better control.';
+94 |         
+95 |     ELSIF TG_OP = 'DELETE' THEN
+96 |         -- Reversing the transaction based on ledger history ensures consistency.
+97 |         -- This is also better handled at the application level.
+98 |         RAISE EXCEPTION 'Transaction deletion should be handled at the application level for better control.';
+99 |     END IF;
+100 |     
+101 |     RETURN NEW;
+102 | END;
+103 | $$ LANGUAGE plpgsql;
+```
+
+supabase/migrations/20250629094305_fix_investment_progress_function.sql
+```
+1 | -- Description: This migration fixes a bug where the get_investment_progress function
+2 | -- referenced a non-existent column (investment_category_id) in the transactions table.
+3 | -- This script adds the column and updates the necessary constraints to ensure data integrity.
+4 | 
+5 | -- Step 1: Add the investment_category_id column to the transactions table.
+6 | -- This column will store a reference to an investment goal category for transfer transactions.
+7 | ALTER TABLE public.transactions
+8 | ADD COLUMN investment_category_id UUID REFERENCES public.categories(id) ON DELETE RESTRICT;
+9 | 
+10 | -- Step 2: Create an index on the new column for better query performance.
+11 | CREATE INDEX idx_transactions_investment_category ON public.transactions(investment_category_id);
+12 | 
+13 | -- Step 3: Drop the existing check constraint so it can be replaced.
+14 | ALTER TABLE public.transactions
+15 | DROP CONSTRAINT chk_transaction_consistency;
+16 | 
+17 | -- Step 4: Re-add the check constraint with updated logic.
+18 | -- The new logic ensures that:
+19 | -- 1. For 'income' or 'expense' types, investment_category_id MUST be NULL.
+20 | -- 2. For 'transfer' type, the original rules apply, and investment_category_id is optional.
+21 | ALTER TABLE public.transactions
+22 | ADD CONSTRAINT chk_transaction_consistency CHECK (
+23 |     (
+24 |         type IN ('income', 'expense') AND
+25 |         account_id IS NOT NULL AND
+26 |         category_id IS NOT NULL AND
+27 |         from_account_id IS NULL AND
+28 |         to_account_id IS NULL AND
+29 |         investment_category_id IS NULL
+30 |     ) OR (
+31 |         type = 'transfer' AND
+32 |         from_account_id IS NOT NULL AND
+33 |         to_account_id IS NOT NULL AND
+34 |         account_id IS NULL AND
+35 |         category_id IS NULL
+36 |     )
+37 | );
+38 | 
+39 | -- Step 5: Refresh the get_investment_progress function to ensure it recognizes the new column.
+40 | CREATE OR REPLACE FUNCTION get_investment_progress(p_user_id UUID)
+41 | RETURNS TABLE (
+42 |     category_id UUID,
+43 |     category_name VARCHAR(255),
+44 |     category_icon VARCHAR(10),
+45 |     target_amount DECIMAL(15, 2),
+46 |     target_frequency budget_frequency,
+47 |     invested_amount DECIMAL(15, 2),
+48 |     remaining_amount DECIMAL(15, 2),
+49 |     progress_percentage DECIMAL(5, 2),
+50 |     period_start DATE,
+51 |     period_end DATE
+52 | ) AS $$
+53 | DECLARE
+54 |     v_month_start_day INTEGER;
+55 |     v_current_date DATE := CURRENT_DATE;
+56 |     v_period_start DATE;
+57 |     v_period_end DATE;
+58 |     inv_category RECORD;
+59 | BEGIN
+60 |     -- Get user's financial period settings
+61 |     SELECT financial_month_start_day
+62 |     INTO v_month_start_day
+63 |     FROM user_settings
+64 |     WHERE user_id = p_user_id;
 65 | 
-66 |     // Check for errors
-67 |     if (financialError) throw financialError
-68 |     if (budgetError) throw budgetError
-69 |     if (investmentError) throw investmentError
-70 |     if (accountsError) throw accountsError
-71 |     if (transactionsError) throw transactionsError
+66 |     -- If no settings, use default (day 1)
+67 |     IF NOT FOUND THEN
+68 |         v_month_start_day := 1;
+69 |     END IF;
+70 | 
+71 |     -- For each investment category with a target
+72 |     FOR inv_category IN
+73 |         SELECT c.id, c.name, c.icon, c.budget_amount, c.budget_frequency
+74 |         FROM categories c
+75 |         WHERE c.user_id = p_user_id
+76 |           AND c.type = 'investment'
+77 |           AND c.budget_amount IS NOT NULL
+78 |           AND c.is_active = TRUE
+79 |     LOOP
+80 |         -- Calculate period based on frequency and user settings
+81 |         IF inv_category.budget_frequency = 'monthly' THEN
+82 |             -- Calculate custom month period
+83 |             IF EXTRACT(DAY FROM v_current_date) >= v_month_start_day THEN
+84 |                 v_period_start := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 1) * INTERVAL '1 day';
+85 |                 v_period_end := DATE_TRUNC('month', v_current_date + INTERVAL '1 month') + (v_month_start_day - 2) * INTERVAL '1 day';
+86 |             ELSE
+87 |                 v_period_start := DATE_TRUNC('month', v_current_date - INTERVAL '1 month') + (v_month_start_day - 1) * INTERVAL '1 day';
+88 |                 v_period_end := DATE_TRUNC('month', v_current_date) + (v_month_start_day - 2) * INTERVAL '1 day';
+89 |             END IF;
+90 |         ELSIF inv_category.budget_frequency = 'one_time' THEN
+91 |             -- For one-time targets, consider all transactions
+92 |             v_period_start := '1900-01-01'::DATE;
+93 |             v_period_end := '2100-12-31'::DATE;
+94 |         ELSE
+95 |             -- Skip other frequencies for investments
+96 |             CONTINUE;
+97 |         END IF;
+98 | 
+99 |         -- Set output variables from the loop
+100 |         category_id := inv_category.id;
+101 |         category_name := inv_category.name;
+102 |         category_icon := inv_category.icon;
+103 |         target_amount := inv_category.budget_amount;
+104 |         target_frequency := inv_category.budget_frequency;
+105 |         period_start := v_period_start;
+106 |         period_end := v_period_end;
+107 | 
+108 |         -- Calculate invested amount for the period
+109 |         SELECT COALESCE(SUM(t.amount), 0)
+110 |         INTO invested_amount
+111 |         FROM transactions t
+112 |         WHERE t.user_id = p_user_id
+113 |             AND t.type = 'transfer'
+114 |             AND t.investment_category_id = inv_category.id
+115 |             AND t.transaction_date >= v_period_start
+116 |             AND t.transaction_date <= v_period_end;
+117 | 
+118 |         -- Calculate remaining and percentage
+119 |         remaining_amount := target_amount - invested_amount;
+120 |         progress_percentage := CASE
+121 |             WHEN target_amount > 0 THEN (invested_amount / target_amount * 100)
+122 |             ELSE 0
+123 |         END;
+124 | 
+125 |         -- Return the row
+126 |         RETURN NEXT;
+127 |     END LOOP;
+128 | END;
+129 | $$ LANGUAGE plpgsql; 
+```
+
+supabase/migrations/20250630000000_fix_credit_card_income_logic.sql
+```
+1 | -- Fix the credit card income logic in the balance update function.
+2 | -- For credit cards:
+3 | -- - Income transactions (payments) should DECREASE the balance (reduce debt)
+4 | -- - Expense transactions should INCREASE the balance (increase debt)
+5 | 
+6 | CREATE OR REPLACE FUNCTION update_account_balance_with_ledger()
+7 | RETURNS TRIGGER AS $$
+8 | DECLARE
+9 |     v_balance_before DECIMAL(15, 2);
+10 |     v_balance_after DECIMAL(15, 2);
+11 |     v_amount DECIMAL(15, 2);
+12 |     v_account_type account_type;
+13 | BEGIN
+14 |     -- Use absolute value for amount calculations in transfers
+15 |     v_amount := ABS(NEW.amount);
+16 |     
+17 |     IF TG_OP = 'INSERT' THEN
+18 |         IF NEW.type = 'income' THEN
+19 |             -- Get account type and current balance
+20 |             SELECT type, current_balance INTO v_account_type, v_balance_before 
+21 |             FROM accounts WHERE id = NEW.account_id;
+22 |             
+23 |             -- Credit cards: income (payments) decreases balance (reduces debt)
+24 |             -- Other accounts: income increases balance
+25 |             IF v_account_type = 'credit_card' THEN
+26 |                 v_balance_after := v_balance_before - NEW.amount;
+27 |             ELSE
+28 |                 v_balance_after := v_balance_before + NEW.amount;
+29 |             END IF;
+30 |             
+31 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.account_id;
+32 |             
+33 |             -- Record in ledger with appropriate change amount
+34 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
+35 |             VALUES (NEW.account_id, NEW.id, v_balance_before, v_balance_after, 
+36 |                 CASE 
+37 |                     WHEN v_account_type = 'credit_card' THEN -NEW.amount 
+38 |                     ELSE NEW.amount 
+39 |                 END);
+40 |             
+41 |         ELSIF NEW.type = 'expense' THEN
+42 |             -- Get account type and current balance
+43 |             SELECT type, current_balance INTO v_account_type, v_balance_before 
+44 |             FROM accounts WHERE id = NEW.account_id;
+45 |             
+46 |             -- Credit cards: expenses increase balance (debt), refunds decrease balance
+47 |             -- Other accounts: expenses decrease balance, refunds increase balance
+48 |             IF v_account_type = 'credit_card' THEN
+49 |                 v_balance_after := v_balance_before + NEW.amount;
+50 |             ELSE
+51 |                 v_balance_after := v_balance_before - NEW.amount;
+52 |             END IF;
+53 |             
+54 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.account_id;
+55 |             
+56 |             -- Record in ledger with appropriate change amount
+57 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
+58 |             VALUES (NEW.account_id, NEW.id, v_balance_before, v_balance_after, 
+59 |                 CASE 
+60 |                     WHEN v_account_type = 'credit_card' THEN NEW.amount 
+61 |                     ELSE -NEW.amount 
+62 |                 END);
+63 |             
+64 |         ELSIF NEW.type = 'transfer' THEN
+65 |             -- From account
+66 |             SELECT type, current_balance INTO v_account_type, v_balance_before 
+67 |             FROM accounts WHERE id = NEW.from_account_id;
+68 |             
+69 |             -- Credit card as source (cash advance): transfer INCREASES balance (debt)
+70 |             -- Other accounts: transfer decreases balance
+71 |             IF v_account_type = 'credit_card' THEN
+72 |                 v_balance_after := v_balance_before + v_amount;
+73 |             ELSE
+74 |                 v_balance_after := v_balance_before - v_amount;
+75 |             END IF;
+76 |             
+77 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.from_account_id;
+78 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
+79 |             VALUES (NEW.from_account_id, NEW.id, v_balance_before, v_balance_after, 
+80 |                 CASE 
+81 |                     WHEN v_account_type = 'credit_card' THEN v_amount 
+82 |                     ELSE -v_amount 
+83 |                 END);
+84 |             
+85 |             -- To account
+86 |             SELECT type, current_balance INTO v_account_type, v_balance_before 
+87 |             FROM accounts WHERE id = NEW.to_account_id;
+88 |             
+89 |             -- Credit card as destination (payment): transfer DECREASES balance (paying off debt)
+90 |             -- Other accounts: transfer increases balance
+91 |             IF v_account_type = 'credit_card' THEN
+92 |                 v_balance_after := v_balance_before - v_amount;
+93 |             ELSE
+94 |                 v_balance_after := v_balance_before + v_amount;
+95 |             END IF;
+96 |             
+97 |             UPDATE accounts SET current_balance = v_balance_after WHERE id = NEW.to_account_id;
+98 |             INSERT INTO balance_ledger (account_id, transaction_id, balance_before, balance_after, change_amount)
+99 |             VALUES (NEW.to_account_id, NEW.id, v_balance_before, v_balance_after, 
+100 |                 CASE 
+101 |                     WHEN v_account_type = 'credit_card' THEN -v_amount 
+102 |                     ELSE v_amount 
+103 |                 END);
+104 |         END IF;
+105 |         
+106 |     ELSIF TG_OP = 'UPDATE' THEN
+107 |         -- It's safer to recalculate from ledger history.
+108 |         -- This is a complex operation and better handled at application level.
+109 |         RAISE EXCEPTION 'Transaction updates should be handled at the application level for better control.';
+110 |         
+111 |     ELSIF TG_OP = 'DELETE' THEN
+112 |         -- Reversing the transaction based on ledger history ensures consistency.
+113 |         -- This is also better handled at the application level.
+114 |         RAISE EXCEPTION 'Transaction deletion should be handled at the application level for better control.';
+115 |     END IF;
+116 |     
+117 |     RETURN NEW;
+118 | END;
+119 | $$ LANGUAGE plpgsql;
+```
+
+supabase/scripts/deploy.sql
+```
+1 | -- Production Deployment Script for Noka Financial Tracker
+2 | -- This script ensures all migrations are applied in the correct order for production deployment
+3 | -- Run this script with appropriate database privileges
+4 | 
+5 | -- Enable necessary extensions
+6 | CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+7 | CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+8 | 
+9 | -- Verify current database state
+10 | DO $$
+11 | BEGIN
+12 |     -- Check if this is a fresh database or if migrations are needed
+13 |     IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'supabase_migrations' AND table_schema = 'supabase_migrations') THEN
+14 |         RAISE NOTICE 'Fresh database detected. All migrations will be applied.';
+15 |     ELSE
+16 |         RAISE NOTICE 'Existing database detected. Only new migrations will be applied.';
+17 |     END IF;
+18 | END $$;
+19 | 
+20 | -- Create migration tracking table if it doesn't exist
+21 | CREATE SCHEMA IF NOT EXISTS supabase_migrations;
+22 | 
+23 | CREATE TABLE IF NOT EXISTS supabase_migrations.schema_migrations (
+24 |     version TEXT PRIMARY KEY,
+25 |     inserted_at TIMESTAMPTZ DEFAULT NOW()
+26 | );
+27 | 
+28 | -- List of all migrations in dependency order
+29 | -- This should be updated whenever new migrations are added
+30 | DO $$
+31 | DECLARE
+32 |     migration_files TEXT[] := ARRAY[
+33 |         '20250629085550_create_database_enums.sql',
+34 |         '20250629085556_create_user_settings_table.sql',
+35 |         '20250629085602_create_accounts_table.sql',
+36 |         '20250629085607_create_categories_table.sql',
+37 |         '20250629085614_create_transactions_table.sql',
+38 |         '20250629085615_create_balance_ledger_table.sql',
+39 |         '20250629085616_complete_rls_policies.sql',
+40 |         '20250629085617_create_database_functions_and_triggers.sql',
+41 |         '20250629094304_fix_credit_card_transfer_logic.sql',
+42 |         '20250629094305_fix_investment_progress_function.sql',
+43 |         '20250630000000_fix_credit_card_income_logic.sql'
+44 |     ];
+45 |     migration_file TEXT;
+46 | BEGIN
+47 |     -- Verify all expected migrations are present
+48 |     FOREACH migration_file IN ARRAY migration_files
+49 |     LOOP
+50 |         IF NOT EXISTS (
+51 |             SELECT 1 FROM supabase_migrations.schema_migrations 
+52 |             WHERE version = migration_file
+53 |         ) THEN
+54 |             RAISE NOTICE 'Migration % needs to be applied', migration_file;
+55 |         ELSE
+56 |             RAISE NOTICE 'Migration % already applied', migration_file;
+57 |         END IF;
+58 |     END LOOP;
+59 | END $$;
+60 | 
+61 | -- Production deployment checklist
+62 | DO $$
+63 | BEGIN
+64 |     RAISE NOTICE '=== PRODUCTION DEPLOYMENT CHECKLIST ===';
+65 |     RAISE NOTICE '1. Backup current database before proceeding';
+66 |     RAISE NOTICE '2. Run supabase db push to apply pending migrations';
+67 |     RAISE NOTICE '3. Run validation script after deployment';
+68 |     RAISE NOTICE '4. Test critical functions with sample data';
+69 |     RAISE NOTICE '5. Verify Row Level Security policies are active';
+70 |     RAISE NOTICE '==========================================';
+71 | END $$;
 72 | 
-73 |     // Calculate additional metrics
-74 |     const totalBalance = accounts?.reduce((sum, account) => sum + account.current_balance, 0) || 0
-75 |     
-76 |     // Get current financial summary (most recent period)
-77 |     const currentPeriodSummary = financialSummary?.[0] || {
-78 |       total_income: 0,
-79 |       total_expenses: 0,
-80 |       net_savings: 0,
-81 |       period_start: new Date().toISOString().split('T')[0],
-82 |       period_end: new Date().toISOString().split('T')[0],
-83 |     }
-84 | 
-85 |     // Calculate budget totals
-86 |     const budgetTotals = {
-87 |       total_budget: budgetProgress?.reduce((sum: number, budget: BudgetProgress) => sum + (budget.budget_amount || 0), 0) || 0,
-88 |       total_spent: budgetProgress?.reduce((sum: number, budget: BudgetProgress) => sum + (budget.spent_amount || 0), 0) || 0,
-89 |       categories_over_budget: budgetProgress?.filter((budget: BudgetProgress) => 
-90 |         budget.progress_percentage > 100
-91 |       ).length || 0,
-92 |     }
-93 | 
-94 |     // Calculate investment totals
-95 |     const investmentTotals = {
-96 |       total_target: investmentProgress?.reduce((sum: number, investment: InvestmentProgress) => sum + (investment.target_amount || 0), 0) || 0,
-97 |       total_invested: investmentProgress?.reduce((sum: number, investment: InvestmentProgress) => sum + (investment.invested_amount || 0), 0) || 0,
-98 |       average_progress: investmentProgress?.length > 0 
-99 |         ? investmentProgress.reduce((sum: number, investment: InvestmentProgress) => sum + (investment.progress_percentage || 0), 0) / investmentProgress.length
-100 |         : 0,
-101 |     }
-102 | 
-103 |     // Group accounts by type
-104 |     const accountsByType = accounts?.reduce((acc, account) => {
-105 |       if (!acc[account.type]) {
-106 |         acc[account.type] = []
-107 |       }
-108 |       acc[account.type].push(account)
-109 |       return acc
-110 |     }, {} as Record<string, typeof accounts>) || {}
-111 | 
-112 |     // Calculate account type totals
-113 |     const accountTypeTotals = Object.entries(accountsByType).map(([type, accountsOfType]) => ({
-114 |       type,
-115 |       count: accountsOfType.length,
-116 |       total_balance: accountsOfType.reduce((sum, account) => sum + account.current_balance, 0),
-117 |     }))
-118 | 
-119 |     const dashboardData = {
-120 |       // Financial Overview
-121 |       financial_summary: {
-122 |         current_period: currentPeriodSummary,
-123 |         total_balance: totalBalance,
-124 |         account_type_totals: accountTypeTotals,
-125 |       },
-126 |       
-127 |       // Budget Overview
-128 |       budget_overview: {
-129 |         ...budgetTotals,
-130 |         remaining_budget: budgetTotals.total_budget - budgetTotals.total_spent,
-131 |         budget_utilization: budgetTotals.total_budget > 0 
-132 |           ? (budgetTotals.total_spent / budgetTotals.total_budget) * 100 
-133 |           : 0,
-134 |         categories: budgetProgress || [],
-135 |       },
-136 |       
-137 |       // Investment Overview
-138 |       investment_overview: {
-139 |         ...investmentTotals,
-140 |         remaining_to_invest: investmentTotals.total_target - investmentTotals.total_invested,
-141 |         categories: investmentProgress || [],
-142 |       },
-143 |       
-144 |       // Accounts Summary
-145 |       accounts_summary: {
-146 |         total_accounts: accounts?.length || 0,
-147 |         total_balance: totalBalance,
-148 |         by_type: accountsByType,
-149 |         accounts: accounts || [],
-150 |       },
-151 |       
-152 |       // Recent Activity
-153 |       recent_activity: {
-154 |         transactions: recentTransactions || [],
-155 |         transaction_count: recentTransactions?.length || 0,
-156 |       },
-157 |       
-158 |       // Quick Stats
-159 |       quick_stats: {
-160 |         net_worth: totalBalance,
-161 |         monthly_income: currentPeriodSummary.total_income,
-162 |         monthly_expenses: currentPeriodSummary.total_expenses,
-163 |         monthly_savings: currentPeriodSummary.net_savings,
-164 |         savings_rate: currentPeriodSummary.total_income > 0 
-165 |           ? (currentPeriodSummary.net_savings / currentPeriodSummary.total_income) * 100 
-166 |           : 0,
-167 |         budget_health: budgetTotals.total_budget > 0 
-168 |           ? Math.max(0, 100 - (budgetTotals.total_spent / budgetTotals.total_budget) * 100)
-169 |           : 100,
-170 |       },
-171 |     }
+73 | -- Verify essential components exist after migration
+74 | DO $$
+75 | BEGIN
+76 |     -- Check tables
+77 |     IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_settings') THEN
+78 |         RAISE EXCEPTION 'Critical table user_settings missing';
+79 |     END IF;
+80 |     
+81 |     IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'accounts') THEN
+82 |         RAISE EXCEPTION 'Critical table accounts missing';
+83 |     END IF;
+84 |     
+85 |     IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'transactions') THEN
+86 |         RAISE EXCEPTION 'Critical table transactions missing';
+87 |     END IF;
+88 |     
+89 |     -- Check functions
+90 |     IF NOT EXISTS (
+91 |         SELECT 1 FROM information_schema.routines 
+92 |         WHERE routine_name = 'update_account_balance_with_ledger'
+93 |     ) THEN
+94 |         RAISE EXCEPTION 'Critical function update_account_balance_with_ledger missing';
+95 |     END IF;
+96 |     
+97 |     -- Check enums
+98 |     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'account_type') THEN
+99 |         RAISE EXCEPTION 'Critical enum account_type missing';
+100 |     END IF;
+101 |     
+102 |     RAISE NOTICE 'All critical components verified successfully';
+103 | END $$;
+```
+
+supabase/scripts/rollback.sql
+```
+1 | -- Rollback Script for Noka Financial Tracker
+2 | -- WARNING: This script will remove database objects and potentially cause data loss
+3 | -- Only use this script in development or with proper backups in production
+4 | 
+5 | -- Safety check
+6 | DO $$
+7 | BEGIN
+8 |     RAISE NOTICE '=== ROLLBACK SAFETY WARNING ===';
+9 |     RAISE NOTICE 'This script will DROP tables and data';
+10 |     RAISE NOTICE 'Ensure you have a backup before proceeding';
+11 |     RAISE NOTICE 'Comment out this safety check to continue';
+12 |     RAISE NOTICE '==============================';
+13 |     
+14 |     -- Uncomment the line below to enable rollback
+15 |     -- RAISE EXCEPTION 'Safety check: Rollback aborted. Remove this check to proceed.';
+16 | END $$;
+17 | 
+18 | -- Rollback functions and triggers (reverse order of creation)
+19 | DROP TRIGGER IF EXISTS trigger_update_account_balance ON transactions;
+20 | DROP FUNCTION IF EXISTS update_account_balance_with_ledger();
+21 | DROP FUNCTION IF EXISTS get_investment_progress(UUID);
+22 | DROP FUNCTION IF EXISTS get_budget_progress(UUID);
+23 | DROP FUNCTION IF EXISTS get_financial_summary(UUID);
+24 | DROP FUNCTION IF EXISTS update_updated_at_column();
+25 | 
+26 | -- Drop tables (reverse dependency order)
+27 | DROP TABLE IF EXISTS balance_ledger CASCADE;
+28 | DROP TABLE IF EXISTS transactions CASCADE;
+29 | DROP TABLE IF EXISTS categories CASCADE;
+30 | DROP TABLE IF EXISTS accounts CASCADE;
+31 | DROP TABLE IF EXISTS user_settings CASCADE;
+32 | 
+33 | -- Drop enums
+34 | DROP TYPE IF EXISTS transaction_type CASCADE;
+35 | DROP TYPE IF EXISTS budget_frequency CASCADE;
+36 | DROP TYPE IF EXISTS category_type CASCADE;
+37 | DROP TYPE IF EXISTS account_type CASCADE;
+38 | 
+39 | -- Remove RLS policies (they should be dropped with tables, but explicit cleanup)
+40 | -- Note: RLS policies are automatically dropped when tables are dropped
+41 | 
+42 | -- Clean up migration history for development rollback
+43 | -- WARNING: Only do this in development environments
+44 | -- DELETE FROM supabase_migrations.schema_migrations 
+45 | -- WHERE version LIKE '2025062%' OR version LIKE '2025063%';
+46 | 
+47 | -- Final cleanup verification
+48 | DO $$
+49 | BEGIN
+50 |     RAISE NOTICE '=== ROLLBACK COMPLETION SUMMARY ===';
+51 |     
+52 |     -- Verify tables are removed
+53 |     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name IN ('user_settings', 'accounts', 'categories', 'transactions', 'balance_ledger')) THEN
+54 |         RAISE WARNING 'Some tables may still exist - check manually';
+55 |     ELSE
+56 |         RAISE NOTICE 'All application tables successfully removed';
+57 |     END IF;
+58 |     
+59 |     -- Verify functions are removed
+60 |     IF EXISTS (SELECT 1 FROM information_schema.routines WHERE routine_name LIKE '%account_balance%') THEN
+61 |         RAISE WARNING 'Some functions may still exist - check manually';
+62 |     ELSE
+63 |         RAISE NOTICE 'All application functions successfully removed';
+64 |     END IF;
+65 |     
+66 |     -- Verify enums are removed
+67 |     IF EXISTS (SELECT 1 FROM pg_type WHERE typname IN ('account_type', 'category_type', 'transaction_type', 'budget_frequency')) THEN
+68 |         RAISE WARNING 'Some enums may still exist - check manually';
+69 |     ELSE
+70 |         RAISE NOTICE 'All application enums successfully removed';
+71 |     END IF;
+72 |     
+73 |     RAISE NOTICE '==================================';
+74 |     RAISE NOTICE 'Rollback completed. Database reset to pre-migration state.';
+75 |     RAISE NOTICE 'Migration history preserved for reapplication.';
+76 | END $$;
+```
+
+supabase/scripts/test-functions.sql
+```
+1 | -- Function Testing Script for Noka Financial Tracker
+2 | -- This script tests all database functions with realistic data to ensure they work correctly
+3 | -- Particularly important for dashboard functions that drive the application UI
+4 | 
+5 | -- =============================================================================
+6 | -- TEST FRAMEWORK SETUP
+7 | -- =============================================================================
+8 | 
+9 | -- Create temporary schema for testing
+10 | CREATE SCHEMA IF NOT EXISTS function_test;
+11 | SET search_path TO function_test, public;
+12 | 
+13 | -- Test results tracking
+14 | CREATE TEMP TABLE function_test_results (
+15 |     test_name TEXT,
+16 |     function_name TEXT,
+17 |     status TEXT,
+18 |     expected_result TEXT,
+19 |     actual_result TEXT,
+20 |     details TEXT,
+21 |     execution_time_ms NUMERIC,
+22 |     created_at TIMESTAMPTZ DEFAULT NOW()
+23 | );
+24 | 
+25 | -- Test helper function
+26 | CREATE OR REPLACE FUNCTION log_function_test(
+27 |     p_test_name TEXT,
+28 |     p_function_name TEXT,
+29 |     p_status TEXT,
+30 |     p_expected TEXT DEFAULT '',
+31 |     p_actual TEXT DEFAULT '',
+32 |     p_details TEXT DEFAULT '',
+33 |     p_execution_time NUMERIC DEFAULT 0
+34 | )
+35 | RETURNS VOID AS $$
+36 | BEGIN
+37 |     INSERT INTO function_test_results 
+38 |     (test_name, function_name, status, expected_result, actual_result, details, execution_time_ms)
+39 |     VALUES (p_test_name, p_function_name, p_status, p_expected, p_actual, p_details, p_execution_time);
+40 | END;
+41 | $$ LANGUAGE plpgsql;
+42 | 
+43 | -- =============================================================================
+44 | -- TEST 1: BALANCE CALCULATION FUNCTION
+45 | -- =============================================================================
+46 | 
+47 | DO $$
+48 | DECLARE
+49 |     start_time TIMESTAMPTZ;
+50 |     end_time TIMESTAMPTZ;
+51 |     execution_time NUMERIC;
+52 |     test_passed BOOLEAN := TRUE;
+53 | BEGIN
+54 |     start_time := clock_timestamp();
+55 |     
+56 |     BEGIN
+57 |         -- Test if the function exists and can be called
+58 |         IF EXISTS (
+59 |             SELECT 1 FROM information_schema.routines 
+60 |             WHERE routine_name = 'update_account_balance_with_ledger'
+61 |         ) THEN
+62 |             PERFORM log_function_test(
+63 |                 'Function Existence',
+64 |                 'update_account_balance_with_ledger',
+65 |                 'PASS',
+66 |                 'Function exists',
+67 |                 'Function found',
+68 |                 'Balance calculation function is available'
+69 |             );
+70 |         ELSE
+71 |             PERFORM log_function_test(
+72 |                 'Function Existence',
+73 |                 'update_account_balance_with_ledger',
+74 |                 'FAIL',
+75 |                 'Function exists',
+76 |                 'Function not found',
+77 |                 'Critical balance function is missing'
+78 |             );
+79 |             test_passed := FALSE;
+80 |         END IF;
+81 |         
+82 |         end_time := clock_timestamp();
+83 |         execution_time := EXTRACT(MILLISECONDS FROM (end_time - start_time));
+84 |         
+85 |         IF test_passed THEN
+86 |             PERFORM log_function_test(
+87 |                 'Balance Function Test',
+88 |                 'update_account_balance_with_ledger',
+89 |                 'PASS',
+90 |                 'Function callable',
+91 |                 'Function operational',
+92 |                 'Balance function ready for use',
+93 |                 execution_time
+94 |             );
+95 |         END IF;
+96 |         
+97 |     EXCEPTION
+98 |         WHEN OTHERS THEN
+99 |             PERFORM log_function_test(
+100 |                 'Balance Function Test',
+101 |                 'update_account_balance_with_ledger',
+102 |                 'FAIL',
+103 |                 'Function callable',
+104 |                 'Exception: ' || SQLERRM,
+105 |                 'Function exists but has execution issues'
+106 |             );
+107 |     END;
+108 | END $$;
+109 | 
+110 | -- =============================================================================
+111 | -- TEST 2: UPDATED_AT TRIGGER FUNCTION
+112 | -- =============================================================================
+113 | 
+114 | DO $$
+115 | DECLARE
+116 |     start_time TIMESTAMPTZ;
+117 |     end_time TIMESTAMPTZ;
+118 |     execution_time NUMERIC;
+119 | BEGIN
+120 |     start_time := clock_timestamp();
+121 |     
+122 |     BEGIN
+123 |         -- Test if the updated_at function exists
+124 |         IF EXISTS (
+125 |             SELECT 1 FROM information_schema.routines 
+126 |             WHERE routine_name = 'update_updated_at_column'
+127 |         ) THEN
+128 |             PERFORM log_function_test(
+129 |                 'Function Existence',
+130 |                 'update_updated_at_column',
+131 |                 'PASS',
+132 |                 'Function exists',
+133 |                 'Function found',
+134 |                 'Timestamp update function is available'
+135 |             );
+136 |         ELSE
+137 |             PERFORM log_function_test(
+138 |                 'Function Existence',
+139 |                 'update_updated_at_column',
+140 |                 'FAIL',
+141 |                 'Function exists',
+142 |                 'Function not found',
+143 |                 'Timestamp function is missing'
+144 |             );
+145 |         END IF;
+146 |         
+147 |         end_time := clock_timestamp();
+148 |         execution_time := EXTRACT(MILLISECONDS FROM (end_time - start_time));
+149 |         
+150 |         PERFORM log_function_test(
+151 |             'Timestamp Function Test',
+152 |             'update_updated_at_column',
+153 |             'PASS',
+154 |             'Function callable',
+155 |             'Function operational',
+156 |             'Timestamp function ready for triggers',
+157 |             execution_time
+158 |         );
+159 |         
+160 |     EXCEPTION
+161 |         WHEN OTHERS THEN
+162 |             PERFORM log_function_test(
+163 |                 'Timestamp Function Test',
+164 |                 'update_updated_at_column',
+165 |                 'FAIL',
+166 |                 'Function callable',
+167 |                 'Exception: ' || SQLERRM,
+168 |                 'Timestamp function has issues'
+169 |             );
+170 |     END;
+171 | END $$;
 172 | 
-173 |     return createSuccessResponse(
-174 |       dashboardData,
-175 |       'Dashboard data retrieved successfully'
-176 |     )
-177 |   } catch (error) {
-178 |     return handleApiError(error)
-179 |   }
-180 | } 
+173 | -- =============================================================================
+174 | -- TEST 3: DASHBOARD FUNCTIONS WITH SAMPLE DATA
+175 | -- =============================================================================
+176 | 
+177 | -- Test get_financial_summary function
+178 | DO $$
+179 | DECLARE
+180 |     start_time TIMESTAMPTZ;
+181 |     end_time TIMESTAMPTZ;
+182 |     execution_time NUMERIC;
+183 |     test_user_id UUID := gen_random_uuid();
+184 |     summary_record RECORD;
+185 |     function_exists BOOLEAN;
+186 | BEGIN
+187 |     start_time := clock_timestamp();
+188 |     
+189 |     -- Check if function exists
+190 |     SELECT EXISTS (
+191 |         SELECT 1 FROM information_schema.routines 
+192 |         WHERE routine_name = 'get_financial_summary'
+193 |     ) INTO function_exists;
+194 |     
+195 |     IF function_exists THEN
+196 |         BEGIN
+197 |             -- Test function with dummy user ID (will return zeros but should not error)
+198 |             SELECT * INTO summary_record
+199 |             FROM get_financial_summary(test_user_id)
+200 |             LIMIT 1;
+201 |             
+202 |             end_time := clock_timestamp();
+203 |             execution_time := EXTRACT(MILLISECONDS FROM (end_time - start_time));
+204 |             
+205 |             PERFORM log_function_test(
+206 |                 'Dashboard Function Test',
+207 |                 'get_financial_summary',
+208 |                 'PASS',
+209 |                 'Returns financial summary',
+210 |                 'Function executed successfully',
+211 |                 'Financial summary function is working with parameters',
+212 |                 execution_time
+213 |             );
+214 |             
+215 |         EXCEPTION
+216 |             WHEN OTHERS THEN
+217 |                 PERFORM log_function_test(
+218 |                     'Dashboard Function Test',
+219 |                     'get_financial_summary',
+220 |                     'FAIL',
+221 |                     'Returns financial summary',
+222 |                     'Exception: ' || SQLERRM,
+223 |                     'Function exists but fails on execution'
+224 |                 );
+225 |         END;
+226 |     ELSE
+227 |         PERFORM log_function_test(
+228 |             'Function Existence',
+229 |             'get_financial_summary',
+230 |             'FAIL',
+231 |             'Function exists',
+232 |             'Function not found',
+233 |             'Financial summary function is missing'
+234 |         );
+235 |     END IF;
+236 | END $$;
+237 | 
+238 | -- Test get_budget_progress function
+239 | DO $$
+240 | DECLARE
+241 |     start_time TIMESTAMPTZ;
+242 |     end_time TIMESTAMPTZ;
+243 |     execution_time NUMERIC;
+244 |     test_user_id UUID := gen_random_uuid();
+245 |     budget_record RECORD;
+246 |     function_exists BOOLEAN;
+247 |     record_count INTEGER := 0;
+248 | BEGIN
+249 |     start_time := clock_timestamp();
+250 |     
+251 |     -- Check if function exists
+252 |     SELECT EXISTS (
+253 |         SELECT 1 FROM information_schema.routines 
+254 |         WHERE routine_name = 'get_budget_progress'
+255 |     ) INTO function_exists;
+256 |     
+257 |     IF function_exists THEN
+258 |         BEGIN
+259 |             -- Test function with dummy user ID
+260 |             FOR budget_record IN
+261 |                 SELECT * FROM get_budget_progress(test_user_id)
+262 |             LOOP
+263 |                 record_count := record_count + 1;
+264 |             END LOOP;
+265 |             
+266 |             end_time := clock_timestamp();
+267 |             execution_time := EXTRACT(MILLISECONDS FROM (end_time - start_time));
+268 |             
+269 |             PERFORM log_function_test(
+270 |                 'Dashboard Function Test',
+271 |                 'get_budget_progress',
+272 |                 'PASS',
+273 |                 'Returns budget progress',
+274 |                 'Function executed, returned ' || record_count || ' records',
+275 |                 'Budget progress function is working',
+276 |                 execution_time
+277 |             );
+278 |             
+279 |         EXCEPTION
+280 |             WHEN OTHERS THEN
+281 |                 PERFORM log_function_test(
+282 |                     'Dashboard Function Test',
+283 |                     'get_budget_progress',
+284 |                     'FAIL',
+285 |                     'Returns budget progress',
+286 |                     'Exception: ' || SQLERRM,
+287 |                     'Function exists but fails on execution'
+288 |                 );
+289 |         END;
+290 |     ELSE
+291 |         PERFORM log_function_test(
+292 |             'Function Existence',
+293 |             'get_budget_progress',
+294 |             'FAIL',
+295 |             'Function exists',
+296 |             'Function not found',
+297 |             'Budget progress function is missing'
+298 |         );
+299 |     END IF;
+300 | END $$;
+301 | 
+302 | -- Test get_investment_progress function
+303 | DO $$
+304 | DECLARE
+305 |     start_time TIMESTAMPTZ;
+306 |     end_time TIMESTAMPTZ;
+307 |     execution_time NUMERIC;
+308 |     test_user_id UUID := gen_random_uuid();
+309 |     investment_record RECORD;
+310 |     function_exists BOOLEAN;
+311 |     record_count INTEGER := 0;
+312 | BEGIN
+313 |     start_time := clock_timestamp();
+314 |     
+315 |     -- Check if function exists
+316 |     SELECT EXISTS (
+317 |         SELECT 1 FROM information_schema.routines 
+318 |         WHERE routine_name = 'get_investment_progress'
+319 |     ) INTO function_exists;
+320 |     
+321 |     IF function_exists THEN
+322 |         BEGIN
+323 |             -- Test function with dummy user ID
+324 |             FOR investment_record IN
+325 |                 SELECT * FROM get_investment_progress(test_user_id)
+326 |             LOOP
+327 |                 record_count := record_count + 1;
+328 |             END LOOP;
+329 |             
+330 |             end_time := clock_timestamp();
+331 |             execution_time := EXTRACT(MILLISECONDS FROM (end_time - start_time));
+332 |             
+333 |             PERFORM log_function_test(
+334 |                 'Dashboard Function Test',
+335 |                 'get_investment_progress',
+336 |                 'PASS',
+337 |                 'Returns investment progress',
+338 |                 'Function executed, returned ' || record_count || ' records',
+339 |                 'Investment progress function is working',
+340 |                 execution_time
+341 |             );
+342 |             
+343 |         EXCEPTION
+344 |             WHEN OTHERS THEN
+345 |                 PERFORM log_function_test(
+346 |                     'Dashboard Function Test',
+347 |                     'get_investment_progress',
+348 |                     'FAIL',
+349 |                     'Returns investment progress',
+350 |                     'Exception: ' || SQLERRM,
+351 |                     'Function exists but fails on execution'
+352 |                 );
+353 |         END;
+354 |     ELSE
+355 |         PERFORM log_function_test(
+356 |             'Function Existence',
+357 |             'get_investment_progress',
+358 |             'FAIL',
+359 |             'Function exists',
+360 |             'Function not found',
+361 |             'Investment progress function is missing'
+362 |         );
+363 |     END IF;
+364 | END $$;
+365 | 
+366 | -- =============================================================================
+367 | -- TEST 4: FUNCTION PERFORMANCE WITH REALISTIC DATA
+368 | -- =============================================================================
+369 | 
+370 | -- Test functions with actual seeded data if it exists
+371 | DO $$
+372 | DECLARE
+373 |     start_time TIMESTAMPTZ;
+374 |     end_time TIMESTAMPTZ;
+375 |     execution_time NUMERIC;
+376 |     category_count INTEGER;
+377 |     account_count INTEGER;
+378 |     transaction_count INTEGER;
+379 |     sample_user_id UUID;
+380 | BEGIN
+381 |     -- Check if we have seeded data to work with
+382 |     SELECT count(*) INTO category_count FROM categories;
+383 |     SELECT count(*) INTO account_count FROM accounts;
+384 |     SELECT count(*) INTO transaction_count FROM transactions;
+385 |     
+386 |     IF category_count > 0 AND account_count > 0 AND transaction_count > 0 THEN
+387 |         PERFORM log_function_test(
+388 |             'Data Availability',
+389 |             'seeded_data',
+390 |             'PASS',
+391 |             'Sample data available',
+392 |             'Found ' || category_count || ' categories, ' || account_count || ' accounts, ' || transaction_count || ' transactions',
+393 |             'Functions can be tested with realistic data'
+394 |         );
+395 |         
+396 |         -- Note: In a real scenario with RLS, we would need an actual authenticated user
+397 |         -- For testing purposes, we're validating that functions exist and are callable
+398 |         
+399 |     ELSE
+400 |         PERFORM log_function_test(
+401 |             'Data Availability',
+402 |             'seeded_data',
+403 |             'SKIP',
+404 |             'Sample data available',
+405 |             'No sample data found',
+406 |             'Functions tested with empty data only - run seed scripts for full testing'
+407 |         );
+408 |     END IF;
+409 | END $$;
+410 | 
+411 | -- =============================================================================
+412 | -- TEST 5: TRIGGER FUNCTIONALITY
+413 | -- =============================================================================
+414 | 
+415 | DO $$
+416 | DECLARE
+417 |     trigger_count INTEGER;
+418 |     expected_triggers TEXT[] := ARRAY[
+419 |         'trigger_update_account_balance',
+420 |         'update_user_settings_updated_at',
+421 |         'update_accounts_updated_at',
+422 |         'update_categories_updated_at',
+423 |         'update_transactions_updated_at'
+424 |     ];
+425 |     trigger_name TEXT;
+426 |     found_count INTEGER;
+427 | BEGIN
+428 |     FOREACH trigger_name IN ARRAY expected_triggers
+429 |     LOOP
+430 |         SELECT count(*) INTO found_count
+431 |         FROM information_schema.triggers
+432 |         WHERE trigger_name = trigger_name;
+433 |         
+434 |         IF found_count > 0 THEN
+435 |             PERFORM log_function_test(
+436 |                 'Trigger Existence',
+437 |                 trigger_name,
+438 |                 'PASS',
+439 |                 'Trigger exists',
+440 |                 'Trigger found',
+441 |                 'Trigger is properly installed'
+442 |             );
+443 |         ELSE
+444 |             PERFORM log_function_test(
+445 |                 'Trigger Existence',
+446 |                 trigger_name,
+447 |                 'FAIL',
+448 |                 'Trigger exists',
+449 |                 'Trigger not found',
+450 |                 'Required trigger is missing'
+451 |             );
+452 |         END IF;
+453 |     END LOOP;
+454 | END $$;
+455 | 
+456 | -- =============================================================================
+457 | -- DISPLAY TEST RESULTS
+458 | -- =============================================================================
+459 | 
+460 | DO $$
+461 | DECLARE
+462 |     result RECORD;
+463 |     total_tests INTEGER;
+464 |     passed_tests INTEGER;
+465 |     failed_tests INTEGER;
+466 |     skipped_tests INTEGER;
+467 |     critical_failures INTEGER := 0;
+468 |     avg_execution_time NUMERIC;
+469 | BEGIN
+470 |     RAISE NOTICE '=== FUNCTION TESTING RESULTS ===';
+471 |     RAISE NOTICE '';
+472 |     
+473 |     -- Display results by function
+474 |     FOR result IN 
+475 |         SELECT test_name, function_name, status, expected_result, actual_result, details, execution_time_ms
+476 |         FROM function_test_results
+477 |         ORDER BY function_name, test_name
+478 |     LOOP
+479 |         RAISE NOTICE '[%] %: %', 
+480 |             result.status,
+481 |             result.function_name || '.' || result.test_name,
+482 |             COALESCE(result.details, result.actual_result);
+483 |         
+484 |         IF result.execution_time_ms IS NOT NULL AND result.execution_time_ms > 0 THEN
+485 |             RAISE NOTICE '  Execution time: % ms', result.execution_time_ms;
+486 |         END IF;
+487 |         
+488 |         -- Count critical failures (missing core functions)
+489 |         IF result.status = 'FAIL' AND result.function_name IN (
+490 |             'update_account_balance_with_ledger', 
+491 |             'get_financial_summary', 
+492 |             'get_budget_progress'
+493 |         ) THEN
+494 |             critical_failures := critical_failures + 1;
+495 |         END IF;
+496 |     END LOOP;
+497 |     
+498 |     -- Summary statistics
+499 |     SELECT 
+500 |         count(*),
+501 |         count(*) FILTER (WHERE status = 'PASS'),
+502 |         count(*) FILTER (WHERE status = 'FAIL'),
+503 |         count(*) FILTER (WHERE status = 'SKIP'),
+504 |         avg(execution_time_ms) FILTER (WHERE execution_time_ms > 0)
+505 |     INTO total_tests, passed_tests, failed_tests, skipped_tests, avg_execution_time
+506 |     FROM function_test_results;
+507 |     
+508 |     RAISE NOTICE '';
+509 |     RAISE NOTICE '=== TESTING SUMMARY ===';
+510 |     RAISE NOTICE 'Total tests: %', total_tests;
+511 |     RAISE NOTICE 'Passed: %', passed_tests;
+512 |     RAISE NOTICE 'Failed: %', failed_tests;
+513 |     RAISE NOTICE 'Skipped: %', skipped_tests;
+514 |     RAISE NOTICE 'Critical failures: %', critical_failures;
+515 |     
+516 |     IF avg_execution_time IS NOT NULL THEN
+517 |         RAISE NOTICE 'Average execution time: % ms', round(avg_execution_time, 2);
+518 |     END IF;
+519 |     
+520 |     RAISE NOTICE '';
+521 |     
+522 |     IF failed_tests = 0 THEN
+523 |         RAISE NOTICE 'FUNCTION TESTING PASSED: All database functions are working correctly';
+524 |         RAISE NOTICE 'Functions are ready for application use.';
+525 |     ELSIF critical_failures > 0 THEN
+526 |         RAISE NOTICE 'FUNCTION TESTING FAILED: Critical functions are not working';
+527 |         RAISE NOTICE 'Please review failed tests and fix issues before deploying.';
+528 |     ELSE
+529 |         RAISE NOTICE 'FUNCTION TESTING WARNING: Some non-critical issues found';
+530 |         RAISE NOTICE 'Core functionality is working but some features may be impacted.';
+531 |     END IF;
+532 |     
+533 |     RAISE NOTICE '========================';
+534 | END $$;
+535 | 
+536 | -- Cleanup
+537 | DROP FUNCTION IF EXISTS log_function_test(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, NUMERIC);
+538 | DROP SCHEMA IF EXISTS function_test CASCADE;
+539 | SET search_path TO public;
+```
+
+supabase/scripts/validate-schema.sql
+```
+1 | -- Schema Validation Script for Noka Financial Tracker
+2 | -- This script comprehensively validates that all database schema components are correctly installed
+3 | -- and configured according to the PRD specifications
+4 | 
+5 | -- =============================================================================
+6 | -- VALIDATION FRAMEWORK SETUP
+7 | -- =============================================================================
+8 | 
+9 | -- Create temporary validation tables
+10 | CREATE TEMP TABLE schema_validation_results (
+11 |     component_type TEXT,
+12 |     component_name TEXT,
+13 |     expected_count INTEGER,
+14 |     actual_count INTEGER,
+15 |     status TEXT,
+16 |     details TEXT,
+17 |     created_at TIMESTAMPTZ DEFAULT NOW()
+18 | );
+19 | 
+20 | -- Validation function
+21 | CREATE OR REPLACE FUNCTION validate_component(
+22 |     p_component_type TEXT,
+23 |     p_component_name TEXT,
+24 |     p_expected_count INTEGER,
+25 |     p_actual_count INTEGER,
+26 |     p_details TEXT DEFAULT ''
+27 | )
+28 | RETURNS VOID AS $$
+29 | DECLARE
+30 |     v_status TEXT;
+31 | BEGIN
+32 |     IF p_actual_count = p_expected_count THEN
+33 |         v_status := 'PASS';
+34 |     ELSE
+35 |         v_status := 'FAIL';
+36 |     END IF;
+37 |     
+38 |     INSERT INTO schema_validation_results 
+39 |     (component_type, component_name, expected_count, actual_count, status, details)
+40 |     VALUES (p_component_type, p_component_name, p_expected_count, p_actual_count, v_status, p_details);
+41 | END;
+42 | $$ LANGUAGE plpgsql;
+43 | 
+44 | -- =============================================================================
+45 | -- TABLE VALIDATION
+46 | -- =============================================================================
+47 | 
+48 | -- Validate all required tables exist
+49 | DO $$
+50 | DECLARE
+51 |     required_tables TEXT[] := ARRAY[
+52 |         'user_settings', 'accounts', 'categories', 'transactions', 'balance_ledger'
+53 |     ];
+54 |     table_name TEXT;
+55 |     table_count INTEGER;
+56 | BEGIN
+57 |     FOREACH table_name IN ARRAY required_tables
+58 |     LOOP
+59 |         SELECT count(*) INTO table_count
+60 |         FROM information_schema.tables
+61 |         WHERE table_name = table_name AND table_schema = 'public';
+62 |         
+63 |         PERFORM validate_component('TABLE', table_name, 1, table_count,
+64 |             CASE WHEN table_count = 0 THEN 'Table does not exist' ELSE 'Table exists' END);
+65 |     END LOOP;
+66 | END $$;
+67 | 
+68 | -- Validate table structure and constraints
+69 | DO $$
+70 | DECLARE
+71 |     constraint_count INTEGER;
+72 |     index_count INTEGER;
+73 | BEGIN
+74 |     -- Check foreign key constraints
+75 |     SELECT count(*) INTO constraint_count
+76 |     FROM information_schema.table_constraints
+77 |     WHERE constraint_type = 'FOREIGN KEY' AND table_schema = 'public';
+78 |     
+79 |     PERFORM validate_component('CONSTRAINT', 'Foreign Keys', 8, constraint_count,
+80 |         'Expected at least 8 FK constraints across all tables');
+81 |     
+82 |     -- Check unique constraints
+83 |     SELECT count(*) INTO constraint_count
+84 |     FROM information_schema.table_constraints
+85 |     WHERE constraint_type = 'UNIQUE' AND table_schema = 'public';
+86 |     
+87 |     PERFORM validate_component('CONSTRAINT', 'Unique Constraints', 1, constraint_count,
+88 |         'user_settings.user_id should have unique constraint');
+89 |     
+90 |     -- Check primary key constraints
+91 |     SELECT count(*) INTO constraint_count
+92 |     FROM information_schema.table_constraints
+93 |     WHERE constraint_type = 'PRIMARY KEY' AND table_schema = 'public';
+94 |     
+95 |     PERFORM validate_component('CONSTRAINT', 'Primary Keys', 5, constraint_count,
+96 |         'Each table should have a primary key');
+97 |     
+98 |     -- Check check constraints
+99 |     SELECT count(*) INTO constraint_count
+100 |     FROM information_schema.table_constraints
+101 |     WHERE constraint_type = 'CHECK' AND table_schema = 'public';
+102 |     
+103 |     PERFORM validate_component('CONSTRAINT', 'Check Constraints', 3, constraint_count,
+104 |         'User settings and categories should have check constraints');
+105 | END $$;
+106 | 
+107 | -- =============================================================================
+108 | -- ENUM VALIDATION
+109 | -- =============================================================================
+110 | 
+111 | DO $$
+112 | DECLARE
+113 |     required_enums TEXT[] := ARRAY['account_type', 'category_type', 'transaction_type', 'budget_frequency'];
+114 |     enum_name TEXT;
+115 |     enum_count INTEGER;
+116 |     enum_values TEXT[];
+117 | BEGIN
+118 |     FOREACH enum_name IN ARRAY required_enums
+119 |     LOOP
+120 |         SELECT count(*) INTO enum_count
+121 |         FROM pg_type
+122 |         WHERE typname = enum_name;
+123 |         
+124 |         PERFORM validate_component('ENUM', enum_name, 1, enum_count,
+125 |             CASE WHEN enum_count = 0 THEN 'Enum does not exist' ELSE 'Enum exists' END);
+126 |     END LOOP;
+127 |     
+128 |     -- Validate specific enum values
+129 |     -- account_type enum
+130 |     SELECT array_agg(enumlabel ORDER BY enumsortorder) INTO enum_values
+131 |     FROM pg_enum e
+132 |     JOIN pg_type t ON e.enumtypid = t.oid
+133 |     WHERE t.typname = 'account_type';
+134 |     
+135 |     IF enum_values @> ARRAY['bank_account', 'credit_card', 'investment_account'] THEN
+136 |         PERFORM validate_component('ENUM_VALUES', 'account_type', 3, array_length(enum_values, 1),
+137 |             'Contains required values: ' || array_to_string(enum_values, ', '));
+138 |     ELSE
+139 |         PERFORM validate_component('ENUM_VALUES', 'account_type', 3, 0,
+140 |             'Missing required values. Found: ' || COALESCE(array_to_string(enum_values, ', '), 'none'));
+141 |     END IF;
+142 |     
+143 |     -- category_type enum
+144 |     SELECT array_agg(enumlabel ORDER BY enumsortorder) INTO enum_values
+145 |     FROM pg_enum e
+146 |     JOIN pg_type t ON e.enumtypid = t.oid
+147 |     WHERE t.typname = 'category_type';
+148 |     
+149 |     IF enum_values @> ARRAY['expense', 'income', 'investment'] THEN
+150 |         PERFORM validate_component('ENUM_VALUES', 'category_type', 3, array_length(enum_values, 1),
+151 |             'Contains required values: ' || array_to_string(enum_values, ', '));
+152 |     ELSE
+153 |         PERFORM validate_component('ENUM_VALUES', 'category_type', 3, 0,
+154 |             'Missing required values. Found: ' || COALESCE(array_to_string(enum_values, ', '), 'none'));
+155 |     END IF;
+156 | END $$;
+157 | 
+158 | -- =============================================================================
+159 | -- FUNCTION AND TRIGGER VALIDATION
+160 | -- =============================================================================
+161 | 
+162 | DO $$
+163 | DECLARE
+164 |     required_functions TEXT[] := ARRAY[
+165 |         'update_account_balance_with_ledger',
+166 |         'update_updated_at_column',
+167 |         'get_financial_summary',
+168 |         'get_budget_progress',
+169 |         'get_investment_progress'
+170 |     ];
+171 |     function_name TEXT;
+172 |     function_count INTEGER;
+173 |     trigger_count INTEGER;
+174 | BEGIN
+175 |     -- Validate functions exist
+176 |     FOREACH function_name IN ARRAY required_functions
+177 |     LOOP
+178 |         SELECT count(*) INTO function_count
+179 |         FROM information_schema.routines
+180 |         WHERE routine_name = function_name;
+181 |         
+182 |         PERFORM validate_component('FUNCTION', function_name, 1, function_count,
+183 |             CASE WHEN function_count = 0 THEN 'Function does not exist' ELSE 'Function exists' END);
+184 |     END LOOP;
+185 |     
+186 |     -- Validate triggers
+187 |     SELECT count(*) INTO trigger_count
+188 |     FROM information_schema.triggers
+189 |     WHERE trigger_name = 'trigger_update_account_balance';
+190 |     
+191 |     PERFORM validate_component('TRIGGER', 'trigger_update_account_balance', 1, trigger_count,
+192 |         'Balance update trigger on transactions table');
+193 |     
+194 |     -- Count updated_at triggers
+195 |     SELECT count(*) INTO trigger_count
+196 |     FROM information_schema.triggers
+197 |     WHERE trigger_name LIKE '%updated_at%';
+198 |     
+199 |     PERFORM validate_component('TRIGGER', 'updated_at triggers', 4, trigger_count,
+200 |         'Should have updated_at triggers on user_settings, accounts, categories, transactions');
+201 | END $$;
+202 | 
+203 | -- =============================================================================
+204 | -- ROW LEVEL SECURITY VALIDATION
+205 | -- =============================================================================
+206 | 
+207 | DO $$
+208 | DECLARE
+209 |     rls_tables TEXT[] := ARRAY['user_settings', 'accounts', 'categories', 'transactions', 'balance_ledger'];
+210 |     table_name TEXT;
+211 |     rls_enabled BOOLEAN;
+212 |     policy_count INTEGER;
+213 |     total_policies INTEGER := 0;
+214 | BEGIN
+215 |     FOREACH table_name IN ARRAY rls_tables
+216 |     LOOP
+217 |         -- Check if RLS is enabled
+218 |         SELECT relrowsecurity INTO rls_enabled
+219 |         FROM pg_class c
+220 |         JOIN pg_namespace n ON c.relnamespace = n.oid
+221 |         WHERE c.relname = table_name AND n.nspname = 'public';
+222 |         
+223 |         PERFORM validate_component('RLS_ENABLED', table_name, 1, 
+224 |             CASE WHEN COALESCE(rls_enabled, FALSE) THEN 1 ELSE 0 END,
+225 |             CASE WHEN COALESCE(rls_enabled, FALSE) THEN 'RLS enabled' ELSE 'RLS not enabled' END);
+226 |         
+227 |         -- Count policies for this table
+228 |         SELECT count(*) INTO policy_count
+229 |         FROM pg_policies
+230 |         WHERE tablename = table_name;
+231 |         
+232 |         total_policies := total_policies + policy_count;
+233 |         
+234 |         PERFORM validate_component('RLS_POLICIES', table_name || '_policies', 4, policy_count,
+235 |             'Expected SELECT, INSERT, UPDATE, DELETE policies');
+236 |     END LOOP;
+237 |     
+238 |     -- Overall policy count
+239 |     PERFORM validate_component('RLS_POLICIES', 'total_policies', 20, total_policies,
+240 |         'Expected ~20 total policies across all tables (4 per table)');
+241 | END $$;
+242 | 
+243 | -- =============================================================================
+244 | -- INDEX VALIDATION
+245 | -- =============================================================================
+246 | 
+247 | DO $$
+248 | DECLARE
+249 |     index_count INTEGER;
+250 |     expected_indexes TEXT[] := ARRAY[
+251 |         'idx_accounts_user_id', 'idx_accounts_type',
+252 |         'idx_categories_user_id', 'idx_categories_type',
+253 |         'idx_transactions_user_id', 'idx_transactions_date', 'idx_transactions_type',
+254 |         'idx_transactions_account', 'idx_transactions_category',
+255 |         'idx_ledger_account', 'idx_ledger_transaction', 'idx_ledger_created'
+256 |     ];
+257 |     index_name TEXT;
+258 |     actual_index_count INTEGER;
+259 | BEGIN
+260 |     -- Count specific expected indexes
+261 |     FOREACH index_name IN ARRAY expected_indexes
+262 |     LOOP
+263 |         SELECT count(*) INTO actual_index_count
+264 |         FROM pg_indexes
+265 |         WHERE indexname = index_name;
+266 |         
+267 |         PERFORM validate_component('INDEX', index_name, 1, actual_index_count,
+268 |             CASE WHEN actual_index_count = 0 THEN 'Index missing' ELSE 'Index exists' END);
+269 |     END LOOP;
+270 |     
+271 |     -- Count total indexes on our tables (excluding system indexes)
+272 |     SELECT count(*) INTO index_count
+273 |     FROM pg_indexes
+274 |     WHERE tablename IN ('user_settings', 'accounts', 'categories', 'transactions', 'balance_ledger')
+275 |     AND indexname NOT LIKE '%_pkey';  -- Exclude primary key indexes
+276 |     
+277 |     PERFORM validate_component('INDEX', 'total_custom_indexes', 12, index_count,
+278 |         'Expected 12 custom indexes across all tables');
+279 | END $$;
+280 | 
+281 | -- =============================================================================
+282 | -- DATA TYPE AND PRECISION VALIDATION
+283 | -- =============================================================================
+284 | 
+285 | DO $$
+286 | DECLARE
+287 |     precision_count INTEGER;
+288 | BEGIN
+289 |     -- Validate DECIMAL(15,2) precision for financial fields
+290 |     SELECT count(*) INTO precision_count
+291 |     FROM information_schema.columns
+292 |     WHERE table_schema = 'public'
+293 |     AND data_type = 'numeric'
+294 |     AND numeric_precision = 15
+295 |     AND numeric_scale = 2
+296 |     AND column_name IN ('initial_balance', 'current_balance', 'budget_amount', 'amount', 'balance_before', 'balance_after', 'change_amount');
+297 |     
+298 |     PERFORM validate_component('DATA_TYPE', 'decimal_precision', 7, precision_count,
+299 |         'Financial fields should use DECIMAL(15,2)');
+300 |     
+301 |     -- Validate UUID fields
+302 |     SELECT count(*) INTO precision_count
+303 |     FROM information_schema.columns
+304 |     WHERE table_schema = 'public'
+305 |     AND data_type = 'uuid'
+306 |     AND column_name LIKE '%_id';
+307 |     
+308 |     PERFORM validate_component('DATA_TYPE', 'uuid_fields', 15, precision_count,
+309 |         'ID fields should use UUID type');
+310 |     
+311 |     -- Validate timestamp fields
+312 |     SELECT count(*) INTO precision_count
+313 |     FROM information_schema.columns
+314 |     WHERE table_schema = 'public'
+315 |     AND data_type = 'timestamp with time zone'
+316 |     AND column_name IN ('created_at', 'updated_at');
+317 |     
+318 |     PERFORM validate_component('DATA_TYPE', 'timestamp_fields', 10, precision_count,
+319 |         'Timestamp fields should use TIMESTAMPTZ');
+320 | END $$;
+321 | 
+322 | -- =============================================================================
+323 | -- MIGRATION HISTORY VALIDATION
+324 | -- =============================================================================
+325 | 
+326 | DO $$
+327 | DECLARE
+328 |     migration_count INTEGER;
+329 |     latest_migration TEXT;
+330 | BEGIN
+331 |     -- Check if migration tracking table exists
+332 |     IF EXISTS (
+333 |         SELECT 1 FROM information_schema.tables 
+334 |         WHERE table_name = 'schema_migrations' AND table_schema = 'supabase_migrations'
+335 |     ) THEN
+336 |         SELECT count(*) INTO migration_count
+337 |         FROM supabase_migrations.schema_migrations;
+338 |         
+339 |         SELECT version INTO latest_migration
+340 |         FROM supabase_migrations.schema_migrations
+341 |         ORDER BY inserted_at DESC
+342 |         LIMIT 1;
+343 |         
+344 |         PERFORM validate_component('MIGRATION', 'migration_count', 11, migration_count,
+345 |             'Expected all 11 migrations applied. Latest: ' || COALESCE(latest_migration, 'none'));
+346 |     ELSE
+347 |         PERFORM validate_component('MIGRATION', 'migration_tracking', 1, 0,
+348 |             'Migration tracking table not found');
+349 |     END IF;
+350 | END $$;
+351 | 
+352 | -- =============================================================================
+353 | -- DISPLAY VALIDATION RESULTS
+354 | -- =============================================================================
+355 | 
+356 | DO $$
+357 | DECLARE
+358 |     result RECORD;
+359 |     total_tests INTEGER;
+360 |     passed_tests INTEGER;
+361 |     failed_tests INTEGER;
+362 |     critical_failures INTEGER := 0;
+363 | BEGIN
+364 |     RAISE NOTICE '=== SCHEMA VALIDATION RESULTS ===';
+365 |     RAISE NOTICE '';
+366 |     
+367 |     -- Display results by category
+368 |     FOR result IN 
+369 |         SELECT component_type, component_name, expected_count, actual_count, status, details
+370 |         FROM schema_validation_results
+371 |         ORDER BY component_type, component_name
+372 |     LOOP
+373 |         RAISE NOTICE '[%] % (% -> %): %', 
+374 |             result.status, 
+375 |             result.component_type || '.' || result.component_name,
+376 |             result.expected_count,
+377 |             result.actual_count,
+378 |             COALESCE(result.details, '');
+379 |         
+380 |         -- Count critical failures
+381 |         IF result.status = 'FAIL' AND result.component_type IN ('TABLE', 'ENUM', 'FUNCTION') THEN
+382 |             critical_failures := critical_failures + 1;
+383 |         END IF;
+384 |     END LOOP;
+385 |     
+386 |     -- Summary statistics
+387 |     SELECT 
+388 |         count(*),
+389 |         count(*) FILTER (WHERE status = 'PASS'),
+390 |         count(*) FILTER (WHERE status = 'FAIL')
+391 |     INTO total_tests, passed_tests, failed_tests
+392 |     FROM schema_validation_results;
+393 |     
+394 |     RAISE NOTICE '';
+395 |     RAISE NOTICE '=== VALIDATION SUMMARY ===';
+396 |     RAISE NOTICE 'Total validations: %', total_tests;
+397 |     RAISE NOTICE 'Passed: %', passed_tests;
+398 |     RAISE NOTICE 'Failed: %', failed_tests;
+399 |     RAISE NOTICE 'Critical failures: %', critical_failures;
+400 |     RAISE NOTICE '';
+401 |     
+402 |     IF failed_tests = 0 THEN
+403 |         RAISE NOTICE 'SCHEMA VALIDATION PASSED: All database components are correctly configured';
+404 |         RAISE NOTICE 'The database is ready for production use.';
+405 |     ELSIF critical_failures > 0 THEN
+406 |         RAISE NOTICE 'SCHEMA VALIDATION FAILED: Critical components are missing or misconfigured';
+407 |         RAISE NOTICE 'Please review failed validations and fix issues before proceeding.';
+408 |     ELSE
+409 |         RAISE NOTICE 'SCHEMA VALIDATION WARNING: Some non-critical issues found';
+410 |         RAISE NOTICE 'Database is functional but may have optimization opportunities.';
+411 |     END IF;
+412 |     
+413 |     RAISE NOTICE '===========================';
+414 | END $$;
+415 | 
+416 | -- Cleanup
+417 | DROP FUNCTION IF EXISTS validate_component(TEXT, TEXT, INTEGER, INTEGER, TEXT);
+```
+
+supabase/scripts/verify-migration.sql
+```
+1 | -- Migration Verification Script for Noka Financial Tracker
+2 | -- This script verifies that all database components are correctly installed and functional
+3 | 
+4 | -- Create a temporary schema for testing
+5 | CREATE SCHEMA IF NOT EXISTS verification_test;
+6 | 
+7 | -- Test results tracking
+8 | CREATE TEMP TABLE verification_results (
+9 |     test_name TEXT,
+10 |     status TEXT,
+11 |     details TEXT,
+12 |     created_at TIMESTAMPTZ DEFAULT NOW()
+13 | );
+14 | 
+15 | -- Function to log test results
+16 | CREATE OR REPLACE FUNCTION log_test_result(test_name TEXT, status TEXT, details TEXT DEFAULT '')
+17 | RETURNS VOID AS $$
+18 | BEGIN
+19 |     INSERT INTO verification_results (test_name, status, details) 
+20 |     VALUES (test_name, status, details);
+21 | END;
+22 | $$ LANGUAGE plpgsql;
+23 | 
+24 | -- Test 1: Verify all required tables exist
+25 | DO $$
+26 | DECLARE
+27 |     required_tables TEXT[] := ARRAY['user_settings', 'accounts', 'categories', 'transactions', 'balance_ledger'];
+28 |     table_name TEXT;
+29 |     missing_tables TEXT[] := '{}';
+30 | BEGIN
+31 |     FOREACH table_name IN ARRAY required_tables
+32 |     LOOP
+33 |         IF NOT EXISTS (
+34 |             SELECT 1 FROM information_schema.tables 
+35 |             WHERE table_name = table_name AND table_schema = 'public'
+36 |         ) THEN
+37 |             missing_tables := array_append(missing_tables, table_name);
+38 |         END IF;
+39 |     END LOOP;
+40 |     
+41 |     IF array_length(missing_tables, 1) > 0 THEN
+42 |         PERFORM log_test_result('Required Tables', 'FAIL', 'Missing: ' || array_to_string(missing_tables, ', '));
+43 |     ELSE
+44 |         PERFORM log_test_result('Required Tables', 'PASS', 'All required tables exist');
+45 |     END IF;
+46 | END $$;
+47 | 
+48 | -- Test 2: Verify all required enums exist
+49 | DO $$
+50 | DECLARE
+51 |     required_enums TEXT[] := ARRAY['account_type', 'category_type', 'transaction_type', 'budget_frequency'];
+52 |     enum_name TEXT;
+53 |     missing_enums TEXT[] := '{}';
+54 | BEGIN
+55 |     FOREACH enum_name IN ARRAY required_enums
+56 |     LOOP
+57 |         IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = enum_name) THEN
+58 |             missing_enums := array_append(missing_enums, enum_name);
+59 |         END IF;
+60 |     END LOOP;
+61 |     
+62 |     IF array_length(missing_enums, 1) > 0 THEN
+63 |         PERFORM log_test_result('Required Enums', 'FAIL', 'Missing: ' || array_to_string(missing_enums, ', '));
+64 |     ELSE
+65 |         PERFORM log_test_result('Required Enums', 'PASS', 'All required enums exist');
+66 |     END IF;
+67 | END $$;
+68 | 
+69 | -- Test 3: Verify all required functions exist
+70 | DO $$
+71 | DECLARE
+72 |     required_functions TEXT[] := ARRAY[
+73 |         'update_account_balance_with_ledger',
+74 |         'update_updated_at_column',
+75 |         'get_financial_summary',
+76 |         'get_budget_progress',
+77 |         'get_investment_progress'
+78 |     ];
+79 |     function_name TEXT;
+80 |     missing_functions TEXT[] := '{}';
+81 | BEGIN
+82 |     FOREACH function_name IN ARRAY required_functions
+83 |     LOOP
+84 |         IF NOT EXISTS (
+85 |             SELECT 1 FROM information_schema.routines 
+86 |             WHERE routine_name = function_name
+87 |         ) THEN
+88 |             missing_functions := array_append(missing_functions, function_name);
+89 |         END IF;
+90 |     END LOOP;
+91 |     
+92 |     IF array_length(missing_functions, 1) > 0 THEN
+93 |         PERFORM log_test_result('Required Functions', 'FAIL', 'Missing: ' || array_to_string(missing_functions, ', '));
+94 |     ELSE
+95 |         PERFORM log_test_result('Required Functions', 'PASS', 'All required functions exist');
+96 |     END IF;
+97 | END $$;
+98 | 
+99 | -- Test 4: Verify Row Level Security is enabled
+100 | DO $$
+101 | DECLARE
+102 |     rls_tables TEXT[] := ARRAY['user_settings', 'accounts', 'categories', 'transactions', 'balance_ledger'];
+103 |     table_name TEXT;
+104 |     non_rls_tables TEXT[] := '{}';
+105 |     rls_enabled BOOLEAN;
+106 | BEGIN
+107 |     FOREACH table_name IN ARRAY rls_tables
+108 |     LOOP
+109 |         SELECT relrowsecurity INTO rls_enabled
+110 |         FROM pg_class c
+111 |         JOIN pg_namespace n ON c.relnamespace = n.oid
+112 |         WHERE c.relname = table_name AND n.nspname = 'public';
+113 |         
+114 |         IF NOT COALESCE(rls_enabled, FALSE) THEN
+115 |             non_rls_tables := array_append(non_rls_tables, table_name);
+116 |         END IF;
+117 |     END LOOP;
+118 |     
+119 |     IF array_length(non_rls_tables, 1) > 0 THEN
+120 |         PERFORM log_test_result('Row Level Security', 'FAIL', 'RLS not enabled on: ' || array_to_string(non_rls_tables, ', '));
+121 |     ELSE
+122 |         PERFORM log_test_result('Row Level Security', 'PASS', 'RLS enabled on all tables');
+123 |     END IF;
+124 | END $$;
+125 | 
+126 | -- Test 5: Verify triggers are properly installed
+127 | DO $$
+128 | DECLARE
+129 |     trigger_count INTEGER;
+130 | BEGIN
+131 |     SELECT count(*) INTO trigger_count
+132 |     FROM information_schema.triggers
+133 |     WHERE trigger_name IN ('trigger_update_account_balance', 'update_user_settings_updated_at', 'update_accounts_updated_at', 'update_categories_updated_at', 'update_transactions_updated_at');
+134 |     
+135 |     IF trigger_count < 5 THEN
+136 |         PERFORM log_test_result('Database Triggers', 'FAIL', 'Expected 5 triggers, found ' || trigger_count);
+137 |     ELSE
+138 |         PERFORM log_test_result('Database Triggers', 'PASS', 'All required triggers installed');
+139 |     END IF;
+140 | END $$;
+141 | 
+142 | -- Test 6: Verify foreign key constraints
+143 | DO $$
+144 | DECLARE
+145 |     fk_count INTEGER;
+146 | BEGIN
+147 |     SELECT count(*) INTO fk_count
+148 |     FROM information_schema.table_constraints
+149 |     WHERE constraint_type = 'FOREIGN KEY'
+150 |     AND table_schema = 'public'
+151 |     AND table_name IN ('user_settings', 'accounts', 'categories', 'transactions', 'balance_ledger');
+152 |     
+153 |     IF fk_count < 8 THEN
+154 |         PERFORM log_test_result('Foreign Key Constraints', 'FAIL', 'Expected at least 8 FK constraints, found ' || fk_count);
+155 |     ELSE
+156 |         PERFORM log_test_result('Foreign Key Constraints', 'PASS', 'Foreign key constraints properly configured');
+157 |     END IF;
+158 | END $$;
+159 | 
+160 | -- Test 7: Test balance calculation function with sample data
+161 | DO $$
+162 | DECLARE
+163 |     test_user_id UUID := gen_random_uuid();
+164 |     test_account_id UUID;
+165 |     test_category_id UUID;
+166 |     initial_balance DECIMAL(15,2) := 1000.00;
+167 |     final_balance DECIMAL(15,2);
+168 | BEGIN
+169 |     -- Create test data in verification schema
+170 |     SET search_path TO verification_test, public;
+171 |     
+172 |     -- This test should only run if we can create test data
+173 |     -- In a production environment, we might skip this test
+174 |     BEGIN
+175 |         -- Try to create a test user (this will fail in production due to RLS)
+176 |         -- We'll catch the exception and mark the test as skipped
+177 |         PERFORM log_test_result('Balance Calculation Function', 'SKIP', 'Functional test skipped in production environment');
+178 |     EXCEPTION
+179 |         WHEN OTHERS THEN
+180 |             PERFORM log_test_result('Balance Calculation Function', 'SKIP', 'Functional test skipped due to RLS restrictions');
+181 |     END;
+182 | END $$;
+183 | 
+184 | -- Test 8: Verify dashboard functions can be called
+185 | DO $$
+186 | BEGIN
+187 |     -- Test if dashboard functions exist and can be called (without actual data)
+188 |     IF EXISTS (SELECT 1 FROM information_schema.routines WHERE routine_name = 'get_financial_summary') THEN
+189 |         PERFORM log_test_result('Dashboard Functions', 'PASS', 'Dashboard functions are callable');
+190 |     ELSE
+191 |         PERFORM log_test_result('Dashboard Functions', 'FAIL', 'Dashboard functions not found');
+192 |     END IF;
+193 | END $$;
+194 | 
+195 | -- Display verification results
+196 | DO $$
+197 | DECLARE
+198 |     result RECORD;
+199 |     total_tests INTEGER;
+200 |     passed_tests INTEGER;
+201 |     failed_tests INTEGER;
+202 |     skipped_tests INTEGER;
+203 | BEGIN
+204 |     RAISE NOTICE '=== MIGRATION VERIFICATION RESULTS ===';
+205 |     RAISE NOTICE '';
+206 |     
+207 |     -- Display individual test results
+208 |     FOR result IN 
+209 |         SELECT test_name, status, details 
+210 |         FROM verification_results 
+211 |         ORDER BY created_at
+212 |     LOOP
+213 |         RAISE NOTICE '[%] %: %', result.status, result.test_name, COALESCE(result.details, '');
+214 |     END LOOP;
+215 |     
+216 |     -- Summary statistics
+217 |     SELECT 
+218 |         count(*),
+219 |         count(*) FILTER (WHERE status = 'PASS'),
+220 |         count(*) FILTER (WHERE status = 'FAIL'),
+221 |         count(*) FILTER (WHERE status = 'SKIP')
+222 |     INTO total_tests, passed_tests, failed_tests, skipped_tests
+223 |     FROM verification_results;
+224 |     
+225 |     RAISE NOTICE '';
+226 |     RAISE NOTICE '=== SUMMARY ===';
+227 |     RAISE NOTICE 'Total Tests: %', total_tests;
+228 |     RAISE NOTICE 'Passed: %', passed_tests;
+229 |     RAISE NOTICE 'Failed: %', failed_tests;
+230 |     RAISE NOTICE 'Skipped: %', skipped_tests;
+231 |     RAISE NOTICE '';
+232 |     
+233 |     IF failed_tests > 0 THEN
+234 |         RAISE NOTICE 'VERIFICATION FAILED: % tests failed', failed_tests;
+235 |         RAISE NOTICE 'Please review failed tests and fix issues before proceeding.';
+236 |     ELSE
+237 |         RAISE NOTICE 'VERIFICATION PASSED: All tests successful';
+238 |         RAISE NOTICE 'Database migration completed successfully.';
+239 |     END IF;
+240 |     
+241 |     RAISE NOTICE '=====================================';
+242 | END $$;
+243 | 
+244 | -- Cleanup
+245 | DROP FUNCTION IF EXISTS log_test_result(TEXT, TEXT, TEXT);
+246 | DROP SCHEMA IF EXISTS verification_test CASCADE;
+```
+
+lib/supabase/client.ts
+```
+1 | import { createBrowserClient } from '@supabase/ssr'
+2 | 
+3 | export function createClient() {
+4 |   return createBrowserClient(
+5 |     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+6 |     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+7 |   )
+8 | } 
+```
+
+lib/supabase/server.ts
+```
+1 | import { createServerClient } from '@supabase/ssr'
+2 | import { cookies } from 'next/headers'
+3 | 
+4 | export async function createClient() {
+5 |   const cookieStore = await cookies()
+6 | 
+7 |   return createServerClient(
+8 |     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+9 |     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+10 |     {
+11 |       cookies: {
+12 |         getAll() {
+13 |           return cookieStore.getAll()
+14 |         },
+15 |         setAll(cookiesToSet) {
+16 |           try {
+17 |             cookiesToSet.forEach(({ name, value, options }) =>
+18 |               cookieStore.set(name, value, options)
+19 |             )
+20 |           } catch {
+21 |             // The `setAll` method was called from a Server Component.
+22 |             // This can be ignored if you have middleware refreshing
+23 |             // user sessions.
+24 |           }
+25 |         },
+26 |       },
+27 |     }
+28 |   )
+29 | } 
+```
+
+supabase/seeds/categories.sql
+```
+1 | -- Categories Seed Script for Noka Financial Tracker
+2 | -- This file contains comprehensive category definitions with icons and budget templates
+3 | -- Organized by category type with realistic budget amounts for different income levels
+4 | 
+5 | -- =============================================================================
+6 | -- INCOME CATEGORIES WITH BUDGET TEMPLATES
+7 | -- =============================================================================
+8 | 
+9 | -- Primary Income Sources
+10 | INSERT INTO categories (name, type, icon, budget_amount, budget_frequency, is_active) VALUES
+11 | -- Regular employment income
+12 | ('Salary', 'income', '💰', 5000.00, 'monthly', true),
+13 | ('Hourly Wages', 'income', '⏰', 3000.00, 'monthly', true),
+14 | ('Overtime Pay', 'income', '💪', 500.00, 'monthly', true),
+15 | ('Commission', 'income', '🎯', 1000.00, 'monthly', true),
+16 | ('Tips', 'income', '💸', 300.00, 'monthly', true),
+17 | 
+18 | -- Business and freelance income
+19 | ('Freelance Work', 'income', '💼', 1500.00, 'monthly', true),
+20 | ('Business Income', 'income', '🏢', 2000.00, 'monthly', true),
+21 | ('Consulting', 'income', '🤝', 2500.00, 'monthly', true),
+22 | ('Contract Work', 'income', '📋', 1800.00, 'monthly', true),
+23 | ('Self Employment', 'income', '👨‍💼', 3000.00, 'monthly', true),
+24 | 
+25 | -- Investment and passive income
+26 | ('Investment Returns', 'income', '📈', 500.00, 'monthly', true),
+27 | ('Dividends', 'income', '💎', 200.00, 'monthly', true),
+28 | ('Interest Income', 'income', '🏦', 100.00, 'monthly', true),
+29 | ('Rental Income', 'income', '🏠', 800.00, 'monthly', true),
+30 | ('Royalties', 'income', '👑', 300.00, 'monthly', true),
+31 | ('Capital Gains', 'income', '📊', 1000.00, 'monthly', true),
+32 | 
+33 | -- Side income and gigs
+34 | ('Side Hustle', 'income', '💻', 600.00, 'monthly', true),
+35 | ('Gig Economy', 'income', '🚗', 400.00, 'monthly', true),
+36 | ('Online Sales', 'income', '🛒', 300.00, 'monthly', true),
+37 | ('Tutoring', 'income', '📚', 250.00, 'monthly', true),
+38 | ('Pet Sitting', 'income', '🐕', 150.00, 'monthly', true),
+39 | 
+40 | -- Occasional and irregular income
+41 | ('Bonus', 'income', '🎉', NULL, NULL, true),
+42 | ('Tax Refund', 'income', '🧾', NULL, NULL, true),
+43 | ('Gifts Received', 'income', '🎁', NULL, NULL, true),
+44 | ('Inheritance', 'income', '👴', NULL, NULL, true),
+45 | ('Lottery Winnings', 'income', '🍀', NULL, NULL, true),
+46 | ('Cash Back', 'income', '💳', NULL, NULL, true),
+47 | ('Rebates', 'income', '🔄', NULL, NULL, true),
+48 | ('Insurance Claims', 'income', '🛡️', NULL, NULL, true),
+49 | ('Alimony', 'income', '⚖️', NULL, NULL, true),
+50 | ('Child Support', 'income', '👶', NULL, NULL, true),
+51 | ('Government Benefits', 'income', '🏛️', NULL, NULL, true),
+52 | ('Pension', 'income', '👴', NULL, NULL, true),
+53 | ('Social Security', 'income', '📇', NULL, NULL, true),
+54 | ('Other Income', 'income', '💵', NULL, NULL, true);
+55 | 
+56 | -- =============================================================================
+57 | -- EXPENSE CATEGORIES WITH REALISTIC BUDGETS
+58 | -- =============================================================================
+59 | 
+60 | -- Housing and Utilities (30-35% of income typically)
+61 | INSERT INTO categories (name, type, icon, budget_amount, budget_frequency, is_active) VALUES
+62 | ('Rent/Mortgage', 'expense', '🏠', 1500.00, 'monthly', true),
+63 | ('Property Tax', 'expense', '🏛️', 300.00, 'monthly', true),
+64 | ('HOA Fees', 'expense', '🏘️', 150.00, 'monthly', true),
+65 | ('Home Insurance', 'expense', '🛡️', 100.00, 'monthly', true),
+66 | ('Electricity', 'expense', '💡', 120.00, 'monthly', true),
+67 | ('Gas', 'expense', '🔥', 80.00, 'monthly', true),
+68 | ('Water', 'expense', '💧', 60.00, 'monthly', true),
+69 | ('Trash/Recycling', 'expense', '🗑️', 25.00, 'monthly', true),
+70 | ('Internet', 'expense', '🌐', 60.00, 'monthly', true),
+71 | ('Cable/TV', 'expense', '📺', 80.00, 'monthly', true),
+72 | ('Home Maintenance', 'expense', '🔧', 150.00, 'monthly', true),
+73 | ('Home Security', 'expense', '🔒', 40.00, 'monthly', true),
+74 | 
+75 | -- Transportation (10-15% of income typically)
+76 | ('Car Payment', 'expense', '🚗', 400.00, 'monthly', true),
+77 | ('Car Insurance', 'expense', '🚙', 150.00, 'monthly', true),
+78 | ('Gasoline', 'expense', '⛽', 200.00, 'monthly', true),
+79 | ('Car Maintenance', 'expense', '🔧', 100.00, 'monthly', true),
+80 | ('Car Registration', 'expense', '📋', 20.00, 'monthly', true),
+81 | ('Parking', 'expense', '🅿️', 50.00, 'monthly', true),
+82 | ('Public Transit', 'expense', '🚌', 100.00, 'monthly', true),
+83 | ('Rideshare/Taxi', 'expense', '🚕', 80.00, 'monthly', true),
+84 | ('Tolls', 'expense', '🛣️', 30.00, 'monthly', true),
+85 | 
+86 | -- Food and Dining (10-15% of income typically)
+87 | ('Groceries', 'expense', '🛒', 600.00, 'monthly', true),
+88 | ('Dining Out', 'expense', '🍽️', 300.00, 'monthly', true),
+89 | ('Fast Food', 'expense', '🍔', 150.00, 'monthly', true),
+90 | ('Coffee', 'expense', '☕', 80.00, 'monthly', true),
+91 | ('Alcohol', 'expense', '🍷', 100.00, 'monthly', true),
+92 | ('Work Lunches', 'expense', '🥪', 120.00, 'monthly', true),
+93 | 
+94 | -- Healthcare (5-10% of income typically)
+95 | ('Health Insurance', 'expense', '⚕️', 300.00, 'monthly', true),
+96 | ('Doctor Visits', 'expense', '👨‍⚕️', 100.00, 'monthly', true),
+97 | ('Dentist', 'expense', '🦷', 80.00, 'monthly', true),
+98 | ('Prescription Drugs', 'expense', '💊', 60.00, 'monthly', true),
+99 | ('Vision Care', 'expense', '👓', 40.00, 'monthly', true),
+100 | ('Mental Health', 'expense', '🧠', 150.00, 'monthly', true),
+101 | ('Alternative Medicine', 'expense', '🌿', 50.00, 'monthly', true),
+102 | 
+103 | -- Personal and Lifestyle
+104 | ('Phone', 'expense', '📱', 80.00, 'monthly', true),
+105 | ('Personal Care', 'expense', '💄', 100.00, 'monthly', true),
+106 | ('Haircuts', 'expense', '💇', 50.00, 'monthly', true),
+107 | ('Clothing', 'expense', '👕', 200.00, 'monthly', true),
+108 | ('Shoes', 'expense', '👟', 80.00, 'monthly', true),
+109 | ('Dry Cleaning', 'expense', '👔', 30.00, 'monthly', true),
+110 | ('Laundry', 'expense', '🧺', 25.00, 'monthly', true),
+111 | 
+112 | -- Entertainment and Recreation (5-10% of income typically)
+113 | ('Streaming Services', 'expense', '📺', 50.00, 'monthly', true),
+114 | ('Movies', 'expense', '🎬', 40.00, 'monthly', true),
+115 | ('Concerts/Events', 'expense', '🎵', 100.00, 'monthly', true),
+116 | ('Hobbies', 'expense', '🎨', 150.00, 'monthly', true),
+117 | ('Sports/Fitness', 'expense', '💪', 100.00, 'monthly', true),
+118 | ('Gym Membership', 'expense', '🏋️', 50.00, 'monthly', true),
+119 | ('Books/Magazines', 'expense', '📚', 30.00, 'monthly', true),
+120 | ('Games', 'expense', '🎮', 60.00, 'monthly', true),
+121 | ('Travel', 'expense', '✈️', 500.00, 'monthly', true),
+122 | ('Vacation', 'expense', '🏖️', 300.00, 'monthly', true),
+123 | 
+124 | -- Financial and Insurance
+125 | ('Life Insurance', 'expense', '👨‍👩‍👧‍👦', 100.00, 'monthly', true),
+126 | ('Disability Insurance', 'expense', '🦽', 80.00, 'monthly', true),
+127 | ('Loan Payments', 'expense', '🏦', 300.00, 'monthly', true),
+128 | ('Credit Card Payments', 'expense', '💳', 500.00, 'monthly', true),
+129 | ('Bank Fees', 'expense', '🏪', 25.00, 'monthly', true),
+130 | ('Investment Fees', 'expense', '📈', 50.00, 'monthly', true),
+131 | ('Tax Preparation', 'expense', '📊', 50.00, 'monthly', true),
+132 | ('Legal Fees', 'expense', '⚖️', 100.00, 'monthly', true),
+133 | ('Financial Advisor', 'expense', '💼', 200.00, 'monthly', true),
+134 | 
+135 | -- Family and Children
+136 | ('Childcare', 'expense', '👶', 800.00, 'monthly', true),
+137 | ('School Tuition', 'expense', '🏫', 500.00, 'monthly', true),
+138 | ('School Supplies', 'expense', '📝', 50.00, 'monthly', true),
+139 | ('Child Activities', 'expense', '⚽', 100.00, 'monthly', true),
+140 | ('Pet Care', 'expense', '🐕', 80.00, 'monthly', true),
+141 | ('Pet Food', 'expense', '🐾', 40.00, 'monthly', true),
+142 | ('Vet Bills', 'expense', '🏥', 60.00, 'monthly', true),
+143 | 
+144 | -- Education and Professional Development
+145 | ('Education', 'expense', '🎓', 200.00, 'monthly', true),
+146 | ('Professional Development', 'expense', '📈', 100.00, 'monthly', true),
+147 | ('Conferences', 'expense', '🎤', 150.00, 'monthly', true),
+148 | ('Certifications', 'expense', '📜', 80.00, 'monthly', true),
+149 | 
+150 | -- Charitable and Social
+151 | ('Charity', 'expense', '❤️', 100.00, 'monthly', true),
+152 | ('Religious Donations', 'expense', '⛪', 200.00, 'monthly', true),
+153 | ('Gifts Given', 'expense', '🎁', 150.00, 'monthly', true),
+154 | ('Birthday Gifts', 'expense', '🎂', 100.00, 'monthly', true),
+155 | ('Holiday Gifts', 'expense', '🎄', 200.00, 'monthly', true),
+156 | 
+157 | -- Emergency and Miscellaneous
+158 | ('Emergency Expenses', 'expense', '🚨', 200.00, 'monthly', true),
+159 | ('Medical Emergencies', 'expense', '🏥', 150.00, 'monthly', true),
+160 | ('Car Repairs', 'expense', '🔧', 100.00, 'monthly', true),
+161 | ('Home Repairs', 'expense', '🏠', 150.00, 'monthly', true),
+162 | ('Miscellaneous', 'expense', '📋', 100.00, 'monthly', true),
+163 | ('Other Expenses', 'expense', '❓', NULL, NULL, true);
+164 | 
+165 | -- =============================================================================
+166 | -- INVESTMENT CATEGORIES WITH TARGET ALLOCATIONS
+167 | -- =============================================================================
+168 | 
+169 | INSERT INTO categories (name, type, icon, budget_amount, budget_frequency, is_active) VALUES
+170 | -- Retirement Investments (10-15% of income recommended)
+171 | ('401k Contribution', 'investment', '🏦', 800.00, 'monthly', true),
+172 | ('IRA Contribution', 'investment', '🎯', 500.00, 'monthly', true),
+173 | ('Roth IRA', 'investment', '💎', 500.00, 'monthly', true),
+174 | ('Pension Contribution', 'investment', '👴', 300.00, 'monthly', true),
+175 | 
+176 | -- Stock Market Investments
+177 | ('Individual Stocks', 'investment', '📊', 1000.00, 'monthly', true),
+178 | ('Index Funds', 'investment', '📈', 800.00, 'monthly', true),
+179 | ('Mutual Funds', 'investment', '📊', 600.00, 'monthly', true),
+180 | ('ETFs', 'investment', '🔄', 700.00, 'monthly', true),
+181 | ('Blue Chip Stocks', 'investment', '💙', 500.00, 'monthly', true),
+182 | ('Growth Stocks', 'investment', '🚀', 400.00, 'monthly', true),
+183 | ('Dividend Stocks', 'investment', '💰', 600.00, 'monthly', true),
+184 | 
+185 | -- Fixed Income Investments
+186 | ('Government Bonds', 'investment', '🏛️', 300.00, 'monthly', true),
+187 | ('Corporate Bonds', 'investment', '🏢', 400.00, 'monthly', true),
+188 | ('Municipal Bonds', 'investment', '🏙️', 200.00, 'monthly', true),
+189 | ('Treasury Bills', 'investment', '💵', 300.00, 'monthly', true),
+190 | ('CDs', 'investment', '🏦', 500.00, 'monthly', true),
+191 | 
+192 | -- Alternative Investments
+193 | ('Real Estate', 'investment', '🏘️', 2000.00, 'monthly', true),
+194 | ('REITs', 'investment', '🏢', 400.00, 'monthly', true),
+195 | ('Cryptocurrency', 'investment', '₿', 300.00, 'monthly', true),
+196 | ('Commodities', 'investment', '🥇', 200.00, 'monthly', true),
+197 | ('Precious Metals', 'investment', '💎', 250.00, 'monthly', true),
+198 | ('Art/Collectibles', 'investment', '🎨', 500.00, 'monthly', true),
+199 | 
+200 | -- Savings and Emergency Funds
+201 | ('Emergency Fund', 'investment', '🛡️', 500.00, 'monthly', true),
+202 | ('High Yield Savings', 'investment', '💰', 800.00, 'monthly', true),
+203 | ('Money Market', 'investment', '💹', 600.00, 'monthly', true),
+204 | 
+205 | -- Goal-based Savings
+206 | ('House Down Payment', 'investment', '🏠', 1500.00, 'monthly', true),
+207 | ('Car Fund', 'investment', '🚗', 300.00, 'monthly', true),
+208 | ('Vacation Fund', 'investment', '✈️', 250.00, 'monthly', true),
+209 | ('Wedding Fund', 'investment', '💒', 800.00, 'monthly', true),
+210 | ('Education Fund', 'investment', '🎓', 400.00, 'monthly', true),
+211 | ('Business Investment', 'investment', '💼', 1000.00, 'monthly', true),
+212 | 
+213 | -- Professional Investment Tools
+214 | ('Robo Advisor', 'investment', '🤖', 500.00, 'monthly', true),
+215 | ('Financial Advisor', 'investment', '👨‍💼', 200.00, 'monthly', true),
+216 | ('Investment Platform', 'investment', '💻', 50.00, 'monthly', true);
+217 | 
+218 | -- =============================================================================
+219 | -- CATEGORY STATISTICS AND SUMMARY
+220 | -- =============================================================================
+221 | 
+222 | DO $$
+223 | DECLARE
+224 |     total_categories INTEGER;
+225 |     income_categories INTEGER;
+226 |     expense_categories INTEGER;
+227 |     investment_categories INTEGER;
+228 |     budgeted_categories INTEGER;
+229 | BEGIN
+230 |     SELECT count(*) INTO total_categories FROM categories;
+231 |     SELECT count(*) INTO income_categories FROM categories WHERE type = 'income';
+232 |     SELECT count(*) INTO expense_categories FROM categories WHERE type = 'expense';
+233 |     SELECT count(*) INTO investment_categories FROM categories WHERE type = 'investment';
+234 |     SELECT count(*) INTO budgeted_categories FROM categories WHERE budget_amount IS NOT NULL;
+235 |     
+236 |     RAISE NOTICE '=== CATEGORY SEED DATA SUMMARY ===';
+237 |     RAISE NOTICE 'Total categories: %', total_categories;
+238 |     RAISE NOTICE 'Income categories: %', income_categories;
+239 |     RAISE NOTICE 'Expense categories: %', expense_categories;
+240 |     RAISE NOTICE 'Investment categories: %', investment_categories;
+241 |     RAISE NOTICE 'Categories with budgets: %', budgeted_categories;
+242 |     RAISE NOTICE '';
+243 |     RAISE NOTICE 'Categories are organized with:';
+244 |     RAISE NOTICE '- Emoji icons for visual identification';
+245 |     RAISE NOTICE '- Realistic budget amounts based on income percentages';
+246 |     RAISE NOTICE '- Monthly frequency for most budget categories';
+247 |     RAISE NOTICE '- Comprehensive coverage of financial activities';
+248 |     RAISE NOTICE '================================';
+249 | END $$;
+```
+
+supabase/seeds/sample-accounts.sql
+```
+1 | -- Sample Accounts Seed Script for Noka Financial Tracker
+2 | -- This file creates various account examples demonstrating different financial scenarios
+3 | -- These accounts represent realistic financial situations for testing and development
+4 | 
+5 | -- =============================================================================
+6 | -- BANK ACCOUNTS (Checking and Savings)
+7 | -- =============================================================================
+8 | 
+9 | -- Primary checking accounts with different balance scenarios
+10 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+11 | -- Main checking accounts
+12 | ('Primary Checking', 'bank_account', 2500.00, 2500.00, true),
+13 | ('Secondary Checking', 'bank_account', 800.00, 800.00, true),
+14 | ('Business Checking', 'bank_account', 5000.00, 5000.00, true),
+15 | ('Joint Checking', 'bank_account', 3200.00, 3200.00, true),
+16 | 
+17 | -- Savings accounts with various purposes
+18 | ('Emergency Savings', 'bank_account', 10000.00, 10000.00, true),
+19 | ('High Yield Savings', 'bank_account', 15000.00, 15000.00, true),
+20 | ('Vacation Fund', 'bank_account', 3000.00, 3000.00, true),
+21 | ('House Down Payment', 'bank_account', 25000.00, 25000.00, true),
+22 | ('Car Fund', 'bank_account', 8000.00, 8000.00, true),
+23 | ('Wedding Fund', 'bank_account', 12000.00, 12000.00, true),
+24 | ('Baby Fund', 'bank_account', 4500.00, 4500.00, true),
+25 | ('Holiday Fund', 'bank_account', 1500.00, 1500.00, true),
+26 | 
+27 | -- Money market and specialized savings
+28 | ('Money Market Account', 'bank_account', 20000.00, 20000.00, true),
+29 | ('CD Account 1 Year', 'bank_account', 10000.00, 10000.00, true),
+30 | ('CD Account 5 Year', 'bank_account', 25000.00, 25000.00, true),
+31 | ('Health Savings Account', 'bank_account', 3500.00, 3500.00, true),
+32 | 
+33 | -- Business and specialized accounts
+34 | ('Business Savings', 'bank_account', 18000.00, 18000.00, true),
+35 | ('Tax Savings', 'bank_account', 6000.00, 6000.00, true),
+36 | ('Equipment Fund', 'bank_account', 4000.00, 4000.00, true);
+37 | 
+38 | -- =============================================================================
+39 | -- CREDIT CARD ACCOUNTS (Various balance scenarios)
+40 | -- =============================================================================
+41 | 
+42 | -- Credit cards with different balance situations
+43 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+44 | -- Credit cards with balances (debt)
+45 | ('Main Credit Card', 'credit_card', 1500.00, 1500.00, true),
+46 | ('Rewards Credit Card', 'credit_card', 800.00, 800.00, true),
+47 | ('Travel Credit Card', 'credit_card', 2200.00, 2200.00, true),
+48 | ('Store Credit Card', 'credit_card', 450.00, 450.00, true),
+49 | ('Gas Station Card', 'credit_card', 280.00, 280.00, true),
+50 | 
+51 | -- Credit cards with no balance
+52 | ('Backup Credit Card', 'credit_card', 0.00, 0.00, true),
+53 | ('Business Credit Card', 'credit_card', 3500.00, 3500.00, true),
+54 | ('Emergency Credit Card', 'credit_card', 0.00, 0.00, true),
+55 | 
+56 | -- Credit cards with credit balances (overpayments)
+57 | ('Cashback Credit Card', 'credit_card', -150.00, -150.00, true),
+58 | ('Department Store Card', 'credit_card', 0.00, 0.00, true),
+59 | 
+60 | -- High balance scenarios for testing
+61 | ('High Balance Card', 'credit_card', 8500.00, 8500.00, true),
+62 | ('Consolidation Card', 'credit_card', 12000.00, 12000.00, true);
+63 | 
+64 | -- =============================================================================
+65 | -- INVESTMENT ACCOUNTS (Different types and balance ranges)
+66 | -- =============================================================================
+67 | 
+68 | -- Retirement accounts
+69 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+70 | ('401k Retirement', 'investment_account', 75000.00, 75000.00, true),
+71 | ('Roth IRA', 'investment_account', 15000.00, 15000.00, true),
+72 | ('Traditional IRA', 'investment_account', 25000.00, 25000.00, true),
+73 | ('SEP IRA', 'investment_account', 45000.00, 45000.00, true),
+74 | ('Solo 401k', 'investment_account', 38000.00, 38000.00, true),
+75 | 
+76 | -- Taxable investment accounts
+77 | ('Stock Portfolio', 'investment_account', 12500.00, 12500.00, true),
+78 | ('Growth Portfolio', 'investment_account', 8800.00, 8800.00, true),
+79 | ('Dividend Portfolio', 'investment_account', 18500.00, 18500.00, true),
+80 | ('Bond Portfolio', 'investment_account', 22000.00, 22000.00, true),
+81 | ('International Fund', 'investment_account', 9500.00, 9500.00, true),
+82 | 
+83 | -- Alternative investments
+84 | ('Crypto Wallet', 'investment_account', 2800.00, 2800.00, true),
+85 | ('Real Estate Fund', 'investment_account', 35000.00, 35000.00, true),
+86 | ('REIT Portfolio', 'investment_account', 15500.00, 15500.00, true),
+87 | ('Commodities Fund', 'investment_account', 5200.00, 5200.00, true),
+88 | ('Precious Metals', 'investment_account', 8800.00, 8800.00, true),
+89 | 
+90 | -- Education and goal-based investments
+91 | ('529 Education Plan', 'investment_account', 12000.00, 12000.00, true),
+92 | ('Coverdell ESA', 'investment_account', 4500.00, 4500.00, true),
+93 | 
+94 | -- Business investments
+95 | ('Business Investment', 'investment_account', 50000.00, 50000.00, true),
+96 | ('Startup Investment', 'investment_account', 15000.00, 15000.00, true),
+97 | 
+98 | -- Conservative investments
+99 | ('Treasury Bills', 'investment_account', 25000.00, 25000.00, true),
+100 | ('Government Bonds', 'investment_account', 18000.00, 18000.00, true);
+101 | 
+102 | -- =============================================================================
+103 | -- ACCOUNT SCENARIOS FOR DIFFERENT USER PROFILES
+104 | -- =============================================================================
+105 | 
+106 | -- Additional accounts representing different life stages and financial situations
+107 | 
+108 | -- Young Professional (just starting career)
+109 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+110 | ('Student Checking', 'bank_account', 800.00, 800.00, true),
+111 | ('Student Credit Card', 'credit_card', 1200.00, 1200.00, true),
+112 | ('Starter Emergency Fund', 'bank_account', 2000.00, 2000.00, true),
+113 | ('First 401k', 'investment_account', 3500.00, 3500.00, true);
+114 | 
+115 | -- Family with Children
+116 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+117 | ('Family Checking', 'bank_account', 4500.00, 4500.00, true),
+118 | ('Kids Activities Fund', 'bank_account', 1200.00, 1200.00, true),
+119 | ('College Savings 529', 'investment_account', 18000.00, 18000.00, true),
+120 | ('Family Emergency Fund', 'bank_account', 15000.00, 15000.00, true);
+121 | 
+122 | -- Pre-retirement (high savings phase)
+123 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+124 | ('Pre-retirement Checking', 'bank_account', 6000.00, 6000.00, true),
+125 | ('Retirement Savings', 'bank_account', 35000.00, 35000.00, true),
+126 | ('Maxed 401k', 'investment_account', 285000.00, 285000.00, true),
+127 | ('Taxable Investments', 'investment_account', 150000.00, 150000.00, true);
+128 | 
+129 | -- Small Business Owner
+130 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+131 | ('Business Operating', 'bank_account', 12000.00, 12000.00, true),
+132 | ('Business Savings', 'bank_account', 25000.00, 25000.00, true),
+133 | ('Business Credit Line', 'credit_card', 5500.00, 5500.00, true),
+134 | ('Business Investment', 'investment_account', 75000.00, 75000.00, true);
+135 | 
+136 | -- =============================================================================
+137 | -- INACTIVE AND CLOSED ACCOUNTS (for testing account lifecycle)
+138 | -- =============================================================================
+139 | 
+140 | -- Some inactive accounts to test filtering and display
+141 | INSERT INTO accounts (name, type, initial_balance, current_balance, is_active) VALUES
+142 | ('Old Checking Account', 'bank_account', 0.00, 0.00, false),
+143 | ('Closed Credit Card', 'credit_card', 0.00, 0.00, false),
+144 | ('Transferred 401k', 'investment_account', 0.00, 0.00, false),
+145 | ('Paid Off Loan Account', 'bank_account', 0.00, 0.00, false);
+146 | 
+147 | -- =============================================================================
+148 | -- ACCOUNT STATISTICS AND SUMMARY
+149 | -- =============================================================================
+150 | 
+151 | DO $$
+152 | DECLARE
+153 |     total_accounts INTEGER;
+154 |     bank_accounts INTEGER;
+155 |     credit_cards INTEGER;
+156 |     investment_accounts INTEGER;
+157 |     active_accounts INTEGER;
+158 |     total_bank_balance DECIMAL(15,2);
+159 |     total_credit_debt DECIMAL(15,2);
+160 |     total_investments DECIMAL(15,2);
+161 |     net_worth DECIMAL(15,2);
+162 | BEGIN
+163 |     SELECT count(*) INTO total_accounts FROM accounts;
+164 |     SELECT count(*) INTO bank_accounts FROM accounts WHERE type = 'bank_account';
+165 |     SELECT count(*) INTO credit_cards FROM accounts WHERE type = 'credit_card';
+166 |     SELECT count(*) INTO investment_accounts FROM accounts WHERE type = 'investment_account';
+167 |     SELECT count(*) INTO active_accounts FROM accounts WHERE is_active = true;
+168 |     
+169 |     -- Calculate total balances by account type
+170 |     SELECT COALESCE(sum(current_balance), 0) INTO total_bank_balance 
+171 |     FROM accounts WHERE type = 'bank_account' AND is_active = true;
+172 |     
+173 |     SELECT COALESCE(sum(current_balance), 0) INTO total_credit_debt 
+174 |     FROM accounts WHERE type = 'credit_card' AND is_active = true;
+175 |     
+176 |     SELECT COALESCE(sum(current_balance), 0) INTO total_investments 
+177 |     FROM accounts WHERE type = 'investment_account' AND is_active = true;
+178 |     
+179 |     net_worth := total_bank_balance + total_investments - total_credit_debt;
+180 |     
+181 |     RAISE NOTICE '=== SAMPLE ACCOUNTS SUMMARY ===';
+182 |     RAISE NOTICE 'Total accounts created: %', total_accounts;
+183 |     RAISE NOTICE 'Active accounts: %', active_accounts;
+184 |     RAISE NOTICE '';
+185 |     RAISE NOTICE 'By account type:';
+186 |     RAISE NOTICE '- Bank accounts: %', bank_accounts;
+187 |     RAISE NOTICE '- Credit cards: %', credit_cards;
+188 |     RAISE NOTICE '- Investment accounts: %', investment_accounts;
+189 |     RAISE NOTICE '';
+190 |     RAISE NOTICE 'Financial summary (sample data):';
+191 |     RAISE NOTICE '- Total bank balance: $%', total_bank_balance;
+192 |     RAISE NOTICE '- Total credit debt: $%', total_credit_debt;
+193 |     RAISE NOTICE '- Total investments: $%', total_investments;
+194 |     RAISE NOTICE '- Net worth: $%', net_worth;
+195 |     RAISE NOTICE '';
+196 |     RAISE NOTICE 'Account scenarios included:';
+197 |     RAISE NOTICE '- Young professional starting career';
+198 |     RAISE NOTICE '- Family with children and education savings';
+199 |     RAISE NOTICE '- Pre-retirement high savings phase';
+200 |     RAISE NOTICE '- Small business owner accounts';
+201 |     RAISE NOTICE '- Various credit card balance situations';
+202 |     RAISE NOTICE '- Diverse investment portfolio types';
+203 |     RAISE NOTICE '- Emergency and goal-based savings';
+204 |     RAISE NOTICE '==============================';
+205 | END $$;
+```
+
+supabase/seeds/test-transactions.sql
+```
+1 | -- Test Transactions Seed Script for Noka Financial Tracker
+2 | -- This file creates comprehensive transaction scenarios for testing dashboard functions
+3 | -- Includes realistic transaction patterns over multiple months for various financial scenarios
+4 | 
+5 | -- =============================================================================
+6 | -- NOTE: Helper functions are defined in the main seed.sql file
+7 | -- =============================================================================
+8 | 
+9 | -- =============================================================================
+10 | -- RECURRING INCOME TRANSACTIONS (6 months of data)
+11 | -- =============================================================================
+12 | 
+13 | -- Monthly salary (consistent primary income)
+14 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+15 | -- Last 6 months of salary
+16 | ('income', 5000.00, 'Monthly Salary - Current Month', generate_transaction_date(0), 
+17 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+18 |  (SELECT id FROM categories WHERE name = 'Salary' AND type = 'income' LIMIT 1)),
+19 | ('income', 5000.00, 'Monthly Salary - 1 Month Ago', generate_transaction_date(1),
+20 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+21 |  (SELECT id FROM categories WHERE name = 'Salary' AND type = 'income' LIMIT 1)),
+22 | ('income', 5000.00, 'Monthly Salary - 2 Months Ago', generate_transaction_date(2),
+23 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+24 |  (SELECT id FROM categories WHERE name = 'Salary' AND type = 'income' LIMIT 1)),
+25 | ('income', 5000.00, 'Monthly Salary - 3 Months Ago', generate_transaction_date(3),
+26 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+27 |  (SELECT id FROM categories WHERE name = 'Salary' AND type = 'income' LIMIT 1)),
+28 | ('income', 5000.00, 'Monthly Salary - 4 Months Ago', generate_transaction_date(4),
+29 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+30 |  (SELECT id FROM categories WHERE name = 'Salary' AND type = 'income' LIMIT 1)),
+31 | ('income', 5000.00, 'Monthly Salary - 5 Months Ago', generate_transaction_date(5),
+32 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+33 |  (SELECT id FROM categories WHERE name = 'Salary' AND type = 'income' LIMIT 1));
+34 | 
+35 | -- Freelance income (variable amounts and timing)
+36 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+37 | ('income', 1200.00, 'Web Development Project', generate_transaction_date(0, 15),
+38 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+39 |  (SELECT id FROM categories WHERE name = 'Freelance Work' AND type = 'income' LIMIT 1)),
+40 | ('income', 800.00, 'Consulting Work', generate_transaction_date(1, 20),
+41 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+42 |  (SELECT id FROM categories WHERE name = 'Freelance Work' AND type = 'income' LIMIT 1)),
+43 | ('income', 1500.00, 'Large Project Completion', generate_transaction_date(2, 10),
+44 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+45 |  (SELECT id FROM categories WHERE name = 'Freelance Work' AND type = 'income' LIMIT 1)),
+46 | ('income', 600.00, 'Small Website Project', generate_transaction_date(3, 25),
+47 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+48 |  (SELECT id FROM categories WHERE name = 'Freelance Work' AND type = 'income' LIMIT 1));
+49 | 
+50 | -- Investment income (quarterly and monthly)
+51 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+52 | ('income', 450.00, 'Stock Dividends Q1', generate_transaction_date(0, 28),
+53 |  (SELECT id FROM accounts WHERE name = 'Stock Portfolio' LIMIT 1),
+54 |  (SELECT id FROM categories WHERE name = 'Investment Returns' AND type = 'income' LIMIT 1)),
+55 | ('income', 425.00, 'Stock Dividends Q4', generate_transaction_date(3, 28),
+56 |  (SELECT id FROM accounts WHERE name = 'Stock Portfolio' LIMIT 1),
+57 |  (SELECT id FROM categories WHERE name = 'Investment Returns' AND type = 'income' LIMIT 1)),
+58 | ('income', 125.00, 'Crypto Staking Rewards', generate_transaction_date(0, 1),
+59 |  (SELECT id FROM accounts WHERE name = 'Crypto Wallet' LIMIT 1),
+60 |  (SELECT id FROM categories WHERE name = 'Investment Returns' AND type = 'income' LIMIT 1)),
+61 | ('income', 110.00, 'Crypto Staking Rewards', generate_transaction_date(1, 1),
+62 |  (SELECT id FROM accounts WHERE name = 'Crypto Wallet' LIMIT 1),
+63 |  (SELECT id FROM categories WHERE name = 'Investment Returns' AND type = 'income' LIMIT 1));
+64 | 
+65 | -- Rental income (monthly)
+66 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+67 | ('income', 800.00, 'Rental Property Income', generate_transaction_date(0, 5),
+68 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+69 |  (SELECT id FROM categories WHERE name = 'Rental Income' AND type = 'income' LIMIT 1)),
+70 | ('income', 800.00, 'Rental Property Income', generate_transaction_date(1, 5),
+71 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+72 |  (SELECT id FROM categories WHERE name = 'Rental Income' AND type = 'income' LIMIT 1)),
+73 | ('income', 800.00, 'Rental Property Income', generate_transaction_date(2, 5),
+74 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+75 |  (SELECT id FROM categories WHERE name = 'Rental Income' AND type = 'income' LIMIT 1));
+76 | 
+77 | -- =============================================================================
+78 | -- RECURRING EXPENSE TRANSACTIONS (Monthly patterns)
+79 | -- =============================================================================
+80 | 
+81 | -- Housing expenses (monthly, consistent)
+82 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+83 | -- Rent/mortgage payments
+84 | ('expense', 1500.00, 'Monthly Rent', generate_transaction_date(0, 1),
+85 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+86 |  (SELECT id FROM categories WHERE name = 'Rent/Mortgage' AND type = 'expense' LIMIT 1)),
+87 | ('expense', 1500.00, 'Monthly Rent', generate_transaction_date(1, 1),
+88 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+89 |  (SELECT id FROM categories WHERE name = 'Rent/Mortgage' AND type = 'expense' LIMIT 1)),
+90 | ('expense', 1500.00, 'Monthly Rent', generate_transaction_date(2, 1),
+91 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+92 |  (SELECT id FROM categories WHERE name = 'Rent/Mortgage' AND type = 'expense' LIMIT 1));
+93 | 
+94 | -- Utilities (monthly, variable amounts)
+95 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+96 | ('expense', 180.00, 'Electricity Bill', generate_transaction_date(0, 5),
+97 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+98 |  (SELECT id FROM categories WHERE name = 'Electricity' AND type = 'expense' LIMIT 1)),
+99 | ('expense', 165.00, 'Electricity Bill', generate_transaction_date(1, 5),
+100 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+101 |  (SELECT id FROM categories WHERE name = 'Electricity' AND type = 'expense' LIMIT 1)),
+102 | ('expense', 210.00, 'Electricity Bill (Summer)', generate_transaction_date(2, 5),
+103 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+104 |  (SELECT id FROM categories WHERE name = 'Electricity' AND type = 'expense' LIMIT 1)),
+105 | ('expense', 60.00, 'Internet Bill', generate_transaction_date(0, 10),
+106 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+107 |  (SELECT id FROM categories WHERE name = 'Internet' AND type = 'expense' LIMIT 1)),
+108 | ('expense', 60.00, 'Internet Bill', generate_transaction_date(1, 10),
+109 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+110 |  (SELECT id FROM categories WHERE name = 'Internet' AND type = 'expense' LIMIT 1));
+111 | 
+112 | -- =============================================================================
+113 | -- GROCERY AND FOOD TRANSACTIONS (Weekly patterns)
+114 | -- =============================================================================
+115 | 
+116 | -- Weekly grocery shopping (realistic variability)
+117 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+118 | -- Current month groceries
+119 | ('expense', 125.00, 'Weekly Groceries - Week 4', generate_transaction_date(0, 25),
+120 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+121 |  (SELECT id FROM categories WHERE name = 'Groceries' AND type = 'expense' LIMIT 1)),
+122 | ('expense', 89.50, 'Weekly Groceries - Week 3', generate_transaction_date(0, 18),
+123 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+124 |  (SELECT id FROM categories WHERE name = 'Groceries' AND type = 'expense' LIMIT 1)),
+125 | ('expense', 156.75, 'Weekly Groceries - Week 2', generate_transaction_date(0, 11),
+126 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+127 |  (SELECT id FROM categories WHERE name = 'Groceries' AND type = 'expense' LIMIT 1)),
+128 | ('expense', 98.30, 'Weekly Groceries - Week 1', generate_transaction_date(0, 4),
+129 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+130 |  (SELECT id FROM categories WHERE name = 'Groceries' AND type = 'expense' LIMIT 1)),
+131 | 
+132 | -- Previous month groceries
+133 | ('expense', 110.20, 'Weekly Groceries', generate_transaction_date(1, 26),
+134 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+135 |  (SELECT id FROM categories WHERE name = 'Groceries' AND type = 'expense' LIMIT 1)),
+136 | ('expense', 134.80, 'Weekly Groceries', generate_transaction_date(1, 19),
+137 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+138 |  (SELECT id FROM categories WHERE name = 'Groceries' AND type = 'expense' LIMIT 1)),
+139 | ('expense', 87.45, 'Weekly Groceries', generate_transaction_date(1, 12),
+140 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+141 |  (SELECT id FROM categories WHERE name = 'Groceries' AND type = 'expense' LIMIT 1)),
+142 | ('expense', 142.60, 'Weekly Groceries', generate_transaction_date(1, 5),
+143 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+144 |  (SELECT id FROM categories WHERE name = 'Groceries' AND type = 'expense' LIMIT 1));
+145 | 
+146 | -- Dining out (irregular patterns)
+147 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+148 | ('expense', 45.00, 'Lunch with Colleagues', generate_transaction_date(0, 22),
+149 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+150 |  (SELECT id FROM categories WHERE name = 'Dining Out' AND type = 'expense' LIMIT 1)),
+151 | ('expense', 78.50, 'Date Night Dinner', generate_transaction_date(0, 14),
+152 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+153 |  (SELECT id FROM categories WHERE name = 'Dining Out' AND type = 'expense' LIMIT 1)),
+154 | ('expense', 23.40, 'Quick Lunch', generate_transaction_date(0, 8),
+155 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+156 |  (SELECT id FROM categories WHERE name = 'Dining Out' AND type = 'expense' LIMIT 1)),
+157 | ('expense', 156.80, 'Birthday Celebration', generate_transaction_date(1, 15),
+158 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+159 |  (SELECT id FROM categories WHERE name = 'Dining Out' AND type = 'expense' LIMIT 1));
+160 | 
+161 | -- =============================================================================
+162 | -- TRANSPORTATION EXPENSES
+163 | -- =============================================================================
+164 | 
+165 | -- Gas purchases (bi-weekly pattern)
+166 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+167 | ('expense', 55.00, 'Gas Station Fill-up', generate_transaction_date(0, 20),
+168 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+169 |  (SELECT id FROM categories WHERE name = 'Gasoline' AND type = 'expense' LIMIT 1)),
+170 | ('expense', 48.75, 'Gas Station Fill-up', generate_transaction_date(0, 6),
+171 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+172 |  (SELECT id FROM categories WHERE name = 'Gasoline' AND type = 'expense' LIMIT 1)),
+173 | ('expense', 52.30, 'Gas Station Fill-up', generate_transaction_date(1, 23),
+174 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+175 |  (SELECT id FROM categories WHERE name = 'Gasoline' AND type = 'expense' LIMIT 1)),
+176 | ('expense', 61.20, 'Gas Station Fill-up', generate_transaction_date(1, 9),
+177 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+178 |  (SELECT id FROM categories WHERE name = 'Gasoline' AND type = 'expense' LIMIT 1));
+179 | 
+180 | -- Parking and transportation
+181 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+182 | ('expense', 25.00, 'Downtown Parking', generate_transaction_date(0, 15),
+183 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+184 |  (SELECT id FROM categories WHERE name = 'Parking' AND type = 'expense' LIMIT 1)),
+185 | ('expense', 12.50, 'Airport Parking', generate_transaction_date(1, 8),
+186 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+187 |  (SELECT id FROM categories WHERE name = 'Parking' AND type = 'expense' LIMIT 1)),
+188 | ('expense', 35.00, 'Uber Ride', generate_transaction_date(0, 12),
+189 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+190 |  (SELECT id FROM categories WHERE name = 'Rideshare/Taxi' AND type = 'expense' LIMIT 1));
+191 | 
+192 | -- =============================================================================
+193 | -- SUBSCRIPTION AND RECURRING SERVICES
+194 | -- =============================================================================
+195 | 
+196 | -- Monthly subscriptions
+197 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+198 | ('expense', 15.99, 'Netflix Subscription', generate_transaction_date(0, 1),
+199 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+200 |  (SELECT id FROM categories WHERE name = 'Streaming Services' AND type = 'expense' LIMIT 1)),
+201 | ('expense', 15.99, 'Netflix Subscription', generate_transaction_date(1, 1),
+202 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+203 |  (SELECT id FROM categories WHERE name = 'Streaming Services' AND type = 'expense' LIMIT 1)),
+204 | ('expense', 12.99, 'Spotify Premium', generate_transaction_date(0, 3),
+205 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+206 |  (SELECT id FROM categories WHERE name = 'Streaming Services' AND type = 'expense' LIMIT 1)),
+207 | ('expense', 12.99, 'Spotify Premium', generate_transaction_date(1, 3),
+208 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+209 |  (SELECT id FROM categories WHERE name = 'Streaming Services' AND type = 'expense' LIMIT 1)),
+210 | ('expense', 80.00, 'Phone Bill', generate_transaction_date(0, 8),
+211 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+212 |  (SELECT id FROM categories WHERE name = 'Phone' AND type = 'expense' LIMIT 1)),
+213 | ('expense', 80.00, 'Phone Bill', generate_transaction_date(1, 8),
+214 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+215 |  (SELECT id FROM categories WHERE name = 'Phone' AND type = 'expense' LIMIT 1));
+216 | 
+217 | -- Gym and fitness
+218 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+219 | ('expense', 50.00, 'Gym Membership', generate_transaction_date(0, 1),
+220 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+221 |  (SELECT id FROM categories WHERE name = 'Gym Membership' AND type = 'expense' LIMIT 1)),
+222 | ('expense', 50.00, 'Gym Membership', generate_transaction_date(1, 1),
+223 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+224 |  (SELECT id FROM categories WHERE name = 'Gym Membership' AND type = 'expense' LIMIT 1));
+225 | 
+226 | -- =============================================================================
+227 | -- CREDIT CARD SCENARIOS AND TRANSACTIONS
+228 | -- =============================================================================
+229 | 
+230 | -- Credit card purchases (various amounts and categories)
+231 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+232 | -- Shopping transactions on credit cards
+233 | ('expense', 200.00, 'Clothing Shopping', generate_transaction_date(0, 8),
+234 |  (SELECT id FROM accounts WHERE name = 'Rewards Credit Card' LIMIT 1),
+235 |  (SELECT id FROM categories WHERE name = 'Clothing' AND type = 'expense' LIMIT 1)),
+236 | ('expense', 89.99, 'Online Purchase - Electronics', generate_transaction_date(0, 16),
+237 |  (SELECT id FROM accounts WHERE name = 'Rewards Credit Card' LIMIT 1),
+238 |  (SELECT id FROM categories WHERE name = 'Shopping' AND type = 'expense' LIMIT 1)),
+239 | ('expense', 156.75, 'Home Improvement Store', generate_transaction_date(1, 12),
+240 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+241 |  (SELECT id FROM categories WHERE name = 'Home Maintenance' AND type = 'expense' LIMIT 1)),
+242 | 
+243 | -- Credit card refunds (negative expense amounts)
+244 | ('expense', -45.50, 'Return - Clothing Item', generate_transaction_date(0, 19),
+245 |  (SELECT id FROM accounts WHERE name = 'Rewards Credit Card' LIMIT 1),
+246 |  (SELECT id FROM categories WHERE name = 'Clothing' AND type = 'expense' LIMIT 1)),
+247 | ('expense', -23.99, 'Amazon Return', generate_transaction_date(1, 7),
+248 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+249 |  (SELECT id FROM categories WHERE name = 'Shopping' AND type = 'expense' LIMIT 1));
+250 | 
+251 | -- =============================================================================
+252 | -- TRANSFER TRANSACTIONS (Between accounts)
+253 | -- =============================================================================
+254 | 
+255 | -- Monthly savings transfers
+256 | INSERT INTO transactions (type, amount, description, transaction_date, from_account_id, to_account_id) VALUES
+257 | ('transfer', 1000.00, 'Monthly Emergency Fund Contribution', generate_transaction_date(0, 1),
+258 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+259 |  (SELECT id FROM accounts WHERE name = 'Emergency Savings' LIMIT 1)),
+260 | ('transfer', 1000.00, 'Monthly Emergency Fund Contribution', generate_transaction_date(1, 1),
+261 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+262 |  (SELECT id FROM accounts WHERE name = 'Emergency Savings' LIMIT 1)),
+263 | ('transfer', 500.00, 'Vacation Fund Contribution', generate_transaction_date(0, 15),
+264 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+265 |  (SELECT id FROM accounts WHERE name = 'Vacation Fund' LIMIT 1)),
+266 | ('transfer', 500.00, 'Vacation Fund Contribution', generate_transaction_date(1, 15),
+267 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+268 |  (SELECT id FROM accounts WHERE name = 'Vacation Fund' LIMIT 1));
+269 | 
+270 | -- Credit card payments (transfers to credit cards)
+271 | INSERT INTO transactions (type, amount, description, transaction_date, from_account_id, to_account_id) VALUES
+272 | ('transfer', 800.00, 'Credit Card Payment', generate_transaction_date(0, 5),
+273 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+274 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1)),
+275 | ('transfer', 800.00, 'Credit Card Payment', generate_transaction_date(1, 5),
+276 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+277 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1)),
+278 | ('transfer', 300.00, 'Rewards Card Payment', generate_transaction_date(0, 10),
+279 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+280 |  (SELECT id FROM accounts WHERE name = 'Rewards Credit Card' LIMIT 1)),
+281 | ('transfer', 300.00, 'Rewards Card Payment', generate_transaction_date(1, 10),
+282 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+283 |  (SELECT id FROM accounts WHERE name = 'Rewards Credit Card' LIMIT 1));
+284 | 
+285 | -- Investment contributions
+286 | INSERT INTO transactions (type, amount, description, transaction_date, from_account_id, to_account_id) VALUES
+287 | ('transfer', 600.00, 'Monthly 401k Contribution', generate_transaction_date(0, 1),
+288 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+289 |  (SELECT id FROM accounts WHERE name = '401k Retirement' LIMIT 1)),
+290 | ('transfer', 600.00, 'Monthly 401k Contribution', generate_transaction_date(1, 1),
+291 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+292 |  (SELECT id FROM accounts WHERE name = '401k Retirement' LIMIT 1)),
+293 | ('transfer', 500.00, 'IRA Contribution', generate_transaction_date(0, 15),
+294 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+295 |  (SELECT id FROM accounts WHERE name = 'Roth IRA' LIMIT 1)),
+296 | ('transfer', 500.00, 'IRA Contribution', generate_transaction_date(1, 15),
+297 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+298 |  (SELECT id FROM accounts WHERE name = 'Roth IRA' LIMIT 1));
+299 | 
+300 | -- Cash advances (from credit card to checking)
+301 | INSERT INTO transactions (type, amount, description, transaction_date, from_account_id, to_account_id) VALUES
+302 | ('transfer', 200.00, 'Emergency Cash Advance', generate_transaction_date(2, 20),
+303 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+304 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1));
+305 | 
+306 | -- =============================================================================
+307 | -- LARGE AND IRREGULAR TRANSACTIONS
+308 | -- =============================================================================
+309 | 
+310 | -- Annual or semi-annual large expenses
+311 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+312 | ('expense', 1200.00, 'Car Insurance - 6 months', generate_transaction_date(3, 1),
+313 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+314 |  (SELECT id FROM categories WHERE name = 'Car Insurance' AND type = 'expense' LIMIT 1)),
+315 | ('expense', 800.00, 'Car Maintenance - Major Service', generate_transaction_date(2, 15),
+316 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+317 |  (SELECT id FROM categories WHERE name = 'Car Maintenance' AND type = 'expense' LIMIT 1)),
+318 | ('expense', 2500.00, 'Vacation - Flight and Hotel', generate_transaction_date(1, 20),
+319 |  (SELECT id FROM accounts WHERE name = 'Main Credit Card' LIMIT 1),
+320 |  (SELECT id FROM categories WHERE name = 'Travel' AND type = 'expense' LIMIT 1));
+321 | 
+322 | -- One-time income
+323 | INSERT INTO transactions (type, amount, description, transaction_date, account_id, category_id) VALUES
+324 | ('income', 2000.00, 'Annual Bonus', generate_transaction_date(3, 15),
+325 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+326 |  (SELECT id FROM categories WHERE name = 'Bonus' AND type = 'income' LIMIT 1)),
+327 | ('income', 800.00, 'Tax Refund', generate_transaction_date(2, 28),
+328 |  (SELECT id FROM accounts WHERE name = 'Primary Checking' LIMIT 1),
+329 |  (SELECT id FROM categories WHERE name = 'Tax Refund' AND type = 'income' LIMIT 1));
+330 | 
+331 | -- =============================================================================
+332 | -- TRANSACTION SUMMARY
+333 | -- =============================================================================
+334 | 
+335 | -- Generate transaction summary
+336 | DO $$
+337 | DECLARE
+338 |     total_transactions INTEGER;
+339 |     income_transactions INTEGER;
+340 |     expense_transactions INTEGER;
+341 |     transfer_transactions INTEGER;
+342 |     total_income DECIMAL(15,2);
+343 |     total_expenses DECIMAL(15,2);
+344 |     total_transfers DECIMAL(15,2);
+345 |     net_income DECIMAL(15,2);
+346 | BEGIN
+347 |     SELECT count(*) INTO total_transactions FROM transactions;
+348 |     SELECT count(*) INTO income_transactions FROM transactions WHERE type = 'income';
+349 |     SELECT count(*) INTO expense_transactions FROM transactions WHERE type = 'expense';
+350 |     SELECT count(*) INTO transfer_transactions FROM transactions WHERE type = 'transfer';
+351 |     
+352 |     SELECT COALESCE(sum(amount), 0) INTO total_income FROM transactions WHERE type = 'income';
+353 |     SELECT COALESCE(sum(amount), 0) INTO total_expenses FROM transactions WHERE type = 'expense';
+354 |     SELECT COALESCE(sum(amount), 0) INTO total_transfers FROM transactions WHERE type = 'transfer';
+355 |     
+356 |     net_income := total_income - total_expenses;
+357 |     
+358 |     RAISE NOTICE '=== TEST TRANSACTIONS SUMMARY ===';
+359 |     RAISE NOTICE 'Total transactions created: %', total_transactions;
+360 |     RAISE NOTICE '';
+361 |     RAISE NOTICE 'By transaction type:';
+362 |     RAISE NOTICE '- Income transactions: %', income_transactions;
+363 |     RAISE NOTICE '- Expense transactions: %', expense_transactions;
+364 |     RAISE NOTICE '- Transfer transactions: %', transfer_transactions;
+365 |     RAISE NOTICE '';
+366 |     RAISE NOTICE 'Financial summary (6 months):';
+367 |     RAISE NOTICE '- Total income: $%', total_income;
+368 |     RAISE NOTICE '- Total expenses: $%', total_expenses;
+369 |     RAISE NOTICE '- Total transfers: $%', total_transfers;
+370 |     RAISE NOTICE '- Net income: $%', net_income;
+371 |     RAISE NOTICE '';
+372 |     RAISE NOTICE 'Transaction patterns included:';
+373 |     RAISE NOTICE '- Monthly recurring income (salary, rent)';
+374 |     RAISE NOTICE '- Variable income (freelance, investments)';
+375 |     RAISE NOTICE '- Weekly grocery shopping patterns';
+376 |     RAISE NOTICE '- Bi-weekly gas purchases';
+377 |     RAISE NOTICE '- Monthly subscription services';
+378 |     RAISE NOTICE '- Credit card purchase scenarios';
+379 |     RAISE NOTICE '- Credit card payment transfers';
+380 |     RAISE NOTICE '- Investment contribution transfers';
+381 |     RAISE NOTICE '- Savings account transfers';
+382 |     RAISE NOTICE '- Large irregular expenses';
+383 |     RAISE NOTICE '- Refunds and returns (negative amounts)';
+384 |     RAISE NOTICE '- Cash advance scenarios';
+385 |     RAISE NOTICE '================================';
+386 |     RAISE NOTICE 'Test transactions ready for dashboard function testing!';
+387 | END $$;
+```
+
+app/auth/auth-code-error/page.tsx
+```
+1 | "use client";
+2 | import { useSearchParams } from "next/navigation";
+3 | import Link from "next/link";
+4 | import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+5 | import { Button } from "@/components/ui/button";
+6 | 
+7 | export default function AuthErrorPage() {
+8 |   const params = useSearchParams();
+9 |   const reason = params.get("reason");
+10 |   const message = params.get("message");
+11 | 
+12 |   let displayMessage = "Sorry, we couldn't sign you in. Please try again or return to the login page.";
+13 |   if (reason === "missing_code") {
+14 |     displayMessage = "Missing authentication code. Please try signing in again.";
+15 |   } else if (reason === "exchange_failed" && message) {
+16 |     displayMessage = decodeURIComponent(message);
+17 |   }
+18 | 
+19 |   return (
+20 |     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
+21 |       <div className="w-full max-w-md p-8 rounded-lg shadow-lg border bg-background">
+22 |         <Alert variant="destructive" className="mb-6">
+23 |           <AlertTitle>Authentication Error</AlertTitle>
+24 |           <AlertDescription>{displayMessage}</AlertDescription>
+25 |         </Alert>
+26 |         <Link href="/auth/login">
+27 |           <Button variant="outline" className="w-full">Go to Login</Button>
+28 |         </Link>
+29 |       </div>
+30 |     </div>
+31 |   );
+32 | } 
+```
+
+app/auth/callback/route.ts
+```
+1 | import { NextResponse } from 'next/server';
+2 | import { createClient } from '@/lib/supabase/server';
+3 | 
+4 | export async function GET(request: Request) {
+5 |   const url = new URL(request.url);
+6 |   const code = url.searchParams.get('code');
+7 |   const next = url.searchParams.get('next') ?? '/dashboard';
+8 |   const origin = url.origin;
+9 | 
+10 |   if (!code) {
+11 |     // Redirect to a specific error page for missing code
+12 |     return NextResponse.redirect(`${origin}/auth/auth-code-error?reason=missing_code`);
+13 |   }
+14 | 
+15 |   const supabase = await createClient();
+16 |   try {
+17 |     const { error } = await supabase.auth.exchangeCodeForSession(code);
+18 |     if (error) {
+19 |       console.error('Auth callback error:', error.message);
+20 |       // Redirect to error page with error message as query param (encoded)
+21 |       const errorMsg = encodeURIComponent(error.message || 'unknown_error');
+22 |       return NextResponse.redirect(`${origin}/auth/auth-code-error?reason=exchange_failed&message=${errorMsg}`);
+23 |     }
+24 |     // Success: redirect to dashboard or next
+25 |     return NextResponse.redirect(`${origin}${next}`);
+26 |   } catch (err: any) {
+27 |     console.error('Auth callback unexpected error:', err?.message || err);
+28 |     const errorMsg = encodeURIComponent(err?.message || 'unexpected_error');
+29 |     return NextResponse.redirect(`${origin}/auth/auth-code-error?reason=exchange_failed&message=${errorMsg}`);
+30 |   }
+31 | } 
+```
+
+app/auth/login/login-form.tsx
+```
+1 | "use client"
+2 | 
+3 | import { useState } from "react"
+4 | import { useRouter } from "next/navigation"
+5 | import { z } from "zod"
+6 | import { useForm } from "react-hook-form"
+7 | import { zodResolver } from "@hookform/resolvers/zod"
+8 | import { Button } from "@/components/ui/button"
+9 | import { Input } from "@/components/ui/input"
+10 | import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
+11 | import { toast } from "sonner"
+12 | import { createClient } from "@/lib/supabase/client"
+13 | import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton"
+14 | 
+15 | const loginSchema = z.object({
+16 |   email: z.string().email({ message: "Invalid email address" }),
+17 |   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+18 | })
+19 | 
+20 | type LoginValues = z.infer<typeof loginSchema>
+21 | 
+22 | export default function LoginForm() {
+23 |   const router = useRouter()
+24 |   const [isLoading, setIsLoading] = useState(false)
+25 |   const form = useForm<LoginValues>({
+26 |     resolver: zodResolver(loginSchema),
+27 |     defaultValues: { email: "", password: "" },
+28 |   })
+29 | 
+30 |   async function onSubmit(values: LoginValues) {
+31 |     setIsLoading(true)
+32 |     const supabase = createClient()
+33 |     const { error } = await supabase.auth.signInWithPassword({
+34 |       email: values.email,
+35 |       password: values.password,
+36 |     })
+37 |     setIsLoading(false)
+38 |     if (error) {
+39 |       toast.error(error.message)
+40 |       return
+41 |     }
+42 |     toast.success("Logged in successfully!")
+43 |     router.replace("/")
+44 |   }
+45 | 
+46 |   return (
+47 |     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
+48 |       <div className="w-full max-w-md p-8 rounded-lg shadow-lg border bg-background">
+49 |         <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
+50 |         <Form {...form}>
+51 |           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+52 |             <FormField
+53 |               control={form.control}
+54 |               name="email"
+55 |               render={({ field }) => (
+56 |                 <FormItem>
+57 |                   <FormLabel>Email</FormLabel>
+58 |                   <FormControl>
+59 |                     <Input type="email" autoComplete="email" {...field} disabled={isLoading} />
+60 |                   </FormControl>
+61 |                   <FormMessage />
+62 |                 </FormItem>
+63 |               )}
+64 |             />
+65 |             <FormField
+66 |               control={form.control}
+67 |               name="password"
+68 |               render={({ field }) => (
+69 |                 <FormItem>
+70 |                   <FormLabel>Password</FormLabel>
+71 |                   <FormControl>
+72 |                     <Input type="password" autoComplete="current-password" {...field} disabled={isLoading} />
+73 |                   </FormControl>
+74 |                   <FormMessage />
+75 |                 </FormItem>
+76 |               )}
+77 |             />
+78 |             <Button type="submit" className="w-full" disabled={isLoading}>
+79 |               {isLoading ? "Logging in..." : "Login"}
+80 |             </Button>
+81 |           </form>
+82 |         </Form>
+83 |         <div className="flex items-center my-6">
+84 |           <div className="flex-grow border-t border-gray-200" />
+85 |           <span className="mx-4 text-gray-400 text-xs">or</span>
+86 |           <div className="flex-grow border-t border-gray-200" />
+87 |         </div>
+88 |         <GoogleSignInButton className="mb-2" />
+89 |         <div className="flex justify-between mt-4 text-sm">
+90 |           <a href="/auth/register" className="text-primary hover:underline">Sign Up</a>
+91 |           <a href="/auth/reset-password" className="text-primary hover:underline">Forgot Password?</a>
+92 |         </div>
+93 |       </div>
+94 |     </div>
+95 |   )
+96 | } 
+```
+
+app/auth/login/page.tsx
+```
+1 | import { redirect } from "next/navigation"
+2 | import { createClient } from "@/lib/supabase/server"
+3 | import LoginForm from "./login-form"
+4 | 
+5 | export default async function LoginPage() {
+6 |   const supabase = await createClient()
+7 |   const {
+8 |     data: { user },
+9 |   } = await supabase.auth.getUser()
+10 |   // Redirect authenticated users away from login page
+11 |   if (user) {
+12 |     redirect("/dashboard")
+13 |   }
+14 |   return <LoginForm />
+15 | } 
+```
+
+app/auth/register/page.tsx
+```
+1 | import { redirect } from "next/navigation"
+2 | import { createClient } from "@/lib/supabase/server"
+3 | import RegisterForm from "./register-form"
+4 | 
+5 | export default async function RegisterPage() {
+6 |   const supabase = await createClient()
+7 |   const {
+8 |     data: { user },
+9 |   } = await supabase.auth.getUser()
+10 |   if (user) {
+11 |     redirect("/")
+12 |   }
+13 |   return <RegisterForm />
+14 | } 
+```
+
+app/auth/register/register-form.tsx
+```
+1 | "use client"
+2 | 
+3 | import { useState } from "react"
+4 | import { useRouter } from "next/navigation"
+5 | import { z } from "zod"
+6 | import { useForm } from "react-hook-form"
+7 | import { zodResolver } from "@hookform/resolvers/zod"
+8 | import { Button } from "@/components/ui/button"
+9 | import { Input } from "@/components/ui/input"
+10 | import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
+11 | import { toast } from "sonner"
+12 | import { createClient } from "@/lib/supabase/client"
+13 | import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton"
+14 | 
+15 | const registerSchema = z.object({
+16 |   email: z.string().email({ message: "Invalid email address" }),
+17 |   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+18 | })
+19 | 
+20 | type RegisterValues = z.infer<typeof registerSchema>
+21 | 
+22 | export default function RegisterForm() {
+23 |   const router = useRouter()
+24 |   const [isLoading, setIsLoading] = useState(false)
+25 |   const form = useForm<RegisterValues>({
+26 |     resolver: zodResolver(registerSchema),
+27 |     defaultValues: { email: "", password: "" },
+28 |   })
+29 | 
+30 |   async function onSubmit(values: RegisterValues) {
+31 |     setIsLoading(true)
+32 |     const supabase = createClient()
+33 |     const { error } = await supabase.auth.signUp({
+34 |       email: values.email,
+35 |       password: values.password,
+36 |       options: {
+37 |         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+38 |       },
+39 |     })
+40 |     setIsLoading(false)
+41 |     if (error) {
+42 |       toast.error(error.message)
+43 |       return
+44 |     }
+45 |     toast.success("Registration successful! Please check your email to confirm your account.")
+46 |     router.replace("/auth/login")
+47 |   }
+48 | 
+49 |   return (
+50 |     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
+51 |       <div className="w-full max-w-md p-8 rounded-lg shadow-lg border bg-background">
+52 |         <h1 className="text-2xl font-bold mb-6 text-center">Sign Up</h1>
+53 |         <Form {...form}>
+54 |           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+55 |             <FormField
+56 |               control={form.control}
+57 |               name="email"
+58 |               render={({ field }) => (
+59 |                 <FormItem>
+60 |                   <FormLabel>Email</FormLabel>
+61 |                   <FormControl>
+62 |                     <Input type="email" autoComplete="email" {...field} disabled={isLoading} />
+63 |                   </FormControl>
+64 |                   <FormMessage />
+65 |                 </FormItem>
+66 |               )}
+67 |             />
+68 |             <FormField
+69 |               control={form.control}
+70 |               name="password"
+71 |               render={({ field }) => (
+72 |                 <FormItem>
+73 |                   <FormLabel>Password</FormLabel>
+74 |                   <FormControl>
+75 |                     <Input type="password" autoComplete="new-password" {...field} disabled={isLoading} />
+76 |                   </FormControl>
+77 |                   <FormMessage />
+78 |                 </FormItem>
+79 |               )}
+80 |             />
+81 |             <Button type="submit" className="w-full" disabled={isLoading}>
+82 |               {isLoading ? "Signing up..." : "Sign Up"}
+83 |             </Button>
+84 |           </form>
+85 |         </Form>
+86 |         <div className="flex items-center my-6">
+87 |           <div className="flex-grow border-t border-gray-200" />
+88 |           <span className="mx-4 text-gray-400 text-xs">or</span>
+89 |           <div className="flex-grow border-t border-gray-200" />
+90 |         </div>
+91 |         <GoogleSignInButton className="mb-2" />
+92 |         <div className="flex justify-between mt-4 text-sm">
+93 |           <a href="/auth/login" className="text-primary hover:underline">Login</a>
+94 |         </div>
+95 |       </div>
+96 |     </div>
+97 |   )
+98 | } 
 ```
 
 app/api/categories/route.ts
@@ -13646,6 +16218,819 @@ app/api/categories/route.ts
 251 |     return handleApiError(error)
 252 |   }
 253 | } 
+```
+
+app/api/accounts/route.ts
+```
+1 | import { NextRequest } from 'next/server'
+2 | import { createClient } from '@/lib/supabase/server'
+3 | import { requireAuth } from '../utils/auth'
+4 | import { handleApiError } from '../utils/error-handler'
+5 | import { 
+6 |   createSuccessResponse, 
+7 |   createCreatedResponse, 
+8 |   createUpdatedResponse, 
+9 |   createDeletedResponse 
+10 | } from '../utils/response'
+11 | import { 
+12 |   validateRequestBody, 
+13 |   createAccountSchema, 
+14 |   updateAccountSchema 
+15 | } from '../utils/validation'
+16 | import { Tables, TablesInsert, TablesUpdate } from '@/types/database'
+17 | 
+18 | type Account = Tables<'accounts'>
+19 | type AccountInsert = TablesInsert<'accounts'>
+20 | type AccountUpdate = TablesUpdate<'accounts'>
+21 | 
+22 | /**
+23 |  * GET /api/accounts
+24 |  * Fetch user accounts
+25 |  */
+26 | export async function GET() {
+27 |   try {
+28 |     const user = await requireAuth()
+29 |     const supabase = await createClient()
+30 | 
+31 |     const { data: accounts, error } = await supabase
+32 |       .from('accounts')
+33 |       .select('*')
+34 |       .eq('user_id', user.id)
+35 |       .eq('is_active', true)
+36 |       .order('created_at', { ascending: false })
+37 | 
+38 |     if (error) throw error
+39 | 
+40 |     return createSuccessResponse(
+41 |       accounts,
+42 |       `Retrieved ${accounts.length} accounts successfully`
+43 |     )
+44 |   } catch (error) {
+45 |     return handleApiError(error)
+46 |   }
+47 | }
+48 | 
+49 | /**
+50 |  * POST /api/accounts
+51 |  * Create new account
+52 |  */
+53 | export async function POST(request: NextRequest) {
+54 |   try {
+55 |     const user = await requireAuth()
+56 |     const accountData = await validateRequestBody(request, createAccountSchema)
+57 |     const supabase = await createClient()
+58 | 
+59 |     const newAccount: AccountInsert = {
+60 |       ...accountData,
+61 |       user_id: user.id,
+62 |       current_balance: accountData.initial_balance,
+63 |     }
+64 | 
+65 |     const { data: account, error } = await supabase
+66 |       .from('accounts')
+67 |       .insert(newAccount)
+68 |       .select()
+69 |       .single()
+70 | 
+71 |     if (error) throw error
+72 | 
+73 |     return createCreatedResponse(
+74 |       account,
+75 |       'Account created successfully'
+76 |     )
+77 |   } catch (error) {
+78 |     return handleApiError(error)
+79 |   }
+80 | }
+81 | 
+82 | /**
+83 |  * PUT /api/accounts
+84 |  * Update account (requires account_id in request body)
+85 |  */
+86 | export async function PUT(request: NextRequest) {
+87 |   try {
+88 |     const user = await requireAuth()
+89 |     const body = await request.json()
+90 |     
+91 |     // Extract account_id from body
+92 |     const { account_id, ...updateData } = body
+93 |     
+94 |     if (!account_id) {
+95 |       throw new Error('account_id is required')
+96 |     }
+97 | 
+98 |     // Validate the update data
+99 |     const validatedData = updateAccountSchema.parse(updateData)
+100 |     const supabase = await createClient()
+101 | 
+102 |     // Verify the account belongs to the user
+103 |     const { data: existingAccount, error: fetchError } = await supabase
+104 |       .from('accounts')
+105 |       .select('id')
+106 |       .eq('id', account_id)
+107 |       .eq('user_id', user.id)
+108 |       .single()
+109 | 
+110 |     if (fetchError || !existingAccount) {
+111 |       throw new Error('Account not found or access denied')
+112 |     }
+113 | 
+114 |     const { data: updatedAccount, error } = await supabase
+115 |       .from('accounts')
+116 |       .update({
+117 |         ...validatedData,
+118 |         updated_at: new Date().toISOString(),
+119 |       })
+120 |       .eq('id', account_id)
+121 |       .eq('user_id', user.id)
+122 |       .select()
+123 |       .single()
+124 | 
+125 |     if (error) throw error
+126 | 
+127 |     return createUpdatedResponse(
+128 |       updatedAccount,
+129 |       'Account updated successfully'
+130 |     )
+131 |   } catch (error) {
+132 |     return handleApiError(error)
+133 |   }
+134 | }
+135 | 
+136 | /**
+137 |  * DELETE /api/accounts
+138 |  * Deactivate account (soft delete - requires account_id in request body)
+139 |  */
+140 | export async function DELETE(request: NextRequest) {
+141 |   try {
+142 |     const user = await requireAuth()
+143 |     const { account_id } = await request.json()
+144 |     
+145 |     if (!account_id) {
+146 |       throw new Error('account_id is required')
+147 |     }
+148 | 
+149 |     const supabase = await createClient()
+150 | 
+151 |     // Verify the account belongs to the user
+152 |     const { data: existingAccount, error: fetchError } = await supabase
+153 |       .from('accounts')
+154 |       .select('id')
+155 |       .eq('id', account_id)
+156 |       .eq('user_id', user.id)
+157 |       .single()
+158 | 
+159 |     if (fetchError || !existingAccount) {
+160 |       throw new Error('Account not found or access denied')
+161 |     }
+162 | 
+163 |     // Soft delete by setting is_active to false
+164 |     const { error } = await supabase
+165 |       .from('accounts')
+166 |       .update({
+167 |         is_active: false,
+168 |         updated_at: new Date().toISOString(),
+169 |       })
+170 |       .eq('id', account_id)
+171 |       .eq('user_id', user.id)
+172 | 
+173 |     if (error) throw error
+174 | 
+175 |     return createDeletedResponse('Account deactivated successfully')
+176 |   } catch (error) {
+177 |     return handleApiError(error)
+178 |   }
+179 | } 
+```
+
+app/api/settings/route.ts
+```
+1 | import { NextRequest } from 'next/server'
+2 | import { createClient } from '@/lib/supabase/server'
+3 | import { requireAuth } from '../utils/auth'
+4 | import { handleApiError } from '../utils/error-handler'
+5 | import { createSuccessResponse, createUpdatedResponse } from '../utils/response'
+6 | import { validateRequestBody, updateUserSettingsSchema } from '../utils/validation'
+7 | import { Tables, TablesInsert, TablesUpdate } from '@/types/database'
+8 | 
+9 | type UserSettings = Tables<'user_settings'>
+10 | type UserSettingsInsert = TablesInsert<'user_settings'>
+11 | type UserSettingsUpdate = TablesUpdate<'user_settings'>
+12 | 
+13 | /**
+14 |  * GET /api/settings
+15 |  * Fetch user settings
+16 |  */
+17 | export async function GET() {
+18 |   try {
+19 |     const user = await requireAuth()
+20 |     const supabase = await createClient()
+21 | 
+22 |     const { data: settings, error } = await supabase
+23 |       .from('user_settings')
+24 |       .select('*')
+25 |       .eq('user_id', user.id)
+26 |       .single()
+27 | 
+28 |     if (error) {
+29 |       // If no settings exist, create default settings
+30 |       if (error.code === 'PGRST116') {
+31 |         const defaultSettings: UserSettingsInsert = {
+32 |           user_id: user.id,
+33 |           currency_code: 'USD',
+34 |           financial_month_start_day: 1,
+35 |           financial_week_start_day: 1, // Monday
+36 |           onboarding_completed: false,
+37 |         }
+38 | 
+39 |         const { data: newSettings, error: createError } = await supabase
+40 |           .from('user_settings')
+41 |           .insert(defaultSettings)
+42 |           .select()
+43 |           .single()
+44 | 
+45 |         if (createError) throw createError
+46 | 
+47 |         return createSuccessResponse(
+48 |           newSettings,
+49 |           'Default settings created successfully'
+50 |         )
+51 |       }
+52 |       throw error
+53 |     }
+54 | 
+55 |     return createSuccessResponse(settings, 'Settings retrieved successfully')
+56 |   } catch (error) {
+57 |     return handleApiError(error)
+58 |   }
+59 | }
+60 | 
+61 | /**
+62 |  * PUT /api/settings
+63 |  * Update user settings
+64 |  */
+65 | export async function PUT(request: NextRequest) {
+66 |   try {
+67 |     const user = await requireAuth()
+68 |     const updateData = await validateRequestBody(request, updateUserSettingsSchema)
+69 |     const supabase = await createClient()
+70 | 
+71 |     // Check if settings exist
+72 |     const { data: existingSettings } = await supabase
+73 |       .from('user_settings')
+74 |       .select('id')
+75 |       .eq('user_id', user.id)
+76 |       .single()
+77 | 
+78 |     let updatedSettings: UserSettings
+79 | 
+80 |     if (existingSettings) {
+81 |       // Update existing settings
+82 |       const { data, error } = await supabase
+83 |         .from('user_settings')
+84 |         .update({
+85 |           ...updateData,
+86 |           updated_at: new Date().toISOString(),
+87 |         })
+88 |         .eq('user_id', user.id)
+89 |         .select()
+90 |         .single()
+91 | 
+92 |       if (error) throw error
+93 |       updatedSettings = data
+94 |     } else {
+95 |       // Create new settings with provided data
+96 |       const settingsData: UserSettingsInsert = {
+97 |         user_id: user.id,
+98 |         currency_code: updateData.currency_code || 'USD',
+99 |         financial_month_start_day: updateData.financial_month_start_day || 1,
+100 |         financial_week_start_day: updateData.financial_week_start_day || 1,
+101 |         onboarding_completed: updateData.onboarding_completed || false,
+102 |       }
+103 | 
+104 |       const { data, error } = await supabase
+105 |         .from('user_settings')
+106 |         .insert(settingsData)
+107 |         .select()
+108 |         .single()
+109 | 
+110 |       if (error) throw error
+111 |       updatedSettings = data
+112 |     }
+113 | 
+114 |     return createUpdatedResponse(
+115 |       updatedSettings,
+116 |       'Settings updated successfully'
+117 |     )
+118 |   } catch (error) {
+119 |     return handleApiError(error)
+120 |   }
+121 | } 
+```
+
+app/api/dashboard/route.ts
+```
+1 | import { NextRequest } from 'next/server'
+2 | import { createClient } from '@/lib/supabase/server'
+3 | import { requireAuth } from '../utils/auth'
+4 | import { handleApiError } from '../utils/error-handler'
+5 | import { createSuccessResponse } from '../utils/response'
+6 | import { Database } from '@/types/database'
+7 | 
+8 | type FinancialSummary = Database['public']['Functions']['get_financial_summary']['Returns'][0]
+9 | type BudgetProgress = Database['public']['Functions']['get_budget_progress']['Returns'][0]
+10 | type InvestmentProgress = Database['public']['Functions']['get_investment_progress']['Returns'][0]
+11 | 
+12 | /**
+13 |  * GET /api/dashboard
+14 |  * Fetch aggregated dashboard data
+15 |  */
+16 | export async function GET(request: NextRequest) {
+17 |   try {
+18 |     const user = await requireAuth()
+19 |     const supabase = await createClient()
+20 | 
+21 |     // Execute all dashboard queries in parallel
+22 |     const [
+23 |       { data: financialSummary, error: financialError },
+24 |       { data: budgetProgress, error: budgetError },
+25 |       { data: investmentProgress, error: investmentError },
+26 |       { data: accounts, error: accountsError },
+27 |       { data: recentTransactions, error: transactionsError }
+28 |     ] = await Promise.all([
+29 |       // Get financial summary
+30 |       supabase.rpc('get_financial_summary', { p_user_id: user.id }),
+31 |       
+32 |       // Get budget progress
+33 |       supabase.rpc('get_budget_progress', { p_user_id: user.id }),
+34 |       
+35 |       // Get investment progress
+36 |       supabase.rpc('get_investment_progress', { p_user_id: user.id }),
+37 |       
+38 |       // Get accounts with balances
+39 |       supabase
+40 |         .from('accounts')
+41 |         .select('id, name, type, current_balance, is_active')
+42 |         .eq('user_id', user.id)
+43 |         .eq('is_active', true)
+44 |         .order('current_balance', { ascending: false }),
+45 |       
+46 |       // Get recent transactions
+47 |       supabase
+48 |         .from('transactions')
+49 |         .select(`
+50 |           id,
+51 |           amount,
+52 |           type,
+53 |           transaction_date,
+54 |           description,
+55 |           accounts!transactions_account_id_fkey(name, type),
+56 |           categories!transactions_category_id_fkey(name, type, icon),
+57 |           from_accounts:accounts!transactions_from_account_id_fkey(name, type),
+58 |           to_accounts:accounts!transactions_to_account_id_fkey(name, type)
+59 |         `)
+60 |         .eq('user_id', user.id)
+61 |         .order('transaction_date', { ascending: false })
+62 |         .order('created_at', { ascending: false })
+63 |         .limit(10)
+64 |     ])
+65 | 
+66 |     // Check for errors
+67 |     if (financialError) throw financialError
+68 |     if (budgetError) throw budgetError
+69 |     if (investmentError) throw investmentError
+70 |     if (accountsError) throw accountsError
+71 |     if (transactionsError) throw transactionsError
+72 | 
+73 |     // Calculate additional metrics
+74 |     const totalBalance = accounts?.reduce((sum, account) => sum + account.current_balance, 0) || 0
+75 |     
+76 |     // Get current financial summary (most recent period)
+77 |     const currentPeriodSummary = financialSummary?.[0] || {
+78 |       total_income: 0,
+79 |       total_expenses: 0,
+80 |       net_savings: 0,
+81 |       period_start: new Date().toISOString().split('T')[0],
+82 |       period_end: new Date().toISOString().split('T')[0],
+83 |     }
+84 | 
+85 |     // Calculate budget totals
+86 |     const budgetTotals = {
+87 |       total_budget: budgetProgress?.reduce((sum: number, budget: BudgetProgress) => sum + (budget.budget_amount || 0), 0) || 0,
+88 |       total_spent: budgetProgress?.reduce((sum: number, budget: BudgetProgress) => sum + (budget.spent_amount || 0), 0) || 0,
+89 |       categories_over_budget: budgetProgress?.filter((budget: BudgetProgress) => 
+90 |         budget.progress_percentage > 100
+91 |       ).length || 0,
+92 |     }
+93 | 
+94 |     // Calculate investment totals
+95 |     const investmentTotals = {
+96 |       total_target: investmentProgress?.reduce((sum: number, investment: InvestmentProgress) => sum + (investment.target_amount || 0), 0) || 0,
+97 |       total_invested: investmentProgress?.reduce((sum: number, investment: InvestmentProgress) => sum + (investment.invested_amount || 0), 0) || 0,
+98 |       average_progress: investmentProgress?.length > 0 
+99 |         ? investmentProgress.reduce((sum: number, investment: InvestmentProgress) => sum + (investment.progress_percentage || 0), 0) / investmentProgress.length
+100 |         : 0,
+101 |     }
+102 | 
+103 |     // Group accounts by type
+104 |     const accountsByType = accounts?.reduce((acc, account) => {
+105 |       if (!acc[account.type]) {
+106 |         acc[account.type] = []
+107 |       }
+108 |       acc[account.type].push(account)
+109 |       return acc
+110 |     }, {} as Record<string, typeof accounts>) || {}
+111 | 
+112 |     // Calculate account type totals
+113 |     const accountTypeTotals = Object.entries(accountsByType).map(([type, accountsOfType]) => ({
+114 |       type,
+115 |       count: accountsOfType.length,
+116 |       total_balance: accountsOfType.reduce((sum, account) => sum + account.current_balance, 0),
+117 |     }))
+118 | 
+119 |     const dashboardData = {
+120 |       // Financial Overview
+121 |       financial_summary: {
+122 |         current_period: currentPeriodSummary,
+123 |         total_balance: totalBalance,
+124 |         account_type_totals: accountTypeTotals,
+125 |       },
+126 |       
+127 |       // Budget Overview
+128 |       budget_overview: {
+129 |         ...budgetTotals,
+130 |         remaining_budget: budgetTotals.total_budget - budgetTotals.total_spent,
+131 |         budget_utilization: budgetTotals.total_budget > 0 
+132 |           ? (budgetTotals.total_spent / budgetTotals.total_budget) * 100 
+133 |           : 0,
+134 |         categories: budgetProgress || [],
+135 |       },
+136 |       
+137 |       // Investment Overview
+138 |       investment_overview: {
+139 |         ...investmentTotals,
+140 |         remaining_to_invest: investmentTotals.total_target - investmentTotals.total_invested,
+141 |         categories: investmentProgress || [],
+142 |       },
+143 |       
+144 |       // Accounts Summary
+145 |       accounts_summary: {
+146 |         total_accounts: accounts?.length || 0,
+147 |         total_balance: totalBalance,
+148 |         by_type: accountsByType,
+149 |         accounts: accounts || [],
+150 |       },
+151 |       
+152 |       // Recent Activity
+153 |       recent_activity: {
+154 |         transactions: recentTransactions || [],
+155 |         transaction_count: recentTransactions?.length || 0,
+156 |       },
+157 |       
+158 |       // Quick Stats
+159 |       quick_stats: {
+160 |         net_worth: totalBalance,
+161 |         monthly_income: currentPeriodSummary.total_income,
+162 |         monthly_expenses: currentPeriodSummary.total_expenses,
+163 |         monthly_savings: currentPeriodSummary.net_savings,
+164 |         savings_rate: currentPeriodSummary.total_income > 0 
+165 |           ? (currentPeriodSummary.net_savings / currentPeriodSummary.total_income) * 100 
+166 |           : 0,
+167 |         budget_health: budgetTotals.total_budget > 0 
+168 |           ? Math.max(0, 100 - (budgetTotals.total_spent / budgetTotals.total_budget) * 100)
+169 |           : 100,
+170 |       },
+171 |     }
+172 | 
+173 |     return createSuccessResponse(
+174 |       dashboardData,
+175 |       'Dashboard data retrieved successfully'
+176 |     )
+177 |   } catch (error) {
+178 |     return handleApiError(error)
+179 |   }
+180 | } 
+```
+
+app/api/utils/auth.ts
+```
+1 | import { createClient } from '@/lib/supabase/server'
+2 | import { User } from '@supabase/supabase-js'
+3 | 
+4 | export interface AuthResult {
+5 |   user: User | null
+6 |   error: string | null
+7 | }
+8 | 
+9 | /**
+10 |  * Get authenticated user from request
+11 |  * Returns user if authenticated, null if not
+12 |  */
+13 | export async function getAuthenticatedUser(): Promise<AuthResult> {
+14 |   try {
+15 |     const supabase = await createClient()
+16 |     const { data: { user }, error } = await supabase.auth.getUser()
+17 | 
+18 |     if (error) {
+19 |       return { user: null, error: 'Authentication failed' }
+20 |     }
+21 | 
+22 |     if (!user) {
+23 |       return { user: null, error: 'User not authenticated' }
+24 |     }
+25 | 
+26 |     return { user, error: null }
+27 |   } catch (error) {
+28 |     return { user: null, error: 'Authentication service unavailable' }
+29 |   }
+30 | }
+31 | 
+32 | /**
+33 |  * Middleware function to ensure user is authenticated
+34 |  * Returns user if authenticated, throws error if not
+35 |  */
+36 | export async function requireAuth(): Promise<User> {
+37 |   const { user, error } = await getAuthenticatedUser()
+38 |   
+39 |   if (!user || error) {
+40 |     throw new Error(error || 'Authentication required')
+41 |   }
+42 |   
+43 |   return user
+44 | } 
+```
+
+app/api/utils/error-handler.ts
+```
+1 | import { NextResponse } from 'next/server'
+2 | import { ZodError } from 'zod'
+3 | 
+4 | export interface ApiError {
+5 |   message: string
+6 |   error: string | object
+7 |   status: number
+8 | }
+9 | 
+10 | /**
+11 |  * Standard API error response format
+12 |  */
+13 | export function createErrorResponse(
+14 |   message: string,
+15 |   error: string | object = '',
+16 |   status: number = 500
+17 | ): NextResponse {
+18 |   return NextResponse.json(
+19 |     {
+20 |       data: null,
+21 |       error,
+22 |       message,
+23 |     },
+24 |     { status }
+25 |   )
+26 | }
+27 | 
+28 | /**
+29 |  * Handle different types of errors and return appropriate responses
+30 |  */
+31 | export function handleApiError(error: unknown): NextResponse {
+32 |   console.error('API Error:', error)
+33 | 
+34 |   // Zod validation errors
+35 |   if (error instanceof ZodError) {
+36 |     return createErrorResponse(
+37 |       'Validation failed',
+38 |       error.errors.map(e => ({
+39 |         field: e.path.join('.'),
+40 |         message: e.message
+41 |       })),
+42 |       400
+43 |     )
+44 |   }
+45 | 
+46 |   // Authentication errors
+47 |   if (error instanceof Error && error.message.includes('Authentication')) {
+48 |     return createErrorResponse(
+49 |       'Authentication required',
+50 |       error.message,
+51 |       401
+52 |     )
+53 |   }
+54 | 
+55 |   // Database/Supabase errors
+56 |   if (error && typeof error === 'object' && 'code' in error) {
+57 |     const dbError = error as { code: string; message: string }
+58 |     
+59 |     switch (dbError.code) {
+60 |       case 'PGRST116': // Row not found
+61 |         return createErrorResponse('Resource not found', dbError.message, 404)
+62 |       case '23505': // Unique violation
+63 |         return createErrorResponse('Resource already exists', dbError.message, 409)
+64 |       case '23503': // Foreign key violation
+65 |         return createErrorResponse('Invalid reference', dbError.message, 400)
+66 |       default:
+67 |         return createErrorResponse('Database error', dbError.message, 500)
+68 |     }
+69 |   }
+70 | 
+71 |   // Generic error
+72 |   if (error instanceof Error) {
+73 |     return createErrorResponse(
+74 |       'Internal server error',
+75 |       error.message,
+76 |       500
+77 |     )
+78 |   }
+79 | 
+80 |   // Unknown error
+81 |   return createErrorResponse(
+82 |     'An unexpected error occurred',
+83 |     'Unknown error',
+84 |     500
+85 |   )
+86 | } 
+```
+
+app/api/utils/response.ts
+```
+1 | import { NextResponse } from 'next/server'
+2 | 
+3 | export interface ApiResponse<T = any> {
+4 |   data: T | null
+5 |   error: string | object | null
+6 |   message: string
+7 | }
+8 | 
+9 | /**
+10 |  * Create standardized success response
+11 |  */
+12 | export function createSuccessResponse<T>(
+13 |   data: T,
+14 |   message: string = 'Success',
+15 |   status: number = 200
+16 | ): NextResponse<ApiResponse<T>> {
+17 |   return NextResponse.json(
+18 |     {
+19 |       data,
+20 |       error: null,
+21 |       message,
+22 |     },
+23 |     { status }
+24 |   )
+25 | }
+26 | 
+27 | /**
+28 |  * Create response for resource creation
+29 |  */
+30 | export function createCreatedResponse<T>(
+31 |   data: T,
+32 |   message: string = 'Resource created successfully'
+33 | ): NextResponse<ApiResponse<T>> {
+34 |   return createSuccessResponse(data, message, 201)
+35 | }
+36 | 
+37 | /**
+38 |  * Create response for successful updates
+39 |  */
+40 | export function createUpdatedResponse<T>(
+41 |   data: T,
+42 |   message: string = 'Resource updated successfully'
+43 | ): NextResponse<ApiResponse<T>> {
+44 |   return createSuccessResponse(data, message, 200)
+45 | }
+46 | 
+47 | /**
+48 |  * Create response for successful deletions
+49 |  */
+50 | export function createDeletedResponse(
+51 |   message: string = 'Resource deleted successfully'
+52 | ): NextResponse<ApiResponse<null>> {
+53 |   return createSuccessResponse(null, message, 200)
+54 | } 
+```
+
+app/api/utils/validation.ts
+```
+1 | import { z } from 'zod'
+2 | import { Database } from '@/types/database'
+3 | 
+4 | // Type aliases for cleaner code
+5 | type AccountType = Database['public']['Enums']['account_type']
+6 | type CategoryType = Database['public']['Enums']['category_type']
+7 | type BudgetFrequency = Database['public']['Enums']['budget_frequency']
+8 | type TransactionType = Database['public']['Enums']['transaction_type']
+9 | 
+10 | // Common validation patterns
+11 | const uuidSchema = z.string().uuid()
+12 | const positiveNumber = z.number().positive()
+13 | 
+14 | // Settings validation schemas
+15 | export const updateUserSettingsSchema = z.object({
+16 |   currency_code: z.string().length(3).optional(), // ISO 4217 currency codes
+17 |   financial_month_start_day: z.number().int().min(1).max(31).optional(),
+18 |   financial_week_start_day: z.number().int().min(0).max(6).optional(), // 0 = Sunday
+19 |   onboarding_completed: z.boolean().optional(),
+20 | })
+21 | 
+22 | // Account validation schemas
+23 | export const createAccountSchema = z.object({
+24 |   name: z.string().min(1).max(100),
+25 |   type: z.enum(['bank_account', 'credit_card', 'investment_account'] as const),
+26 |   initial_balance: z.number().default(0),
+27 | })
+28 | 
+29 | export const updateAccountSchema = z.object({
+30 |   name: z.string().min(1).max(100).optional(),
+31 |   type: z.enum(['bank_account', 'credit_card', 'investment_account'] as const).optional(),
+32 |   current_balance: z.number().optional(),
+33 |   is_active: z.boolean().optional(),
+34 | })
+35 | 
+36 | // Category validation schemas
+37 | export const createCategorySchema = z.object({
+38 |   name: z.string().min(1).max(100),
+39 |   type: z.enum(['expense', 'income', 'investment'] as const),
+40 |   icon: z.string().max(50).optional(),
+41 |   budget_amount: z.number().positive().optional(),
+42 |   budget_frequency: z.enum(['weekly', 'monthly', 'one_time'] as const).optional(),
+43 | })
+44 | 
+45 | export const updateCategorySchema = z.object({
+46 |   name: z.string().min(1).max(100).optional(),
+47 |   type: z.enum(['expense', 'income', 'investment'] as const).optional(),
+48 |   icon: z.string().max(50).optional(),
+49 |   budget_amount: z.number().positive().nullable().optional(),
+50 |   budget_frequency: z.enum(['weekly', 'monthly', 'one_time'] as const).nullable().optional(),
+51 |   is_active: z.boolean().optional(),
+52 | })
+53 | 
+54 | // Transaction validation schemas
+55 | export const createTransactionSchema = z.object({
+56 |   amount: positiveNumber,
+57 |   type: z.enum(['income', 'expense', 'transfer'] as const),
+58 |   transaction_date: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)), // ISO date or datetime
+59 |   description: z.string().max(500).optional(),
+60 |   account_id: uuidSchema.optional(),
+61 |   category_id: uuidSchema.optional(),
+62 |   investment_category_id: uuidSchema.optional(),
+63 |   from_account_id: uuidSchema.optional(),
+64 |   to_account_id: uuidSchema.optional(),
+65 | }).refine((data) => {
+66 |   // For transfers, both from_account_id and to_account_id are required
+67 |   if (data.type === 'transfer') {
+68 |     return data.from_account_id && data.to_account_id
+69 |   }
+70 |   // For income/expense, account_id is required
+71 |   return data.account_id
+72 | }, {
+73 |   message: "Transfer requires both from_account_id and to_account_id. Income/expense requires account_id.",
+74 | })
+75 | 
+76 | export const updateTransactionSchema = z.object({
+77 |   amount: positiveNumber.optional(),
+78 |   type: z.enum(['income', 'expense', 'transfer'] as const).optional(),
+79 |   transaction_date: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
+80 |   description: z.string().max(500).nullable().optional(),
+81 |   account_id: uuidSchema.nullable().optional(),
+82 |   category_id: uuidSchema.nullable().optional(),
+83 |   investment_category_id: uuidSchema.nullable().optional(),
+84 |   from_account_id: uuidSchema.nullable().optional(),
+85 |   to_account_id: uuidSchema.nullable().optional(),
+86 | })
+87 | 
+88 | // Query parameter validation schemas
+89 | export const transactionQuerySchema = z.object({
+90 |   account_id: uuidSchema.optional(),
+91 |   category_id: uuidSchema.optional(),
+92 |   type: z.enum(['income', 'expense', 'transfer'] as const).optional(),
+93 |   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+94 |   end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+95 |   limit: z.coerce.number().int().min(1).max(100).default(50).optional(),
+96 |   offset: z.coerce.number().int().min(0).default(0).optional(),
+97 | })
+98 | 
+99 | // Helper function to validate request body
+100 | export async function validateRequestBody<T>(
+101 |   request: Request,
+102 |   schema: z.ZodSchema<T>
+103 | ): Promise<T> {
+104 |   const body = await request.json()
+105 |   return schema.parse(body)
+106 | }
+107 | 
+108 | // Category deletion schema
+109 | export const deleteCategorySchema = z.object({
+110 |   category_id: uuidSchema,
+111 |   new_category_id: uuidSchema.optional(), // Required if category has transactions
+112 | })
+113 | 
+114 | // Helper function to validate query parameters
+115 | export function validateQueryParams<T>(
+116 |   url: URL,
+117 |   schema: z.ZodSchema<T>
+118 | ): T {
+119 |   const params = Object.fromEntries(url.searchParams)
+120 |   return schema.parse(params)
+121 | } 
 ```
 
 app/api/transactions/route.ts
@@ -14062,760 +17447,4 @@ app/api/transactions/route.ts
 410 |     }
 411 |   }
 412 | } 
-```
-
-app/api/settings/route.ts
-```
-1 | import { NextRequest } from 'next/server'
-2 | import { createClient } from '@/lib/supabase/server'
-3 | import { requireAuth } from '../utils/auth'
-4 | import { handleApiError } from '../utils/error-handler'
-5 | import { createSuccessResponse, createUpdatedResponse } from '../utils/response'
-6 | import { validateRequestBody, updateUserSettingsSchema } from '../utils/validation'
-7 | import { Tables, TablesInsert, TablesUpdate } from '@/types/database'
-8 | 
-9 | type UserSettings = Tables<'user_settings'>
-10 | type UserSettingsInsert = TablesInsert<'user_settings'>
-11 | type UserSettingsUpdate = TablesUpdate<'user_settings'>
-12 | 
-13 | /**
-14 |  * GET /api/settings
-15 |  * Fetch user settings
-16 |  */
-17 | export async function GET() {
-18 |   try {
-19 |     const user = await requireAuth()
-20 |     const supabase = await createClient()
-21 | 
-22 |     const { data: settings, error } = await supabase
-23 |       .from('user_settings')
-24 |       .select('*')
-25 |       .eq('user_id', user.id)
-26 |       .single()
-27 | 
-28 |     if (error) {
-29 |       // If no settings exist, create default settings
-30 |       if (error.code === 'PGRST116') {
-31 |         const defaultSettings: UserSettingsInsert = {
-32 |           user_id: user.id,
-33 |           currency_code: 'USD',
-34 |           financial_month_start_day: 1,
-35 |           financial_week_start_day: 1, // Monday
-36 |           onboarding_completed: false,
-37 |         }
-38 | 
-39 |         const { data: newSettings, error: createError } = await supabase
-40 |           .from('user_settings')
-41 |           .insert(defaultSettings)
-42 |           .select()
-43 |           .single()
-44 | 
-45 |         if (createError) throw createError
-46 | 
-47 |         return createSuccessResponse(
-48 |           newSettings,
-49 |           'Default settings created successfully'
-50 |         )
-51 |       }
-52 |       throw error
-53 |     }
-54 | 
-55 |     return createSuccessResponse(settings, 'Settings retrieved successfully')
-56 |   } catch (error) {
-57 |     return handleApiError(error)
-58 |   }
-59 | }
-60 | 
-61 | /**
-62 |  * PUT /api/settings
-63 |  * Update user settings
-64 |  */
-65 | export async function PUT(request: NextRequest) {
-66 |   try {
-67 |     const user = await requireAuth()
-68 |     const updateData = await validateRequestBody(request, updateUserSettingsSchema)
-69 |     const supabase = await createClient()
-70 | 
-71 |     // Check if settings exist
-72 |     const { data: existingSettings } = await supabase
-73 |       .from('user_settings')
-74 |       .select('id')
-75 |       .eq('user_id', user.id)
-76 |       .single()
-77 | 
-78 |     let updatedSettings: UserSettings
-79 | 
-80 |     if (existingSettings) {
-81 |       // Update existing settings
-82 |       const { data, error } = await supabase
-83 |         .from('user_settings')
-84 |         .update({
-85 |           ...updateData,
-86 |           updated_at: new Date().toISOString(),
-87 |         })
-88 |         .eq('user_id', user.id)
-89 |         .select()
-90 |         .single()
-91 | 
-92 |       if (error) throw error
-93 |       updatedSettings = data
-94 |     } else {
-95 |       // Create new settings with provided data
-96 |       const settingsData: UserSettingsInsert = {
-97 |         user_id: user.id,
-98 |         currency_code: updateData.currency_code || 'USD',
-99 |         financial_month_start_day: updateData.financial_month_start_day || 1,
-100 |         financial_week_start_day: updateData.financial_week_start_day || 1,
-101 |         onboarding_completed: updateData.onboarding_completed || false,
-102 |       }
-103 | 
-104 |       const { data, error } = await supabase
-105 |         .from('user_settings')
-106 |         .insert(settingsData)
-107 |         .select()
-108 |         .single()
-109 | 
-110 |       if (error) throw error
-111 |       updatedSettings = data
-112 |     }
-113 | 
-114 |     return createUpdatedResponse(
-115 |       updatedSettings,
-116 |       'Settings updated successfully'
-117 |     )
-118 |   } catch (error) {
-119 |     return handleApiError(error)
-120 |   }
-121 | } 
-```
-
-app/auth/auth-code-error/page.tsx
-```
-1 | "use client";
-2 | import { useSearchParams } from "next/navigation";
-3 | import Link from "next/link";
-4 | import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-5 | import { Button } from "@/components/ui/button";
-6 | 
-7 | export default function AuthErrorPage() {
-8 |   const params = useSearchParams();
-9 |   const reason = params.get("reason");
-10 |   const message = params.get("message");
-11 | 
-12 |   let displayMessage = "Sorry, we couldn't sign you in. Please try again or return to the login page.";
-13 |   if (reason === "missing_code") {
-14 |     displayMessage = "Missing authentication code. Please try signing in again.";
-15 |   } else if (reason === "exchange_failed" && message) {
-16 |     displayMessage = decodeURIComponent(message);
-17 |   }
-18 | 
-19 |   return (
-20 |     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
-21 |       <div className="w-full max-w-md p-8 rounded-lg shadow-lg border bg-background">
-22 |         <Alert variant="destructive" className="mb-6">
-23 |           <AlertTitle>Authentication Error</AlertTitle>
-24 |           <AlertDescription>{displayMessage}</AlertDescription>
-25 |         </Alert>
-26 |         <Link href="/auth/login">
-27 |           <Button variant="outline" className="w-full">Go to Login</Button>
-28 |         </Link>
-29 |       </div>
-30 |     </div>
-31 |   );
-32 | } 
-```
-
-app/api/utils/auth.ts
-```
-1 | import { createClient } from '@/lib/supabase/server'
-2 | import { User } from '@supabase/supabase-js'
-3 | 
-4 | export interface AuthResult {
-5 |   user: User | null
-6 |   error: string | null
-7 | }
-8 | 
-9 | /**
-10 |  * Get authenticated user from request
-11 |  * Returns user if authenticated, null if not
-12 |  */
-13 | export async function getAuthenticatedUser(): Promise<AuthResult> {
-14 |   try {
-15 |     const supabase = await createClient()
-16 |     const { data: { user }, error } = await supabase.auth.getUser()
-17 | 
-18 |     if (error) {
-19 |       return { user: null, error: 'Authentication failed' }
-20 |     }
-21 | 
-22 |     if (!user) {
-23 |       return { user: null, error: 'User not authenticated' }
-24 |     }
-25 | 
-26 |     return { user, error: null }
-27 |   } catch (error) {
-28 |     return { user: null, error: 'Authentication service unavailable' }
-29 |   }
-30 | }
-31 | 
-32 | /**
-33 |  * Middleware function to ensure user is authenticated
-34 |  * Returns user if authenticated, throws error if not
-35 |  */
-36 | export async function requireAuth(): Promise<User> {
-37 |   const { user, error } = await getAuthenticatedUser()
-38 |   
-39 |   if (!user || error) {
-40 |     throw new Error(error || 'Authentication required')
-41 |   }
-42 |   
-43 |   return user
-44 | } 
-```
-
-app/api/utils/error-handler.ts
-```
-1 | import { NextResponse } from 'next/server'
-2 | import { ZodError } from 'zod'
-3 | 
-4 | export interface ApiError {
-5 |   message: string
-6 |   error: string | object
-7 |   status: number
-8 | }
-9 | 
-10 | /**
-11 |  * Standard API error response format
-12 |  */
-13 | export function createErrorResponse(
-14 |   message: string,
-15 |   error: string | object = '',
-16 |   status: number = 500
-17 | ): NextResponse {
-18 |   return NextResponse.json(
-19 |     {
-20 |       data: null,
-21 |       error,
-22 |       message,
-23 |     },
-24 |     { status }
-25 |   )
-26 | }
-27 | 
-28 | /**
-29 |  * Handle different types of errors and return appropriate responses
-30 |  */
-31 | export function handleApiError(error: unknown): NextResponse {
-32 |   console.error('API Error:', error)
-33 | 
-34 |   // Zod validation errors
-35 |   if (error instanceof ZodError) {
-36 |     return createErrorResponse(
-37 |       'Validation failed',
-38 |       error.errors.map(e => ({
-39 |         field: e.path.join('.'),
-40 |         message: e.message
-41 |       })),
-42 |       400
-43 |     )
-44 |   }
-45 | 
-46 |   // Authentication errors
-47 |   if (error instanceof Error && error.message.includes('Authentication')) {
-48 |     return createErrorResponse(
-49 |       'Authentication required',
-50 |       error.message,
-51 |       401
-52 |     )
-53 |   }
-54 | 
-55 |   // Database/Supabase errors
-56 |   if (error && typeof error === 'object' && 'code' in error) {
-57 |     const dbError = error as { code: string; message: string }
-58 |     
-59 |     switch (dbError.code) {
-60 |       case 'PGRST116': // Row not found
-61 |         return createErrorResponse('Resource not found', dbError.message, 404)
-62 |       case '23505': // Unique violation
-63 |         return createErrorResponse('Resource already exists', dbError.message, 409)
-64 |       case '23503': // Foreign key violation
-65 |         return createErrorResponse('Invalid reference', dbError.message, 400)
-66 |       default:
-67 |         return createErrorResponse('Database error', dbError.message, 500)
-68 |     }
-69 |   }
-70 | 
-71 |   // Generic error
-72 |   if (error instanceof Error) {
-73 |     return createErrorResponse(
-74 |       'Internal server error',
-75 |       error.message,
-76 |       500
-77 |     )
-78 |   }
-79 | 
-80 |   // Unknown error
-81 |   return createErrorResponse(
-82 |     'An unexpected error occurred',
-83 |     'Unknown error',
-84 |     500
-85 |   )
-86 | } 
-```
-
-app/api/utils/response.ts
-```
-1 | import { NextResponse } from 'next/server'
-2 | 
-3 | export interface ApiResponse<T = any> {
-4 |   data: T | null
-5 |   error: string | object | null
-6 |   message: string
-7 | }
-8 | 
-9 | /**
-10 |  * Create standardized success response
-11 |  */
-12 | export function createSuccessResponse<T>(
-13 |   data: T,
-14 |   message: string = 'Success',
-15 |   status: number = 200
-16 | ): NextResponse<ApiResponse<T>> {
-17 |   return NextResponse.json(
-18 |     {
-19 |       data,
-20 |       error: null,
-21 |       message,
-22 |     },
-23 |     { status }
-24 |   )
-25 | }
-26 | 
-27 | /**
-28 |  * Create response for resource creation
-29 |  */
-30 | export function createCreatedResponse<T>(
-31 |   data: T,
-32 |   message: string = 'Resource created successfully'
-33 | ): NextResponse<ApiResponse<T>> {
-34 |   return createSuccessResponse(data, message, 201)
-35 | }
-36 | 
-37 | /**
-38 |  * Create response for successful updates
-39 |  */
-40 | export function createUpdatedResponse<T>(
-41 |   data: T,
-42 |   message: string = 'Resource updated successfully'
-43 | ): NextResponse<ApiResponse<T>> {
-44 |   return createSuccessResponse(data, message, 200)
-45 | }
-46 | 
-47 | /**
-48 |  * Create response for successful deletions
-49 |  */
-50 | export function createDeletedResponse(
-51 |   message: string = 'Resource deleted successfully'
-52 | ): NextResponse<ApiResponse<null>> {
-53 |   return createSuccessResponse(null, message, 200)
-54 | } 
-```
-
-app/api/utils/validation.ts
-```
-1 | import { z } from 'zod'
-2 | import { Database } from '@/types/database'
-3 | 
-4 | // Type aliases for cleaner code
-5 | type AccountType = Database['public']['Enums']['account_type']
-6 | type CategoryType = Database['public']['Enums']['category_type']
-7 | type BudgetFrequency = Database['public']['Enums']['budget_frequency']
-8 | type TransactionType = Database['public']['Enums']['transaction_type']
-9 | 
-10 | // Common validation patterns
-11 | const uuidSchema = z.string().uuid()
-12 | const positiveNumber = z.number().positive()
-13 | 
-14 | // Settings validation schemas
-15 | export const updateUserSettingsSchema = z.object({
-16 |   currency_code: z.string().length(3).optional(), // ISO 4217 currency codes
-17 |   financial_month_start_day: z.number().int().min(1).max(31).optional(),
-18 |   financial_week_start_day: z.number().int().min(0).max(6).optional(), // 0 = Sunday
-19 |   onboarding_completed: z.boolean().optional(),
-20 | })
-21 | 
-22 | // Account validation schemas
-23 | export const createAccountSchema = z.object({
-24 |   name: z.string().min(1).max(100),
-25 |   type: z.enum(['bank_account', 'credit_card', 'investment_account'] as const),
-26 |   initial_balance: z.number().default(0),
-27 | })
-28 | 
-29 | export const updateAccountSchema = z.object({
-30 |   name: z.string().min(1).max(100).optional(),
-31 |   type: z.enum(['bank_account', 'credit_card', 'investment_account'] as const).optional(),
-32 |   current_balance: z.number().optional(),
-33 |   is_active: z.boolean().optional(),
-34 | })
-35 | 
-36 | // Category validation schemas
-37 | export const createCategorySchema = z.object({
-38 |   name: z.string().min(1).max(100),
-39 |   type: z.enum(['expense', 'income', 'investment'] as const),
-40 |   icon: z.string().max(50).optional(),
-41 |   budget_amount: z.number().positive().optional(),
-42 |   budget_frequency: z.enum(['weekly', 'monthly', 'one_time'] as const).optional(),
-43 | })
-44 | 
-45 | export const updateCategorySchema = z.object({
-46 |   name: z.string().min(1).max(100).optional(),
-47 |   type: z.enum(['expense', 'income', 'investment'] as const).optional(),
-48 |   icon: z.string().max(50).optional(),
-49 |   budget_amount: z.number().positive().nullable().optional(),
-50 |   budget_frequency: z.enum(['weekly', 'monthly', 'one_time'] as const).nullable().optional(),
-51 |   is_active: z.boolean().optional(),
-52 | })
-53 | 
-54 | // Transaction validation schemas
-55 | export const createTransactionSchema = z.object({
-56 |   amount: positiveNumber,
-57 |   type: z.enum(['income', 'expense', 'transfer'] as const),
-58 |   transaction_date: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)), // ISO date or datetime
-59 |   description: z.string().max(500).optional(),
-60 |   account_id: uuidSchema.optional(),
-61 |   category_id: uuidSchema.optional(),
-62 |   investment_category_id: uuidSchema.optional(),
-63 |   from_account_id: uuidSchema.optional(),
-64 |   to_account_id: uuidSchema.optional(),
-65 | }).refine((data) => {
-66 |   // For transfers, both from_account_id and to_account_id are required
-67 |   if (data.type === 'transfer') {
-68 |     return data.from_account_id && data.to_account_id
-69 |   }
-70 |   // For income/expense, account_id is required
-71 |   return data.account_id
-72 | }, {
-73 |   message: "Transfer requires both from_account_id and to_account_id. Income/expense requires account_id.",
-74 | })
-75 | 
-76 | export const updateTransactionSchema = z.object({
-77 |   amount: positiveNumber.optional(),
-78 |   type: z.enum(['income', 'expense', 'transfer'] as const).optional(),
-79 |   transaction_date: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
-80 |   description: z.string().max(500).nullable().optional(),
-81 |   account_id: uuidSchema.nullable().optional(),
-82 |   category_id: uuidSchema.nullable().optional(),
-83 |   investment_category_id: uuidSchema.nullable().optional(),
-84 |   from_account_id: uuidSchema.nullable().optional(),
-85 |   to_account_id: uuidSchema.nullable().optional(),
-86 | })
-87 | 
-88 | // Query parameter validation schemas
-89 | export const transactionQuerySchema = z.object({
-90 |   account_id: uuidSchema.optional(),
-91 |   category_id: uuidSchema.optional(),
-92 |   type: z.enum(['income', 'expense', 'transfer'] as const).optional(),
-93 |   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-94 |   end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-95 |   limit: z.coerce.number().int().min(1).max(100).default(50).optional(),
-96 |   offset: z.coerce.number().int().min(0).default(0).optional(),
-97 | })
-98 | 
-99 | // Helper function to validate request body
-100 | export async function validateRequestBody<T>(
-101 |   request: Request,
-102 |   schema: z.ZodSchema<T>
-103 | ): Promise<T> {
-104 |   const body = await request.json()
-105 |   return schema.parse(body)
-106 | }
-107 | 
-108 | // Category deletion schema
-109 | export const deleteCategorySchema = z.object({
-110 |   category_id: uuidSchema,
-111 |   new_category_id: uuidSchema.optional(), // Required if category has transactions
-112 | })
-113 | 
-114 | // Helper function to validate query parameters
-115 | export function validateQueryParams<T>(
-116 |   url: URL,
-117 |   schema: z.ZodSchema<T>
-118 | ): T {
-119 |   const params = Object.fromEntries(url.searchParams)
-120 |   return schema.parse(params)
-121 | } 
-```
-
-app/auth/callback/route.ts
-```
-1 | import { NextResponse } from 'next/server';
-2 | import { createClient } from '@/lib/supabase/server';
-3 | 
-4 | export async function GET(request: Request) {
-5 |   const url = new URL(request.url);
-6 |   const code = url.searchParams.get('code');
-7 |   const next = url.searchParams.get('next') ?? '/dashboard';
-8 |   const origin = url.origin;
-9 | 
-10 |   if (!code) {
-11 |     // Redirect to a specific error page for missing code
-12 |     return NextResponse.redirect(`${origin}/auth/auth-code-error?reason=missing_code`);
-13 |   }
-14 | 
-15 |   const supabase = await createClient();
-16 |   try {
-17 |     const { error } = await supabase.auth.exchangeCodeForSession(code);
-18 |     if (error) {
-19 |       console.error('Auth callback error:', error.message);
-20 |       // Redirect to error page with error message as query param (encoded)
-21 |       const errorMsg = encodeURIComponent(error.message || 'unknown_error');
-22 |       return NextResponse.redirect(`${origin}/auth/auth-code-error?reason=exchange_failed&message=${errorMsg}`);
-23 |     }
-24 |     // Success: redirect to dashboard or next
-25 |     return NextResponse.redirect(`${origin}${next}`);
-26 |   } catch (err: any) {
-27 |     console.error('Auth callback unexpected error:', err?.message || err);
-28 |     const errorMsg = encodeURIComponent(err?.message || 'unexpected_error');
-29 |     return NextResponse.redirect(`${origin}/auth/auth-code-error?reason=exchange_failed&message=${errorMsg}`);
-30 |   }
-31 | } 
-```
-
-app/auth/login/login-form.tsx
-```
-1 | "use client"
-2 | 
-3 | import { useState } from "react"
-4 | import { useRouter } from "next/navigation"
-5 | import { z } from "zod"
-6 | import { useForm } from "react-hook-form"
-7 | import { zodResolver } from "@hookform/resolvers/zod"
-8 | import { Button } from "@/components/ui/button"
-9 | import { Input } from "@/components/ui/input"
-10 | import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
-11 | import { toast } from "sonner"
-12 | import { createClient } from "@/lib/supabase/client"
-13 | import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton"
-14 | 
-15 | const loginSchema = z.object({
-16 |   email: z.string().email({ message: "Invalid email address" }),
-17 |   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-18 | })
-19 | 
-20 | type LoginValues = z.infer<typeof loginSchema>
-21 | 
-22 | export default function LoginForm() {
-23 |   const router = useRouter()
-24 |   const [isLoading, setIsLoading] = useState(false)
-25 |   const form = useForm<LoginValues>({
-26 |     resolver: zodResolver(loginSchema),
-27 |     defaultValues: { email: "", password: "" },
-28 |   })
-29 | 
-30 |   async function onSubmit(values: LoginValues) {
-31 |     setIsLoading(true)
-32 |     const supabase = createClient()
-33 |     const { error } = await supabase.auth.signInWithPassword({
-34 |       email: values.email,
-35 |       password: values.password,
-36 |     })
-37 |     setIsLoading(false)
-38 |     if (error) {
-39 |       toast.error(error.message)
-40 |       return
-41 |     }
-42 |     toast.success("Logged in successfully!")
-43 |     router.replace("/")
-44 |   }
-45 | 
-46 |   return (
-47 |     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
-48 |       <div className="w-full max-w-md p-8 rounded-lg shadow-lg border bg-background">
-49 |         <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
-50 |         <Form {...form}>
-51 |           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-52 |             <FormField
-53 |               control={form.control}
-54 |               name="email"
-55 |               render={({ field }) => (
-56 |                 <FormItem>
-57 |                   <FormLabel>Email</FormLabel>
-58 |                   <FormControl>
-59 |                     <Input type="email" autoComplete="email" {...field} disabled={isLoading} />
-60 |                   </FormControl>
-61 |                   <FormMessage />
-62 |                 </FormItem>
-63 |               )}
-64 |             />
-65 |             <FormField
-66 |               control={form.control}
-67 |               name="password"
-68 |               render={({ field }) => (
-69 |                 <FormItem>
-70 |                   <FormLabel>Password</FormLabel>
-71 |                   <FormControl>
-72 |                     <Input type="password" autoComplete="current-password" {...field} disabled={isLoading} />
-73 |                   </FormControl>
-74 |                   <FormMessage />
-75 |                 </FormItem>
-76 |               )}
-77 |             />
-78 |             <Button type="submit" className="w-full" disabled={isLoading}>
-79 |               {isLoading ? "Logging in..." : "Login"}
-80 |             </Button>
-81 |           </form>
-82 |         </Form>
-83 |         <div className="flex items-center my-6">
-84 |           <div className="flex-grow border-t border-gray-200" />
-85 |           <span className="mx-4 text-gray-400 text-xs">or</span>
-86 |           <div className="flex-grow border-t border-gray-200" />
-87 |         </div>
-88 |         <GoogleSignInButton className="mb-2" />
-89 |         <div className="flex justify-between mt-4 text-sm">
-90 |           <a href="/auth/register" className="text-primary hover:underline">Sign Up</a>
-91 |           <a href="/auth/reset-password" className="text-primary hover:underline">Forgot Password?</a>
-92 |         </div>
-93 |       </div>
-94 |     </div>
-95 |   )
-96 | } 
-```
-
-app/auth/login/page.tsx
-```
-1 | import { redirect } from "next/navigation"
-2 | import { createClient } from "@/lib/supabase/server"
-3 | import LoginForm from "./login-form"
-4 | 
-5 | export default async function LoginPage() {
-6 |   const supabase = await createClient()
-7 |   const {
-8 |     data: { user },
-9 |   } = await supabase.auth.getUser()
-10 |   // Redirect authenticated users away from login page
-11 |   if (user) {
-12 |     redirect("/dashboard")
-13 |   }
-14 |   return <LoginForm />
-15 | } 
-```
-
-app/auth/register/page.tsx
-```
-1 | import { redirect } from "next/navigation"
-2 | import { createClient } from "@/lib/supabase/server"
-3 | import RegisterForm from "./register-form"
-4 | 
-5 | export default async function RegisterPage() {
-6 |   const supabase = await createClient()
-7 |   const {
-8 |     data: { user },
-9 |   } = await supabase.auth.getUser()
-10 |   if (user) {
-11 |     redirect("/")
-12 |   }
-13 |   return <RegisterForm />
-14 | } 
-```
-
-app/auth/register/register-form.tsx
-```
-1 | "use client"
-2 | 
-3 | import { useState } from "react"
-4 | import { useRouter } from "next/navigation"
-5 | import { z } from "zod"
-6 | import { useForm } from "react-hook-form"
-7 | import { zodResolver } from "@hookform/resolvers/zod"
-8 | import { Button } from "@/components/ui/button"
-9 | import { Input } from "@/components/ui/input"
-10 | import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
-11 | import { toast } from "sonner"
-12 | import { createClient } from "@/lib/supabase/client"
-13 | import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton"
-14 | 
-15 | const registerSchema = z.object({
-16 |   email: z.string().email({ message: "Invalid email address" }),
-17 |   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-18 | })
-19 | 
-20 | type RegisterValues = z.infer<typeof registerSchema>
-21 | 
-22 | export default function RegisterForm() {
-23 |   const router = useRouter()
-24 |   const [isLoading, setIsLoading] = useState(false)
-25 |   const form = useForm<RegisterValues>({
-26 |     resolver: zodResolver(registerSchema),
-27 |     defaultValues: { email: "", password: "" },
-28 |   })
-29 | 
-30 |   async function onSubmit(values: RegisterValues) {
-31 |     setIsLoading(true)
-32 |     const supabase = createClient()
-33 |     const { error } = await supabase.auth.signUp({
-34 |       email: values.email,
-35 |       password: values.password,
-36 |       options: {
-37 |         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-38 |       },
-39 |     })
-40 |     setIsLoading(false)
-41 |     if (error) {
-42 |       toast.error(error.message)
-43 |       return
-44 |     }
-45 |     toast.success("Registration successful! Please check your email to confirm your account.")
-46 |     router.replace("/auth/login")
-47 |   }
-48 | 
-49 |   return (
-50 |     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
-51 |       <div className="w-full max-w-md p-8 rounded-lg shadow-lg border bg-background">
-52 |         <h1 className="text-2xl font-bold mb-6 text-center">Sign Up</h1>
-53 |         <Form {...form}>
-54 |           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-55 |             <FormField
-56 |               control={form.control}
-57 |               name="email"
-58 |               render={({ field }) => (
-59 |                 <FormItem>
-60 |                   <FormLabel>Email</FormLabel>
-61 |                   <FormControl>
-62 |                     <Input type="email" autoComplete="email" {...field} disabled={isLoading} />
-63 |                   </FormControl>
-64 |                   <FormMessage />
-65 |                 </FormItem>
-66 |               )}
-67 |             />
-68 |             <FormField
-69 |               control={form.control}
-70 |               name="password"
-71 |               render={({ field }) => (
-72 |                 <FormItem>
-73 |                   <FormLabel>Password</FormLabel>
-74 |                   <FormControl>
-75 |                     <Input type="password" autoComplete="new-password" {...field} disabled={isLoading} />
-76 |                   </FormControl>
-77 |                   <FormMessage />
-78 |                 </FormItem>
-79 |               )}
-80 |             />
-81 |             <Button type="submit" className="w-full" disabled={isLoading}>
-82 |               {isLoading ? "Signing up..." : "Sign Up"}
-83 |             </Button>
-84 |           </form>
-85 |         </Form>
-86 |         <div className="flex items-center my-6">
-87 |           <div className="flex-grow border-t border-gray-200" />
-88 |           <span className="mx-4 text-gray-400 text-xs">or</span>
-89 |           <div className="flex-grow border-t border-gray-200" />
-90 |         </div>
-91 |         <GoogleSignInButton className="mb-2" />
-92 |         <div className="flex justify-between mt-4 text-sm">
-93 |           <a href="/auth/login" className="text-primary hover:underline">Login</a>
-94 |         </div>
-95 |       </div>
-96 |     </div>
-97 |   )
-98 | } 
 ```

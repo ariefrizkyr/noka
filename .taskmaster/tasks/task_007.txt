@@ -1,0 +1,31 @@
+# Task ID: 7
+# Title: Implement Onboarding Steps: Welcome, Currency & Financial Period Setup
+# Status: pending
+# Dependencies: 6
+# Priority: medium
+# Description: Build Steps 1-2 of onboarding wizard for welcome message, currency selection, and financial period configuration
+# Details:
+Create Step 1 with welcome message and currency selector dropdown (IDR, USD with IDR as default). Implement Step 2 with financial period configuration including financial month start day selector (1-31) and financial week start day selector (0-6, Sunday-Saturday). Add form validation for valid day ranges. Implement step completion validation before allowing progression. Style components consistently with application design system.
+
+# Test Strategy:
+Test currency selection and validation, verify financial period day selectors work correctly, test form validation rules, validate step progression logic, test default values, verify data persistence between steps
+
+# Subtasks:
+## 1. Create welcome step with currency selection [pending]
+### Dependencies: None
+### Description: Implement the initial welcome step of the wizard that includes currency selection functionality
+### Details:
+Build the welcome screen component with currency dropdown/selection interface, integrate with wizard framework, and handle currency state management
+
+## 2. Implement financial period configuration step [pending]
+### Dependencies: 7.1
+### Description: Create the financial period configuration step with date range selection and period type options
+### Details:
+Design and implement form inputs for financial period settings, including date pickers, period type selection, and integration with wizard navigation
+
+## 3. Add form validation and progression logic [pending]
+### Dependencies: 7.1, 7.2
+### Description: Implement comprehensive form validation rules and wizard step progression control
+### Details:
+Create validation schemas for currency and financial period inputs, implement step-by-step validation, add error handling, and ensure proper wizard navigation flow
+

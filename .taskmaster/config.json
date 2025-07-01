@@ -1,20 +1,20 @@
 {
   "models": {
     "main": {
-      "provider": "claude-code",
-      "modelId": "sonnet",
-      "maxTokens": 64000,
+      "provider": "google",
+      "modelId": "gemini-2.5-pro-preview-05-06",
+      "maxTokens": 1048000,
       "temperature": 0.2
     },
     "research": {
       "provider": "claude-code",
-      "modelId": "opus",
-      "maxTokens": 32000,
+      "modelId": "sonnet",
+      "maxTokens": 64000,
       "temperature": 0.1
     },
     "fallback": {
       "provider": "google",
-      "modelId": "gemini-2.5-pro-preview-05-06",
+      "modelId": "gemini-2.0-flash-lite",
       "maxTokens": 1048000,
       "temperature": 0.1
     }
