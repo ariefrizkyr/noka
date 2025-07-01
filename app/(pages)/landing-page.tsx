@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import { Footer } from "@/components/ui/footer"
 
 export default async function LandingPage() {
   // SSR: Check session
@@ -56,6 +57,7 @@ export default async function LandingPage() {
           <Button size="lg" className="text-lg px-8 py-6">Try Now</Button>
         </Link>
       </main>
+      <Footer />
     </div>
   )
 } 
