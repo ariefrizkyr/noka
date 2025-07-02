@@ -91,15 +91,54 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    request.nextUrl.pathname.startsWith('/dashboard')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    return NextResponse.redirect(url)
+  // Handle authentication and onboarding flow
+  if (user) {
+    // Check onboarding status for authenticated users
+    if (pathname.startsWith('/dashboard') || pathname === '/') {
+      try {
+        const { data: settings } = await supabase
+          .from('user_settings')
+          .select('onboarding_completed')
+          .eq('user_id', user.id)
+          .single()
+
+        // If onboarding not completed, redirect to onboarding
+        if (!settings?.onboarding_completed) {
+          const url = request.nextUrl.clone()
+          url.pathname = '/onboarding'
+          return NextResponse.redirect(url)
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error)
+        // If error checking onboarding (e.g., no settings exist), redirect to onboarding
+        if (pathname.startsWith('/dashboard') || pathname === '/') {
+          const url = request.nextUrl.clone()
+          url.pathname = '/onboarding'
+          return NextResponse.redirect(url)
+        }
+      }
+    }
+
+    // If user is authenticated and onboarding completed, don't allow access to auth pages
+    if (pathname.startsWith('/auth/') && !pathname.includes('/callback')) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
+  } else {
+    // No user - redirect protected routes to login
+    if (
+      !pathname.startsWith('/auth') &&
+      !pathname.startsWith('/_next') &&
+      !pathname.startsWith('/api') &&
+      pathname !== '/' &&
+      pathname !== '/legal/privacy-policy' &&
+      pathname !== '/legal/terms-of-service'
+    ) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth/login'
+      return NextResponse.redirect(url)
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

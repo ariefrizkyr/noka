@@ -38,8 +38,22 @@ export const createCategorySchema = z.object({
   name: z.string().min(1).max(100),
   type: z.enum(['expense', 'income', 'investment'] as const),
   icon: z.string().max(50).optional(),
-  budget_amount: z.number().positive().optional(),
-  budget_frequency: z.enum(['weekly', 'monthly', 'one_time'] as const).optional(),
+  budget_amount: z.number().positive().nullable().optional(),
+  budget_frequency: z.enum(['weekly', 'monthly', 'one_time'] as const).nullable().optional(),
+}).refine((data) => {
+  // Income categories should not have budget/frequency
+  if (data.type === 'income') {
+    return data.budget_amount === null && data.budget_frequency === null
+  }
+  
+  // For expense/investment categories: if one budget field is provided, both must be provided
+  if (data.budget_amount !== null || data.budget_frequency !== null) {
+    return data.budget_amount !== null && data.budget_frequency !== null
+  }
+  
+  return true
+}, {
+  message: "Income categories cannot have budgets. Expense/Investment categories must have both budget amount and frequency if either is provided.",
 })
 
 export const updateCategorySchema = z.object({
