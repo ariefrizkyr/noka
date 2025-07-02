@@ -1,46 +1,46 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
+import { Theme } from 'emoji-picker-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Smile } from 'lucide-react'
+
+// Dynamically import EmojiPicker for Next.js SSR compatibility
+const EmojiPickerComponent = dynamic(
+  () => import('emoji-picker-react'),
+  { ssr: false }
+)
 
 interface EmojiPickerProps {
   value?: string
   onEmojiSelect: (emoji: string) => void
   placeholder?: string
+  width?: number | string
+  height?: number | string
+  searchDisabled?: boolean
 }
 
-const emojiCategories = {
-  expense: [
-    '🍔', '🛒', '⛽', '🏠', '🚗', '👕', '💊', '📱', '🎬', '🎮',
-    '☕', '🍕', '🛍️', '🚇', '✈️', '🏥', '💳', '🎯', '📚', '🍻'
-  ],
-  income: [
-    '💰', '💵', '🏦', '💼', '🎯', '📈', '💎', '🏆', '⭐', '🎁',
-    '💸', '🤝', '📊', '🏅', '💪', '🚀', '⚡', '🔥', '✨', '🎪'
-  ],
-  investment: [
-    '📈', '💎', '🏆', '🚀', '⭐', '💪', '🎯', '🔥', '💰', '📊',
-    '🏅', '⚡', '✨', '🎪', '🌟', '💫', '🎊', '🎉', '🏦', '💼'
-  ]
+interface EmojiClickData {
+  emoji: string
+  unified: string
+  names: string[]
+  isCustom: boolean
 }
-
-const allEmojis = [
-  ...emojiCategories.expense,
-  ...emojiCategories.income,
-  ...emojiCategories.investment
-].filter((emoji, index, arr) => arr.indexOf(emoji) === index) // Remove duplicates
 
 export default function EmojiPicker({
   value,
   onEmojiSelect,
-  placeholder = '😀'
+  placeholder = '😀',
+  width = 320,
+  height = 400,
+  searchDisabled = false
 }: EmojiPickerProps) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const handleEmojiClick = (emoji: string) => {
-    onEmojiSelect(emoji)
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    // Extract just the emoji character from the rich emoji data
+    onEmojiSelect(emojiData.emoji)
     setIsOpen(false)
   }
 
@@ -55,24 +55,20 @@ export default function EmojiPicker({
           {value || placeholder}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-2" align="start">
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 pb-2 border-b">
-            <Smile className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Choose an emoji</span>
-          </div>
-          
-          <div className="grid grid-cols-8 gap-1">
-            {allEmojis.map((emoji, index) => (
-              <button
-                key={index}
-                onClick={() => handleEmojiClick(emoji)}
-                className="w-8 h-8 text-lg hover:bg-gray-100 rounded-md flex items-center justify-center transition-colors"
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
+      <PopoverContent className="w-fit p-0" align="start">
+        <div className="border rounded-lg overflow-hidden">
+          <EmojiPickerComponent
+            onEmojiClick={handleEmojiClick}
+            width={width}
+            height={height}
+            searchDisabled={searchDisabled}
+            previewConfig={{
+              showPreview: false
+            }}
+            skinTonesDisabled={true}
+            theme={Theme.LIGHT}
+            lazyLoadEmojis={true}
+          />
         </div>
       </PopoverContent>
     </Popover>
