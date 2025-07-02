@@ -23,9 +23,9 @@ export async function GET(request: Request) {
     }
     // Success: redirect to dashboard or next
     return NextResponse.redirect(`${origin}${next}`);
-  } catch (err: any) {
-    console.error('Auth callback unexpected error:', err?.message || err);
-    const errorMsg = encodeURIComponent(err?.message || 'unexpected_error');
+  } catch (err: unknown) {
+    console.error('Auth callback unexpected error:', (err as Error)?.message || err);
+    const errorMsg = encodeURIComponent((err as Error)?.message || 'unexpected_error');
     return NextResponse.redirect(`${origin}/auth/auth-code-error?reason=exchange_failed&message=${errorMsg}`);
   }
 } 

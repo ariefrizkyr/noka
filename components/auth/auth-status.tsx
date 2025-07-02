@@ -445,7 +445,7 @@ export function AuthStatus() {
                       <Clock className="h-4 w-4" />
                       <AlertTitle>Long Inactivity</AlertTitle>
                       <AlertDescription>
-                        You've been inactive for over 15 minutes.
+                        You&apos;ve been inactive for over 15 minutes.
                       </AlertDescription>
                     </Alert>
                   )}

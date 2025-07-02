@@ -22,6 +22,7 @@ type TransactionInsert = TablesInsert<'transactions'>
 type TransactionUpdate = TablesUpdate<'transactions'>
 type Account = Tables<'accounts'>
 type BalanceLedgerInsert = TablesInsert<'balance_ledger'>
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>
 
 /**
  * GET /api/transactions
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
 
     // Create base query for filtering (used for both count and data)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const buildBaseQuery = (query: any) => {
       let baseQuery = query.eq('user_id', user.id)
       
@@ -318,7 +320,7 @@ export async function DELETE(request: NextRequest) {
  * Helper function to update account balance
  */
 async function updateAccountBalance(
-  supabase: any,
+  supabase: SupabaseClient,
   accountId: string,
   changeAmount: number,
   transactionId: string,
@@ -369,7 +371,7 @@ async function updateAccountBalance(
  * Helper function to reverse transaction balance effects
  */
 async function reverseTransactionBalanceEffects(
-  supabase: any,
+  supabase: SupabaseClient,
   transaction: Transaction,
   userId: string
 ) {
@@ -392,7 +394,7 @@ async function reverseTransactionBalanceEffects(
  * Helper function to apply transaction balance effects
  */
 async function applyTransactionBalanceEffects(
-  supabase: any,
+  supabase: SupabaseClient,
   transaction: Transaction,
   userId: string
 ) {

@@ -1,11 +1,11 @@
 import { z } from 'zod'
-import { sanitizeFormData, validateAndSanitizeInput } from './sanitization'
+import { sanitizeFormData, validateAndSanitizeInput, type FormFieldValue } from './sanitization'
 import { validateCSRFToken } from './csrf'
 
 /**
  * Enhanced validation result with security metadata
  */
-export interface ValidationResult<T = any> {
+export interface ValidationResult<T = Record<string, unknown>> {
   success: boolean
   data?: T
   errors: string[]
@@ -108,7 +108,7 @@ export const newPasswordSchema = z.object({
  * Validate and sanitize authentication form data
  */
 export async function validateAuthForm(
-  formData: FormData | Record<string, any>,
+  formData: FormData | Record<string, unknown>,
   options: SecureValidationOptions = {}
 ): Promise<ValidationResult> {
   const opts = {
@@ -125,7 +125,7 @@ export async function validateAuthForm(
 
   try {
     // Extract data from FormData or use as-is
-    let data: Record<string, any>
+    let data: Record<string, unknown>
     if (formData instanceof FormData) {
       data = Object.fromEntries(formData.entries())
     } else {
@@ -145,7 +145,7 @@ export async function validateAuthForm(
         }
       }
 
-      const csrfValid = await validateCSRFToken(csrfToken)
+      const csrfValid = await validateCSRFToken(String(csrfToken))
       if (!csrfValid) {
         securityIssues.push('CSRF token invalid')
         return {
@@ -159,7 +159,7 @@ export async function validateAuthForm(
 
     // Sanitize inputs if requested
     if (opts.sanitizeInputs) {
-      data = sanitizeFormData(data, {
+      data = sanitizeFormData(data as Record<string, FormFieldValue>, {
         email: { maxLength: 254, trim: true },
         password: { maxLength: 128, trim: false },
       })
@@ -209,7 +209,7 @@ export async function validateAuthForm(
  * Validate password reset form
  */
 export async function validateResetPasswordForm(
-  formData: FormData | Record<string, any>,
+  formData: FormData | Record<string, unknown>,
   options: SecureValidationOptions = {}
 ): Promise<ValidationResult> {
   const opts = {
@@ -225,7 +225,7 @@ export async function validateResetPasswordForm(
 
   try {
     // Extract data
-    let data: Record<string, any>
+    let data: Record<string, unknown>
     if (formData instanceof FormData) {
       data = Object.fromEntries(formData.entries())
     } else {
@@ -245,7 +245,7 @@ export async function validateResetPasswordForm(
         }
       }
 
-      const csrfValid = await validateCSRFToken(csrfToken)
+      const csrfValid = await validateCSRFToken(String(csrfToken))
       if (!csrfValid) {
         securityIssues.push('CSRF token invalid')
         return {
@@ -259,7 +259,7 @@ export async function validateResetPasswordForm(
 
     // Sanitize inputs
     if (opts.sanitizeInputs) {
-      data = sanitizeFormData(data, {
+      data = sanitizeFormData(data as Record<string, FormFieldValue>, {
         email: { maxLength: 254, trim: true },
       })
       sanitized = true
@@ -295,7 +295,7 @@ export async function validateResetPasswordForm(
  * Validate new password form
  */
 export async function validateNewPasswordForm(
-  formData: FormData | Record<string, any>,
+  formData: FormData | Record<string, unknown>,
   options: SecureValidationOptions = {}
 ): Promise<ValidationResult> {
   const opts = {
@@ -311,7 +311,7 @@ export async function validateNewPasswordForm(
 
   try {
     // Extract data
-    let data: Record<string, any>
+    let data: Record<string, unknown>
     if (formData instanceof FormData) {
       data = Object.fromEntries(formData.entries())
     } else {
@@ -331,7 +331,7 @@ export async function validateNewPasswordForm(
         }
       }
 
-      const csrfValid = await validateCSRFToken(csrfToken)
+      const csrfValid = await validateCSRFToken(String(csrfToken))
       if (!csrfValid) {
         securityIssues.push('CSRF token invalid')
         return {
@@ -345,7 +345,7 @@ export async function validateNewPasswordForm(
 
     // Sanitize inputs
     if (opts.sanitizeInputs) {
-      data = sanitizeFormData(data, {
+      data = sanitizeFormData(data as Record<string, FormFieldValue>, {
         password: { maxLength: 128, trim: false },
       })
       sanitized = true
@@ -382,7 +382,7 @@ export async function validateNewPasswordForm(
  */
 export async function validateSecureForm<T>(
   schema: z.ZodSchema<T>,
-  formData: FormData | Record<string, any>,
+  formData: FormData | Record<string, unknown>,
   options: SecureValidationOptions = {}
 ): Promise<ValidationResult<T>> {
   const opts = {
@@ -398,7 +398,7 @@ export async function validateSecureForm<T>(
 
   try {
     // Extract data
-    let data: Record<string, any>
+    let data: Record<string, unknown>
     if (formData instanceof FormData) {
       data = Object.fromEntries(formData.entries())
     } else {
@@ -418,7 +418,7 @@ export async function validateSecureForm<T>(
         }
       }
 
-      const csrfValid = await validateCSRFToken(csrfToken)
+      const csrfValid = await validateCSRFToken(String(csrfToken))
       if (!csrfValid) {
         securityIssues.push('CSRF token invalid')
         return {
@@ -432,7 +432,7 @@ export async function validateSecureForm<T>(
 
     // Sanitize inputs
     if (opts.sanitizeInputs) {
-      data = sanitizeFormData(data)
+      data = sanitizeFormData(data as Record<string, FormFieldValue>)
       sanitized = true
     }
 

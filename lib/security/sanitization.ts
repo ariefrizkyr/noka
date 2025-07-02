@@ -4,6 +4,7 @@ import { JSDOM } from 'jsdom'
 
 // Create a JSDOM window for server-side DOMPurify
 const window = new JSDOM('').window
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const purify = DOMPurify(window as any)
 
 /**
@@ -147,13 +148,18 @@ export function validatePassword(password: string): {
 }
 
 /**
+ * Form field value type for sanitization
+ */
+export type FormFieldValue = string | number | boolean | string[] | null | undefined
+
+/**
  * Sanitize form data object
  */
 export function sanitizeFormData(
-  data: Record<string, any>,
+  data: Record<string, FormFieldValue>,
   fieldOptions: Record<string, SanitizationOptions> = {}
-): Record<string, any> {
-  const sanitized: Record<string, any> = {}
+): Record<string, FormFieldValue> {
+  const sanitized: Record<string, FormFieldValue> = {}
   
   for (const [key, value] of Object.entries(data)) {
     const options = fieldOptions[key] || {}

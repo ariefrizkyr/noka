@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T | null
   error: string | object | null
   message: string
