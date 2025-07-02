@@ -1,11 +1,11 @@
-import { NextRequest } from 'next/server'
+// import { NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth } from '../utils/auth'
 import { handleApiError } from '../utils/error-handler'
 import { createSuccessResponse } from '../utils/response'
 import { Database } from '@/types/database'
 
-type FinancialSummary = Database['public']['Functions']['get_financial_summary']['Returns'][0]
+// type FinancialSummary = Database['public']['Functions']['get_financial_summary']['Returns'][0]
 type BudgetProgress = Database['public']['Functions']['get_budget_progress']['Returns'][0]
 type InvestmentProgress = Database['public']['Functions']['get_investment_progress']['Returns'][0]
 
@@ -13,7 +13,7 @@ type InvestmentProgress = Database['public']['Functions']['get_investment_progre
  * GET /api/dashboard
  * Fetch aggregated dashboard data
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const user = await requireAuth()
     const supabase = await createClient()

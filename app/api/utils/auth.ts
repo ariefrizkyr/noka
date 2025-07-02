@@ -24,7 +24,7 @@ export async function getAuthenticatedUser(): Promise<AuthResult> {
     }
 
     return { user, error: null }
-  } catch (error) {
+  } catch {
     return { user: null, error: 'Authentication service unavailable' }
   }
 }

@@ -28,7 +28,7 @@ export default async function RootLayout({
 }) {
   // Server-side session verification for SSR optimization
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  await supabase.auth.getUser();
   // Note: Server-side user info is for SSR optimization only
   // Client-side AuthProvider manages the reactive auth state
 

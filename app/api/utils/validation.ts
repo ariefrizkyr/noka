@@ -1,11 +1,11 @@
 import { z } from 'zod'
-import { Database } from '@/types/database'
+// import { Database } from '@/types/database'
 
 // Type aliases for cleaner code
-type AccountType = Database['public']['Enums']['account_type']
-type CategoryType = Database['public']['Enums']['category_type']
-type BudgetFrequency = Database['public']['Enums']['budget_frequency']
-type TransactionType = Database['public']['Enums']['transaction_type']
+// type AccountType = Database['public']['Enums']['account_type']
+// type CategoryType = Database['public']['Enums']['category_type']
+// type BudgetFrequency = Database['public']['Enums']['budget_frequency']
+// type TransactionType = Database['public']['Enums']['transaction_type']
 
 // Common validation patterns
 const uuidSchema = z.string().uuid()
@@ -123,6 +123,12 @@ export async function validateRequestBody<T>(
 export const deleteCategorySchema = z.object({
   category_id: uuidSchema,
   new_category_id: uuidSchema.optional(), // Required if category has transactions
+})
+
+// Account deletion schema
+export const deleteAccountSchema = z.object({
+  account_id: uuidSchema,
+  new_account_id: uuidSchema.optional(), // Required if account has transactions
 })
 
 // Helper function to validate query parameters

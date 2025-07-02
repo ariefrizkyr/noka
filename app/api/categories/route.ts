@@ -14,11 +14,11 @@ import {
   updateCategorySchema,
   deleteCategorySchema 
 } from '../utils/validation'
-import { Tables, TablesInsert, TablesUpdate } from '@/types/database'
+import { TablesInsert } from '@/types/database'
 
-type Category = Tables<'categories'>
+// type Category = Tables<'categories'>
 type CategoryInsert = TablesInsert<'categories'>
-type CategoryUpdate = TablesUpdate<'categories'>
+// type CategoryUpdate = TablesUpdate<'categories'>
 
 /**
  * GET /api/categories

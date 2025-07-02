@@ -4,11 +4,11 @@ import { requireAuth } from '../utils/auth'
 import { handleApiError } from '../utils/error-handler'
 import { createSuccessResponse, createUpdatedResponse } from '../utils/response'
 import { validateRequestBody, updateUserSettingsSchema } from '../utils/validation'
-import { Tables, TablesInsert, TablesUpdate } from '@/types/database'
+import { Tables, TablesInsert } from '@/types/database'
 
 type UserSettings = Tables<'user_settings'>
 type UserSettingsInsert = TablesInsert<'user_settings'>
-type UserSettingsUpdate = TablesUpdate<'user_settings'>
+// type UserSettingsUpdate = TablesUpdate<'user_settings'>
 
 /**
  * GET /api/settings

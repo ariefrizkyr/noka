@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { CheckCircle, Wallet, Tags, Settings } from 'lucide-react';
+import Link from 'next/link';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -34,14 +36,22 @@ export default async function DashboardPage() {
     <div className="p-8 max-w-7xl mx-auto">
       {/* Welcome Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <CheckCircle className="w-6 h-6 text-green-600" />
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome to Noka!
-          </h1>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <CheckCircle className="w-6 h-6 text-green-600" />
+            <h1 className="text-3xl font-bold text-gray-900">
+              Welcome to Noka!
+            </h1>
+          </div>
+          <Link href="/settings">
+            <Button variant="outline" className="gap-2">
+              <Settings className="w-4 h-4" />
+              Settings
+            </Button>
+          </Link>
         </div>
         <p className="text-gray-600">
-          Congratulations! You've successfully completed your setup. Here's your financial overview:
+          Congratulations! You&apos;ve successfully completed your setup. Here&apos;s your financial overview:
         </p>
       </div>
 
@@ -127,6 +137,24 @@ export default async function DashboardPage() {
                 <p className="text-sm text-gray-600">
                   Add more accounts, refine categories, and adjust budgets as your needs evolve.
                 </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Settings className="w-3 h-3 text-gray-600" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-medium text-gray-900">Manage Your Settings</h4>
+                <p className="text-sm text-gray-600 mb-2">
+                  Customize your currency, financial periods, and manage your accounts and categories.
+                </p>
+                <Link href="/settings">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Settings className="w-4 h-4" />
+                    Open Settings
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

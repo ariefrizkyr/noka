@@ -15,12 +15,12 @@ import {
   updateTransactionSchema,
   transactionQuerySchema
 } from '../utils/validation'
-import { Tables, TablesInsert, TablesUpdate } from '@/types/database'
+import { Tables, TablesInsert } from '@/types/database'
 
 type Transaction = Tables<'transactions'>
-type TransactionInsert = TablesInsert<'transactions'>
-type TransactionUpdate = TablesUpdate<'transactions'>
-type Account = Tables<'accounts'>
+// type TransactionInsert = TablesInsert<'transactions'>
+// type TransactionUpdate = TablesUpdate<'transactions'>
+// type Account = Tables<'accounts'>
 type BalanceLedgerInsert = TablesInsert<'balance_ledger'>
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>
 
@@ -35,55 +35,65 @@ export async function GET(request: NextRequest) {
     const queryParams = validateQueryParams(url, transactionQuerySchema)
     const supabase = await createClient()
 
-    // Create base query for filtering (used for both count and data)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const buildBaseQuery = (query: any) => {
-      let baseQuery = query.eq('user_id', user.id)
+    // Apply pagination
+    const limit = queryParams.limit || 50
+    const offset = queryParams.offset || 0
+
+    // Build count query for pagination
+    let countQuery = supabase
+      .from('transactions')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       
-      if (queryParams.account_id) {
-        baseQuery = baseQuery.eq('account_id', queryParams.account_id)
-      }
-      if (queryParams.category_id) {
-        baseQuery = baseQuery.eq('category_id', queryParams.category_id)
-      }
-      if (queryParams.type) {
-        baseQuery = baseQuery.eq('type', queryParams.type)
-      }
-      if (queryParams.start_date) {
-        baseQuery = baseQuery.gte('transaction_date', queryParams.start_date)
-      }
-      if (queryParams.end_date) {
-        baseQuery = baseQuery.lte('transaction_date', queryParams.end_date)
-      }
-      
-      return baseQuery
+    if (queryParams.account_id) {
+      countQuery = countQuery.eq('account_id', queryParams.account_id)
+    }
+    if (queryParams.category_id) {
+      countQuery = countQuery.eq('category_id', queryParams.category_id)
+    }
+    if (queryParams.type) {
+      countQuery = countQuery.eq('type', queryParams.type)
+    }
+    if (queryParams.start_date) {
+      countQuery = countQuery.gte('transaction_date', queryParams.start_date)
+    }
+    if (queryParams.end_date) {
+      countQuery = countQuery.lte('transaction_date', queryParams.end_date)
     }
 
-    // Get total count for infinite scroll pagination
-    const countQuery = buildBaseQuery(supabase.from('transactions'))
     const { count: totalCount, error: countError } = await countQuery
-      .select('*', { count: 'exact', head: true })
 
     if (countError) throw countError
 
-    // Get actual data with relationships
-    const dataQuery = buildBaseQuery(
-      supabase
-        .from('transactions')
-        .select(`
-          *,
-          accounts!transactions_account_id_fkey(name, type),
-          categories!transactions_category_id_fkey(name, type, icon),
-          from_accounts:accounts!transactions_from_account_id_fkey(name, type),
-          to_accounts:accounts!transactions_to_account_id_fkey(name, type),
-          investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon)
-        `)
-    )
+    // Build data query with relationships
+    let dataQuery = supabase
+      .from('transactions')
+      .select(`
+        *,
+        accounts!transactions_account_id_fkey(name, type),
+        categories!transactions_category_id_fkey(name, type, icon),
+        from_accounts:accounts!transactions_from_account_id_fkey(name, type),
+        to_accounts:accounts!transactions_to_account_id_fkey(name, type),
+        investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon)
+      `)
+      .eq('user_id', user.id)
+      
+    if (queryParams.account_id) {
+      dataQuery = dataQuery.eq('account_id', queryParams.account_id)
+    }
+    if (queryParams.category_id) {
+      dataQuery = dataQuery.eq('category_id', queryParams.category_id)
+    }
+    if (queryParams.type) {
+      dataQuery = dataQuery.eq('type', queryParams.type)
+    }
+    if (queryParams.start_date) {
+      dataQuery = dataQuery.gte('transaction_date', queryParams.start_date)
+    }
+    if (queryParams.end_date) {
+      dataQuery = dataQuery.lte('transaction_date', queryParams.end_date)
+    }
 
-    // Apply pagination and ordering
-    const limit = queryParams.limit || 50
-    const offset = queryParams.offset || 0
-    
     const { data: transactions, error } = await dataQuery
       .order('transaction_date', { ascending: false })
       .order('created_at', { ascending: false })
