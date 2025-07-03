@@ -452,9 +452,11 @@ export default function CategoriesSettings() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Category</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-4">
-              <p>Are you sure you want to delete &quot;{deleteDialogState.category?.name}&quot;?</p>
-              
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{deleteDialogState.category?.name}&quot;?
+            </AlertDialogDescription>
+            
+            <div className="space-y-4 mt-4">
               {deleteDialogState.checkingTransactions && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -464,9 +466,9 @@ export default function CategoriesSettings() {
               
               {!deleteDialogState.checkingTransactions && deleteDialogState.hasTransactions && deleteDialogState.reassignOptions.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-orange-600">
+                  <div className="text-sm font-medium text-orange-600">
                     This category has existing transactions. Select a category to reassign them to:
-                  </p>
+                  </div>
                   <Select 
                     value={deleteDialogState.selectedReassignCategory} 
                     onValueChange={(value) => setDeleteDialogState(prev => ({ 
@@ -490,12 +492,12 @@ export default function CategoriesSettings() {
 
               {!deleteDialogState.checkingTransactions && deleteDialogState.hasTransactions && deleteDialogState.reassignOptions.length === 0 && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-sm text-red-600">
+                  <div className="text-sm text-red-600">
                     Cannot delete this category because it has existing transactions and there are no other categories of the same type to reassign them to. Please create another category first.
-                  </p>
+                  </div>
                 </div>
               )}
-            </AlertDialogDescription>
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={formLoading}>Cancel</AlertDialogCancel>

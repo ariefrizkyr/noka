@@ -464,9 +464,11 @@ export default function AccountsSettings() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Account</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-4">
-              <p>Are you sure you want to delete &quot;{deleteDialogState.account?.name}&quot;?</p>
-              
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{deleteDialogState.account?.name}&quot;?
+            </AlertDialogDescription>
+            
+            <div className="space-y-4 mt-4">
               {deleteDialogState.checkingTransactions && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -476,9 +478,9 @@ export default function AccountsSettings() {
               
               {!deleteDialogState.checkingTransactions && deleteDialogState.hasTransactions && deleteDialogState.reassignOptions.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-orange-600">
+                  <div className="text-sm font-medium text-orange-600">
                     This account has existing transactions. Select an account to reassign them to:
-                  </p>
+                  </div>
                   <Select 
                     value={deleteDialogState.selectedReassignAccount} 
                     onValueChange={(value) => setDeleteDialogState(prev => ({ 
@@ -502,12 +504,12 @@ export default function AccountsSettings() {
 
               {!deleteDialogState.checkingTransactions && deleteDialogState.hasTransactions && deleteDialogState.reassignOptions.length === 0 && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-sm text-red-600">
+                  <div className="text-sm text-red-600">
                     Cannot delete this account because it has existing transactions and there are no other accounts of the same type to reassign them to. Please create another account first.
-                  </p>
+                  </div>
                 </div>
               )}
-            </AlertDialogDescription>
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={formLoading}>Cancel</AlertDialogCancel>
