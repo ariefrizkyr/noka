@@ -15,14 +15,7 @@ import {
   updateTransactionSchema,
   transactionQuerySchema
 } from '../utils/validation'
-import { Tables, TablesInsert } from '@/types/database'
-
-type Transaction = Tables<'transactions'>
-// type TransactionInsert = TablesInsert<'transactions'>
-// type TransactionUpdate = TablesUpdate<'transactions'>
-// type Account = Tables<'accounts'>
-type BalanceLedgerInsert = TablesInsert<'balance_ledger'>
-type SupabaseClient = Awaited<ReturnType<typeof createClient>>
+// Type imports removed - balance updates are now handled by database triggers
 
 /**
  * GET /api/transactions
@@ -146,48 +139,8 @@ export async function POST(request: NextRequest) {
 
     if (transactionError) throw transactionError
 
-    // Update account balances based on transaction type
-    if (transactionData.type === 'transfer') {
-      // Handle transfer - update both accounts
-      if (!transactionData.from_account_id || !transactionData.to_account_id) {
-        throw new Error('Transfer requires both from_account_id and to_account_id')
-      }
-
-      // Update from account (subtract amount)
-      await updateAccountBalance(
-        supabase,
-        transactionData.from_account_id,
-        -transactionData.amount,
-        newTransaction.id,
-        user.id
-      )
-
-      // Update to account (add amount)
-      await updateAccountBalance(
-        supabase,
-        transactionData.to_account_id,
-        transactionData.amount,
-        newTransaction.id,
-        user.id
-      )
-    } else {
-      // Handle income/expense
-      if (!transactionData.account_id) {
-        throw new Error('Income/expense requires account_id')
-      }
-
-      const balanceChange = transactionData.type === 'income' 
-        ? transactionData.amount 
-        : -transactionData.amount
-
-      await updateAccountBalance(
-        supabase,
-        transactionData.account_id,
-        balanceChange,
-        newTransaction.id,
-        user.id
-      )
-    }
+    // Balance updates are handled automatically by the database trigger
+    // No manual balance updates needed here
 
     // Fetch the complete transaction with related data
     const { data: completeTransaction, error: fetchError } = await supabase
@@ -258,19 +211,8 @@ export async function PUT(request: NextRequest) {
 
     if (updateError) throw updateError
 
-    // If amount or accounts changed, update balances
-    if (
-      validatedData.amount !== undefined ||
-      validatedData.account_id !== undefined ||
-      validatedData.from_account_id !== undefined ||
-      validatedData.to_account_id !== undefined
-    ) {
-      // Reverse the original transaction's balance effects
-      await reverseTransactionBalanceEffects(supabase, originalTransaction, user.id)
-      
-      // Apply the new transaction's balance effects
-      await applyTransactionBalanceEffects(supabase, updatedTransaction, user.id)
-    }
+    // Balance updates for transaction modifications are handled by the database trigger
+    // Application-level balance reversal/reapplication is not needed
 
     return createUpdatedResponse(
       updatedTransaction,
@@ -308,8 +250,8 @@ export async function DELETE(request: NextRequest) {
       throw new Error('Transaction not found or access denied')
     }
 
-    // Reverse the transaction's balance effects
-    await reverseTransactionBalanceEffects(supabase, transaction, user.id)
+    // Balance updates for transaction deletion are handled by the database trigger
+    // Application-level balance reversal is not needed
 
     // Delete the transaction
     const { error: deleteError } = await supabase
@@ -326,99 +268,4 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-/**
- * Helper function to update account balance
- */
-async function updateAccountBalance(
-  supabase: SupabaseClient,
-  accountId: string,
-  changeAmount: number,
-  transactionId: string,
-  userId: string
-) {
-  // Get current balance
-  const { data: account, error: accountError } = await supabase
-    .from('accounts')
-    .select('current_balance')
-    .eq('id', accountId)
-    .eq('user_id', userId)
-    .single()
-
-  if (accountError) throw accountError
-
-  const balanceBefore = account.current_balance
-  const balanceAfter = balanceBefore + changeAmount
-
-  // Update account balance
-  const { error: updateError } = await supabase
-    .from('accounts')
-    .update({
-      current_balance: balanceAfter,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', accountId)
-    .eq('user_id', userId)
-
-  if (updateError) throw updateError
-
-  // Create balance ledger entry
-  const ledgerEntry: BalanceLedgerInsert = {
-    account_id: accountId,
-    transaction_id: transactionId,
-    balance_before: balanceBefore,
-    balance_after: balanceAfter,
-    change_amount: changeAmount,
-  }
-
-  const { error: ledgerError } = await supabase
-    .from('balance_ledger')
-    .insert(ledgerEntry)
-
-  if (ledgerError) throw ledgerError
-}
-
-/**
- * Helper function to reverse transaction balance effects
- */
-async function reverseTransactionBalanceEffects(
-  supabase: SupabaseClient,
-  transaction: Transaction,
-  userId: string
-) {
-  if (transaction.type === 'transfer') {
-    if (transaction.from_account_id) {
-      await updateAccountBalance(supabase, transaction.from_account_id, transaction.amount, transaction.id, userId)
-    }
-    if (transaction.to_account_id) {
-      await updateAccountBalance(supabase, transaction.to_account_id, -transaction.amount, transaction.id, userId)
-    }
-  } else {
-    if (transaction.account_id) {
-      const balanceChange = transaction.type === 'income' ? -transaction.amount : transaction.amount
-      await updateAccountBalance(supabase, transaction.account_id, balanceChange, transaction.id, userId)
-    }
-  }
-}
-
-/**
- * Helper function to apply transaction balance effects
- */
-async function applyTransactionBalanceEffects(
-  supabase: SupabaseClient,
-  transaction: Transaction,
-  userId: string
-) {
-  if (transaction.type === 'transfer') {
-    if (transaction.from_account_id) {
-      await updateAccountBalance(supabase, transaction.from_account_id, -transaction.amount, transaction.id, userId)
-    }
-    if (transaction.to_account_id) {
-      await updateAccountBalance(supabase, transaction.to_account_id, transaction.amount, transaction.id, userId)
-    }
-  } else {
-    if (transaction.account_id) {
-      const balanceChange = transaction.type === 'income' ? transaction.amount : -transaction.amount
-      await updateAccountBalance(supabase, transaction.account_id, balanceChange, transaction.id, userId)
-    }
-  }
-} 
+// Helper functions removed - balance updates are now handled by database triggers

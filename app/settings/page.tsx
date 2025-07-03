@@ -6,6 +6,7 @@ import { Settings, Palette, Wallet, Tags } from 'lucide-react';
 import GeneralSettings from './components/general-settings';
 import CategoriesSettings from './components/categories-settings';
 import AccountsSettings from './components/accounts-settings';
+import { MainLayout } from '@/components/layout/main-layout';
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -16,19 +17,20 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Settings className="w-6 h-6 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">
-            Settings
-          </h1>
+    <MainLayout>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <Settings className="w-6 h-6 text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-900">
+              Settings
+            </h1>
+          </div>
+          <p className="text-gray-600">
+            Manage your account preferences, categories, and financial accounts.
+          </p>
         </div>
-        <p className="text-gray-600">
-          Manage your account preferences, categories, and financial accounts.
-        </p>
-      </div>
 
       {/* Tabs */}
       <Tabs defaultValue="general" className="space-y-6">
@@ -89,6 +91,7 @@ export default async function SettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </MainLayout>
   );
 }

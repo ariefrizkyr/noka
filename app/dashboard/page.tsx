@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Wallet, Tags, Settings } from 'lucide-react';
 import Link from 'next/link';
+import { MainLayout } from '@/components/layout/main-layout';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -33,27 +34,28 @@ export default async function DashboardPage() {
     .eq('is_active', true);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      {/* Welcome Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-            <CheckCircle className="w-6 h-6 text-green-600" />
-            <h1 className="text-3xl font-bold text-gray-900">
-              Welcome to Noka!
-            </h1>
+    <MainLayout>
+      <div className="p-8 max-w-7xl mx-auto">
+        {/* Welcome Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+              <h1 className="text-3xl font-bold text-gray-900">
+                Welcome to Noka!
+              </h1>
+            </div>
+            <Link href="/settings">
+              <Button variant="outline" className="gap-2">
+                <Settings className="w-4 h-4" />
+                Settings
+              </Button>
+            </Link>
           </div>
-          <Link href="/settings">
-            <Button variant="outline" className="gap-2">
-              <Settings className="w-4 h-4" />
-              Settings
-            </Button>
-          </Link>
+          <p className="text-gray-600">
+            Congratulations! You&apos;ve successfully completed your setup. Here&apos;s your financial overview:
+          </p>
         </div>
-        <p className="text-gray-600">
-          Congratulations! You&apos;ve successfully completed your setup. Here&apos;s your financial overview:
-        </p>
-      </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -168,6 +170,7 @@ export default async function DashboardPage() {
           More features like transaction management, budget tracking, and financial insights will be added in subsequent phases.
         </p>
       </div>
-    </div>
+      </div>
+    </MainLayout>
   );
 } 
