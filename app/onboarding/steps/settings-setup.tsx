@@ -37,7 +37,7 @@ export default function SettingsSetupStep({
   onNext,
   onPrevious,
   isFirstStep,
-  isLastStep,
+  // isLastStep,
 }: SettingsSetupStepProps) {
   const [selectedCurrency, setSelectedCurrency] = useState('IDR')
   const [monthStartDay, setMonthStartDay] = useState<number>(1)

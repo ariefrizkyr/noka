@@ -135,7 +135,8 @@ export function TransactionList({
         throw new Error("Failed to fetch transactions")
       }
 
-      const data: TransactionListResponse = await response.json()
+      const result = await response.json()
+      const data: TransactionListResponse = result.data
       
       if (append) {
         setTransactions(prev => [...prev, ...data.transactions])
@@ -161,7 +162,7 @@ export function TransactionList({
 
   // Load more transactions for infinite scroll
   const loadMore = useCallback(() => {
-    if (hasMore && !loadingMore && pagination?.next_offset !== null) {
+    if (hasMore && !loadingMore && pagination?.next_offset !== null && pagination?.next_offset !== undefined) {
       fetchTransactions(filters, pagination.next_offset, true)
     }
   }, [hasMore, loadingMore, pagination?.next_offset, filters, fetchTransactions])

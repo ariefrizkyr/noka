@@ -45,7 +45,7 @@ export function AuthStatus() {
     error,
     isInitialized,
     signOut,
-    refreshSession,
+    // refreshSession,
     clearError,
     getSessionState,
     forceSessionRefresh

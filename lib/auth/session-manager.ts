@@ -216,6 +216,7 @@ class SessionManager {
   /**
    * Handle user update
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private handleUserUpdate(session: Session | null): void {
     // User profile was updated, refresh data if needed
   }

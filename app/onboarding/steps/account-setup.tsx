@@ -60,7 +60,6 @@ export default function AccountSetupStep({
   onNext,
   onPrevious,
   isFirstStep,
-  isLastStep,
 }: AccountSetupStepProps) {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [newAccount, setNewAccount] = useState({
