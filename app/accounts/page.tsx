@@ -1,54 +1,17 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Wallet, Plus, TrendingUp, CreditCard, Building, Loader2 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/main-layout';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { toast } from 'sonner';
+import { useApiData } from '@/hooks/use-api-data';
+import { formatCurrency, calculateTotalBalance } from '@/lib/currency-utils';
 
-interface Account {
-  id: string;
-  name: string;
-  type: 'bank_account' | 'credit_card' | 'investment_account';
-  current_balance: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
+import { Account } from '@/types/common';
 
 export default function AccountsPage() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-
-  const fetchAccounts = useCallback(async () => {
-    try {
-      const response = await fetch('/api/accounts');
-      
-      if (!response.ok) {
-        if (response.status === 401) {
-          router.push('/auth/login');
-          return;
-        }
-        throw new Error('Failed to fetch accounts');
-      }
-      
-      const data = await response.json();
-      setAccounts(data.data || []);
-    } catch (error) {
-      console.error('Error fetching accounts:', error);
-      toast.error('Failed to load accounts');
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
-
-  useEffect(() => {
-    fetchAccounts();
-  }, [fetchAccounts]);
+  const { data: accounts, loading } = useApiData<Account[]>('/api/accounts');
 
   const getAccountIcon = (type: string) => {
     switch (type) {
@@ -63,13 +26,6 @@ export default function AccountsPage() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const getAccountTypeLabel = (type: string) => {
     switch (type) {
@@ -84,13 +40,7 @@ export default function AccountsPage() {
     }
   };
 
-  const totalBalance = accounts.reduce((sum, account) => {
-    // For credit cards, negative balance is good (less debt)
-    if (account.type === 'credit_card') {
-      return sum - account.current_balance;
-    }
-    return sum + account.current_balance;
-  }, 0);
+  const totalBalance = calculateTotalBalance(accounts || []);
 
   if (loading) {
     return (
@@ -136,7 +86,7 @@ export default function AccountsPage() {
             <div className="text-center">
               <p className="text-sm text-gray-600 mb-2">Total Net Worth</p>
               <p className="text-3xl font-bold text-gray-900">
-                {formatCurrency(totalBalance)}
+                {formatCurrency(totalBalance, { currency: 'IDR' })}
               </p>
             </div>
           </CardContent>
@@ -144,7 +94,7 @@ export default function AccountsPage() {
 
         {/* Accounts List */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {accounts.map((account) => (
+          {(accounts || []).map((account) => (
             <Card key={account.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -170,7 +120,7 @@ export default function AccountsPage() {
                         ? account.current_balance < 0 ? 'text-red-600' : 'text-green-600'
                         : account.current_balance >= 0 ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {formatCurrency(account.current_balance)}
+                      {formatCurrency(account.current_balance, { currency: 'IDR' })}
                     </span>
                   </div>
                 </div>
@@ -180,7 +130,7 @@ export default function AccountsPage() {
         </div>
 
         {/* Empty State */}
-        {accounts.length === 0 && (
+        {(!accounts || accounts.length === 0) && (
           <Card className="text-center py-12">
             <CardContent>
               <Wallet className="h-12 w-12 text-gray-400 mx-auto mb-4" />

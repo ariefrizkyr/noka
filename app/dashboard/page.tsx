@@ -1,64 +1,22 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Wallet, Tags, Settings, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { MainLayout } from '@/components/layout/main-layout';
-import { toast } from 'sonner';
+import { useApiData } from '@/hooks/use-api-data';
 
-interface UserSettings {
-  currency_code: string;
-  financial_month_start_day: number;
-}
-
+import { UserSettings, Account, Category } from '@/types/common';
 
 export default function DashboardPage() {
-  const [settings, setSettings] = useState<UserSettings | null>(null);
-  const [accountCount, setAccountCount] = useState<number>(0);
-  const [categoryCount, setCategoryCount] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const { data: settings, loading: settingsLoading } = useApiData<UserSettings>('/api/settings');
+  const { data: accounts, loading: accountsLoading } = useApiData<Account[]>('/api/accounts');
+  const { data: categories, loading: categoriesLoading } = useApiData<Category[]>('/api/categories');
 
-  const fetchDashboardData = useCallback(async () => {
-    try {
-      // Fetch all data in parallel
-      const [settingsResponse, accountsResponse, categoriesResponse] = await Promise.all([
-        fetch('/api/settings'),
-        fetch('/api/accounts'),
-        fetch('/api/categories')
-      ]);
-
-      if (!settingsResponse.ok || !accountsResponse.ok || !categoriesResponse.ok) {
-        if (settingsResponse.status === 401 || accountsResponse.status === 401 || categoriesResponse.status === 401) {
-          router.push('/auth/login');
-          return;
-        }
-        throw new Error('Failed to fetch dashboard data');
-      }
-
-      const [settingsData, accountsData, categoriesData] = await Promise.all([
-        settingsResponse.json(),
-        accountsResponse.json(),
-        categoriesResponse.json()
-      ]);
-
-      setSettings(settingsData.data);
-      setAccountCount((accountsData.data || []).length);
-      setCategoryCount((categoriesData.data || []).length);
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      toast.error('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+  const loading = settingsLoading || accountsLoading || categoriesLoading;
+  const accountCount = accounts?.length || 0;
+  const categoryCount = categories?.length || 0;
 
   if (loading) {
     return (
