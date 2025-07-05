@@ -21,7 +21,7 @@ export function formatCurrency(
   options: CurrencyOptions = {}
 ): string {
   const {
-    currency = 'USD',
+    currency = 'IDR',
     locale,
     minimumFractionDigits,
     maximumFractionDigits,
@@ -48,13 +48,13 @@ export function formatCurrency(
  * Handles special cases like credit cards showing debt as negative
  * @param balance - Account balance
  * @param accountType - Type of account (bank_account, credit_card, etc.)
- * @param currency - Currency code (defaults to USD)
+ * @param currency - Currency code (defaults to IDR)
  * @returns Formatted balance string
  */
 export function formatAccountBalance(
   balance: number,
   accountType: string,
-  currency: string = 'USD'
+  currency: string = 'IDR'
 ): string {
   // For credit cards, show debt as negative if balance is positive (debt)
   if (accountType === 'credit_card' && balance > 0) {
@@ -117,7 +117,7 @@ export function parseCurrency(currencyString: string): number {
 export function formatCurrencyWithColor(
   amount: number,
   accountType?: string,
-  currency: string = 'USD'
+  currency: string = 'IDR'
 ): { formatted: string; colorClass: string } {
   const formatted = formatAccountBalance(amount, accountType || '', currency);
   
@@ -165,5 +165,5 @@ export function getLocaleForCurrency(currency: string): string {
     CAD: 'en-CA',
   };
 
-  return locales[currency] || 'en-US';
+  return locales[currency] || 'id-ID';
 }
