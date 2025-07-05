@@ -1,37 +1,76 @@
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Wallet, Tags, Settings } from 'lucide-react';
+import { CheckCircle, Wallet, Tags, Settings, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { MainLayout } from '@/components/layout/main-layout';
+import { toast } from 'sonner';
 
-export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) {
-    redirect('/auth/login');
+interface UserSettings {
+  currency_code: string;
+  financial_month_start_day: number;
+}
+
+
+export default function DashboardPage() {
+  const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [accountCount, setAccountCount] = useState<number>(0);
+  const [categoryCount, setCategoryCount] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      // Fetch all data in parallel
+      const [settingsResponse, accountsResponse, categoriesResponse] = await Promise.all([
+        fetch('/api/settings'),
+        fetch('/api/accounts'),
+        fetch('/api/categories')
+      ]);
+
+      if (!settingsResponse.ok || !accountsResponse.ok || !categoriesResponse.ok) {
+        if (settingsResponse.status === 401 || accountsResponse.status === 401 || categoriesResponse.status === 401) {
+          router.push('/auth/login');
+          return;
+        }
+        throw new Error('Failed to fetch dashboard data');
+      }
+
+      const [settingsData, accountsData, categoriesData] = await Promise.all([
+        settingsResponse.json(),
+        accountsResponse.json(),
+        categoriesResponse.json()
+      ]);
+
+      setSettings(settingsData.data);
+      setAccountCount((accountsData.data || []).length);
+      setCategoryCount((categoriesData.data || []).length);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="p-8 max-w-7xl mx-auto">
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin" />
+          </div>
+        </div>
+      </MainLayout>
+    );
   }
-
-  // Get user settings and basic data
-  const { data: settings } = await supabase
-    .from('user_settings')
-    .select('*')
-    .eq('user_id', user.id)
-    .single();
-
-  const { count: accountCount } = await supabase
-    .from('accounts')
-    .select('*', { count: 'exact' })
-    .eq('user_id', user.id)
-    .eq('is_active', true);
-
-  const { count: categoryCount } = await supabase
-    .from('categories')
-    .select('*', { count: 'exact' })
-    .eq('user_id', user.id)
-    .eq('is_active', true);
 
   return (
     <MainLayout>
@@ -78,7 +117,7 @@ export default async function DashboardPage() {
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{accountCount || 0}</div>
+            <div className="text-2xl font-bold">{accountCount}</div>
             <p className="text-xs text-muted-foreground">
               Financial accounts set up
             </p>
@@ -91,7 +130,7 @@ export default async function DashboardPage() {
             <Tags className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{categoryCount || 0}</div>
+            <div className="text-2xl font-bold">{categoryCount}</div>
             <p className="text-xs text-muted-foreground">
               Expense & investment categories
             </p>

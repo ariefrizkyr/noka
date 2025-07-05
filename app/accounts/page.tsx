@@ -1,26 +1,54 @@
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wallet, Plus, TrendingUp, CreditCard, Building } from 'lucide-react';
+import { Wallet, Plus, TrendingUp, CreditCard, Building, Loader2 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/main-layout';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
-export default async function AccountsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) {
-    redirect('/auth/login');
-  }
+interface Account {
+  id: string;
+  name: string;
+  type: 'bank_account' | 'credit_card' | 'investment_account';
+  current_balance: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
-  // Get user accounts with balances
-  const { data: accounts } = await supabase
-    .from('accounts')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('is_active', true)
-    .order('created_at', { ascending: true });
+export default function AccountsPage() {
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  const fetchAccounts = useCallback(async () => {
+    try {
+      const response = await fetch('/api/accounts');
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push('/auth/login');
+          return;
+        }
+        throw new Error('Failed to fetch accounts');
+      }
+      
+      const data = await response.json();
+      setAccounts(data.data || []);
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
+      toast.error('Failed to load accounts');
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    fetchAccounts();
+  }, [fetchAccounts]);
 
   const getAccountIcon = (type: string) => {
     switch (type) {
@@ -56,13 +84,25 @@ export default async function AccountsPage() {
     }
   };
 
-  const totalBalance = accounts?.reduce((sum, account) => {
+  const totalBalance = accounts.reduce((sum, account) => {
     // For credit cards, negative balance is good (less debt)
     if (account.type === 'credit_card') {
       return sum - account.current_balance;
     }
     return sum + account.current_balance;
-  }, 0) || 0;
+  }, 0);
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin" />
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -104,7 +144,7 @@ export default async function AccountsPage() {
 
         {/* Accounts List */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {accounts?.map((account) => (
+          {accounts.map((account) => (
             <Card key={account.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -133,21 +173,6 @@ export default async function AccountsPage() {
                       {formatCurrency(account.current_balance)}
                     </span>
                   </div>
-                  
-                  {account.type === 'credit_card' && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Credit Limit</span>
-                      <span className="text-sm text-gray-900">
-                        {formatCurrency(account.credit_limit || 0)}
-                      </span>
-                    </div>
-                  )}
-
-                  {account.description && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      {account.description}
-                    </p>
-                  )}
                 </div>
               </CardContent>
             </Card>
@@ -155,7 +180,7 @@ export default async function AccountsPage() {
         </div>
 
         {/* Empty State */}
-        {(!accounts || accounts.length === 0) && (
+        {accounts.length === 0 && (
           <Card className="text-center py-12">
             <CardContent>
               <Wallet className="h-12 w-12 text-gray-400 mx-auto mb-4" />

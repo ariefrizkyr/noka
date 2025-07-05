@@ -71,6 +71,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Use descriptive variable names with auxiliary verbs (`isLoading`, `hasError`)
 - Structure files: exported components, subcomponents, helpers, static content, types
 - Use lowercase with dashes for directory names (`auth-wizard`)
+- Never create a file longer than 500 lines of code. If a file approaches this limit, refactor by splitting it into modules or helper files.
+
 
 ### Testing
 - Jest configuration in `jest.config.js`
