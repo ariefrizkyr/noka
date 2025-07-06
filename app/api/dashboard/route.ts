@@ -52,10 +52,10 @@ export async function GET() {
           type,
           transaction_date,
           description,
-          accounts!transactions_account_id_fkey(name, type),
-          categories!transactions_category_id_fkey(name, type, icon),
-          from_accounts:accounts!transactions_from_account_id_fkey(name, type),
-          to_accounts:accounts!transactions_to_account_id_fkey(name, type)
+          accounts!transactions_account_id_fkey(name, account_type:type),
+          categories!transactions_category_id_fkey(name, category_type:type, icon),
+          from_accounts:accounts!transactions_from_account_id_fkey(name, account_type:type),
+          to_accounts:accounts!transactions_to_account_id_fkey(name, account_type:type)
         `)
         .eq('user_id', user.id)
         .order('transaction_date', { ascending: false })
@@ -96,6 +96,18 @@ export async function GET() {
       total_target: investmentProgress?.reduce((sum: number, investment: InvestmentProgress) => sum + (investment.target_amount || 0), 0) || 0,
       total_invested: investmentProgress?.reduce((sum: number, investment: InvestmentProgress) => sum + (investment.invested_amount || 0), 0) || 0,
       average_progress: investmentProgress?.length > 0 
+        ? investmentProgress.reduce((sum: number, investment: InvestmentProgress) => sum + (investment.progress_percentage || 0), 0) / investmentProgress.length
+        : 0,
+      // Calculate category status counts
+      categories_completed: investmentProgress?.filter((investment: InvestmentProgress) => (investment.progress_percentage || 0) >= 100).length || 0,
+      categories_on_track: investmentProgress?.filter((investment: InvestmentProgress) => {
+        const progress = investment.progress_percentage || 0;
+        return progress >= 50 && progress < 100;
+      }).length || 0,
+      categories_starting: investmentProgress?.filter((investment: InvestmentProgress) => (investment.progress_percentage || 0) < 50).length || 0,
+      total_categories: investmentProgress?.length || 0,
+      // Use average_progress as investment_completion_rate
+      investment_completion_rate: investmentProgress?.length > 0 
         ? investmentProgress.reduce((sum: number, investment: InvestmentProgress) => sum + (investment.progress_percentage || 0), 0) / investmentProgress.length
         : 0,
     }
