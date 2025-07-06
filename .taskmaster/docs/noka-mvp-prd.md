@@ -90,7 +90,7 @@ This screen acts as a detailed financial ledger.
 This screen is the control center for the user's data and preferences, organized into three tabs.
 - **Tab 1: General**: Allows the user to view and modify their display currency and financial period settings.
 - **Tab 2: Categories**: Provides full CRUD (Create, Read, Update, Delete) functionality for all categories. Users can add new categories and edit names/budgets/targets. When deleting a category, if it has existing transactions, the user must be prompted to move those transactions to another existing category before the deletion is finalized. This prevents data from being orphaned.
-- **Tab 3: Accounts**: Provides full CRUD (Create, Read, Update, Delete) functionality for all financial accounts. Users can add new accounts and edit names. When deleting an account, if it has existing transactions, the user must be prompted to move those transactions to another existing account of the same type before the deletion is finalized. This prevents data from being orphaned.
+- **Tab 3: Accounts**: Provides full CRUD (Create, Read, Update, Delete) functionality for all financial accounts. Users can add new accounts and edit names. When deleting an account, it will be deactivated (soft delete) without requiring transaction reassignment. Existing transactions will continue to reference the original account for historical accuracy.
 
 ## 6. User Scenarios
 This section covers the key actions a user will perform within the Noka app.

@@ -15,22 +15,13 @@ interface CrudDialogOptions {
   entityName: string;
   onRefresh?: () => void;
   deleteEndpoint?: string;
-  checkTransactionsEndpoint?: (id: string) => string;
-}
-
-interface DeleteDialogState<T> {
-  item: T | null;
-  reassignOptions: T[];
-  selectedReassignId: string;
-  hasTransactions: boolean;
-  checkingTransactions: boolean;
 }
 
 export function useCrudDialog<T extends { id: string; name: string }>(
   endpoint: string,
   options: CrudDialogOptions
 ) {
-  const { entityName, onRefresh, deleteEndpoint, checkTransactionsEndpoint } = options;
+  const { entityName, onRefresh, deleteEndpoint } = options;
 
   // Dialog states
   const [dialogState, setDialogState] = useState<CrudDialogState<T>>({
@@ -41,13 +32,6 @@ export function useCrudDialog<T extends { id: string; name: string }>(
     deletingItem: null,
   });
 
-  const [deleteDialogState, setDeleteDialogState] = useState<DeleteDialogState<T>>({
-    item: null,
-    reassignOptions: [],
-    selectedReassignId: '',
-    hasTransactions: false,
-    checkingTransactions: false,
-  });
 
   // API mutations
   const createMutation = useApiMutation(endpoint, 'POST', {
@@ -103,54 +87,9 @@ export function useCrudDialog<T extends { id: string; name: string }>(
     }));
   }, []);
 
-  const openDeleteDialog = useCallback(async (item: T, allItems: T[] = []) => {
+  const openDeleteDialog = useCallback((item: T) => {
     setDialogState(prev => ({ ...prev, isDeleteOpen: true, deletingItem: item }));
-    
-    // Filter out the item being deleted for reassignment options
-    const reassignOptions = allItems.filter(i => i.id !== item.id);
-    
-    setDeleteDialogState({
-      item,
-      reassignOptions,
-      selectedReassignId: '',
-      hasTransactions: false,
-      checkingTransactions: true,
-    });
-
-    // Check for transactions if endpoint is provided
-    if (checkTransactionsEndpoint) {
-      try {
-        const response = await fetch(checkTransactionsEndpoint(item.id));
-        if (response.ok) {
-          const data = await response.json();
-          const hasTransactions = data.data && 
-            data.data.transactions && 
-            data.data.transactions.length > 0;
-          
-          setDeleteDialogState(prev => ({
-            ...prev,
-            hasTransactions,
-            checkingTransactions: false,
-          }));
-        } else {
-          throw new Error('Failed to check transactions');
-        }
-      } catch (error) {
-        console.error('Error checking transactions:', error);
-        // Assume there might be transactions for safety
-        setDeleteDialogState(prev => ({
-          ...prev,
-          hasTransactions: true,
-          checkingTransactions: false,
-        }));
-      }
-    } else {
-      setDeleteDialogState(prev => ({
-        ...prev,
-        checkingTransactions: false,
-      }));
-    }
-  }, [checkTransactionsEndpoint]);
+  }, []);
 
   const closeDeleteDialog = useCallback(() => {
     setDialogState(prev => ({ 
@@ -158,17 +97,6 @@ export function useCrudDialog<T extends { id: string; name: string }>(
       isDeleteOpen: false, 
       deletingItem: null 
     }));
-    setDeleteDialogState({
-      item: null,
-      reassignOptions: [],
-      selectedReassignId: '',
-      hasTransactions: false,
-      checkingTransactions: false,
-    });
-  }, []);
-
-  const setSelectedReassignId = useCallback((id: string) => {
-    setDeleteDialogState(prev => ({ ...prev, selectedReassignId: id }));
   }, []);
 
   // CRUD operations
@@ -188,18 +116,14 @@ export function useCrudDialog<T extends { id: string; name: string }>(
   }, [updateMutation, dialogState.editingItem, entityName]);
 
   const handleDelete = useCallback(() => {
-    if (!deleteDialogState.item) return;
+    if (!dialogState.deletingItem) return;
 
-    const payload: any = {
-      [`${entityName.toLowerCase()}_id`]: deleteDialogState.item.id,
+    const payload = {
+      [`${entityName.toLowerCase()}_id`]: dialogState.deletingItem.id,
     };
 
-    if (deleteDialogState.selectedReassignId) {
-      payload[`new_${entityName.toLowerCase()}_id`] = deleteDialogState.selectedReassignId;
-    }
-
     return deleteMutation.mutate(payload);
-  }, [deleteMutation, deleteDialogState, entityName]);
+  }, [deleteMutation, dialogState.deletingItem, entityName]);
 
   return {
     // Dialog states
@@ -207,11 +131,7 @@ export function useCrudDialog<T extends { id: string; name: string }>(
     isEditOpen: dialogState.isEditOpen,
     isDeleteOpen: dialogState.isDeleteOpen,
     editingItem: dialogState.editingItem,
-    deletingItem: dialogState.deletingItem,
-
-    // Delete dialog specific state
-    deleteDialogState,
-    setSelectedReassignId,
+    deleteItem: dialogState.deletingItem,
 
     // Dialog actions
     openAddDialog,

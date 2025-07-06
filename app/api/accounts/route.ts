@@ -136,104 +136,26 @@ export async function PUT(request: NextRequest) {
 
 /**
  * DELETE /api/accounts
- * Deactivate account and optionally reassign transactions to new account
+ * Deactivate account without reassigning transactions
  */
 export async function DELETE(request: NextRequest) {
   try {
     const user = await requireAuth()
     const deleteData = await validateRequestBody(request, deleteAccountSchema)
-    const { account_id, new_account_id } = deleteData
+    const { account_id } = deleteData
     
     const supabase = await createClient()
 
     // Verify the account belongs to the user
     const { data: existingAccount, error: fetchError } = await supabase
       .from('accounts')
-      .select('id, name, type')
+      .select('id, name')
       .eq('id', account_id)
       .eq('user_id', user.id)
       .single()
 
     if (fetchError || !existingAccount) {
       throw new Error('Account not found or access denied')
-    }
-
-    // Check if account is being used in transactions
-    const { data: transactionsUsingAccount, error: transactionError } = await supabase
-      .from('transactions')
-      .select('id, type')
-      .or(`account_id.eq.${account_id},from_account_id.eq.${account_id},to_account_id.eq.${account_id}`)
-      .eq('user_id', user.id)
-
-    if (transactionError) throw transactionError
-
-    const hasTransactions = transactionsUsingAccount && transactionsUsingAccount.length > 0
-
-    // If account has transactions, new_account_id is required
-    if (hasTransactions && !new_account_id) {
-      throw new Error(`Cannot delete account "${existingAccount.name}" because it has ${transactionsUsingAccount.length} associated transactions. Please provide new_account_id to reassign transactions.`)
-    }
-
-    // If new_account_id is provided, verify it belongs to the user, is active, and has same type
-    if (new_account_id) {
-      const { data: newAccount, error: newAccountError } = await supabase
-        .from('accounts')
-        .select('id, name, type, is_active')
-        .eq('id', new_account_id)
-        .eq('user_id', user.id)
-        .single()
-
-      if (newAccountError || !newAccount) {
-        throw new Error('New account not found or access denied')
-      }
-
-      if (!newAccount.is_active) {
-        throw new Error('Cannot reassign transactions to an inactive account')
-      }
-
-      // Verify account types match
-      if (newAccount.type !== existingAccount.type) {
-        throw new Error(`Cannot reassign transactions from ${existingAccount.type} to ${newAccount.type}. Account types must match.`)
-      }
-
-      // Update transactions to use the new account
-      if (hasTransactions) {
-        // Update transactions where this account is the main account
-        const { error: updateAccountError } = await supabase
-          .from('transactions')
-          .update({
-            account_id: new_account_id,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('account_id', account_id)
-          .eq('user_id', user.id)
-
-        if (updateAccountError) throw updateAccountError
-
-        // Update transactions where this account is the source account in transfers
-        const { error: updateFromAccountError } = await supabase
-          .from('transactions')
-          .update({
-            from_account_id: new_account_id,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('from_account_id', account_id)
-          .eq('user_id', user.id)
-
-        if (updateFromAccountError) throw updateFromAccountError
-
-        // Update transactions where this account is the destination account in transfers
-        const { error: updateToAccountError } = await supabase
-          .from('transactions')
-          .update({
-            to_account_id: new_account_id,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('to_account_id', account_id)
-          .eq('user_id', user.id)
-
-        if (updateToAccountError) throw updateToAccountError
-      }
     }
 
     // Soft delete by setting is_active to false
@@ -248,11 +170,9 @@ export async function DELETE(request: NextRequest) {
 
     if (error) throw error
 
-    const responseMessage = hasTransactions && new_account_id
-      ? `Account "${existingAccount.name}" deactivated successfully. ${transactionsUsingAccount.length} transactions reassigned to new account.`
-      : `Account "${existingAccount.name}" deactivated successfully.`
-
-    return createDeletedResponse(responseMessage)
+    return createDeletedResponse(
+      `Account "${existingAccount.name}" deactivated successfully.`
+    )
   } catch (error) {
     return handleApiError(error)
   }

@@ -25,14 +25,13 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
     isEditOpen,
     isDeleteOpen,
     editingItem,
-    deleteDialogState,
+    deleteItem,
     openAddDialog,
     closeAddDialog,
     openEditDialog,
     closeEditDialog,
     openDeleteDialog,
     closeDeleteDialog,
-    setSelectedReassignId,
     handleCreate,
     handleUpdate,
     handleDelete,
@@ -42,7 +41,6 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
   } = useCrudDialog<Account>('/api/accounts', {
     entityName: 'Account',
     onRefresh: refetch,
-    checkTransactionsEndpoint: (id: string) => `/api/transactions?account_id=${id}&limit=1`,
   });
 
   const [addFormType, setAddFormType] = useState<'bank_account' | 'credit_card' | 'investment_account'>('bank_account');
@@ -210,7 +208,7 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => openDeleteDialog(account, typeAccounts)}
+                          onClick={() => openDeleteDialog(account)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -261,8 +259,7 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
       <AccountDeleteDialog
         isOpen={isDeleteOpen}
         onOpenChange={closeDeleteDialog}
-        deleteState={deleteDialogState}
-        onReassignChange={setSelectedReassignId}
+        account={deleteItem}
         onConfirm={handleDelete}
         loading={isDeleting}
       />

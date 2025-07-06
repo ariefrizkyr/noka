@@ -128,7 +128,6 @@ export const deleteCategorySchema = z.object({
 // Account deletion schema
 export const deleteAccountSchema = z.object({
   account_id: uuidSchema,
-  new_account_id: uuidSchema.optional(), // Required if account has transactions
 })
 
 // Helper function to validate query parameters

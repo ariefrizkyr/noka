@@ -19,7 +19,7 @@ As per the main PRD, the focus for this phase is:
 - Build account list view with type grouping
 - Implement account CRUD operations
 - Add balance display logic (handle credit card negative display)
-- Create account deletion with transaction reassignment
+- Create account deletion with soft delete (deactivation only)
 
 **Category Management:**
 - Create category service layer
@@ -34,7 +34,7 @@ As per the main PRD, the focus for this phase is:
 This screen is the control center for the user's data and preferences, organized into three tabs. This phase will implement the "Categories" and "Accounts" tabs.
 
 - **Tab 2: Categories**: Provides full CRUD (Create, Read, Update, Delete) functionality for all categories. Users can add new categories and edit names/budgets/targets. When deleting a category, if it has existing transactions, the user must be prompted to move those transactions to another existing category before the deletion is finalized. This prevents data from being orphaned.
-- **Tab 3: Accounts**: Provides full CRUD (Create, Read, Update, Delete) functionality for all financial accounts. Users can add new accounts and edit names. When deleting an account, if it has existing transactions, the user must be prompted to move those transactions to another existing account of the same type before the deletion is finalized. This prevents data from being orphaned.
+- **Tab 3: Accounts**: Provides full CRUD (Create, Read, Update, Delete) functionality for all financial accounts. Users can add new accounts and edit names. When deleting an account, it will be deactivated (soft delete) without requiring transaction reassignment. Existing transactions will continue to reference the original account for historical accuracy.
 
 ### 4.2. User Scenarios
 
@@ -94,7 +94,7 @@ This phase will implement the full CRUD functionality for the following endpoint
 - GET `/api/accounts/:id` - Get specific account details.
 - POST `/api/accounts` - Create new account (re-used from onboarding).
 - PUT `/api/accounts/:id` - Update account details (name).
-- DELETE `/api/accounts/:id` - Delete account. The backend must handle the logic for reassigning transactions before deletion.
+- DELETE `/api/accounts/:id` - Deactivate account by setting is_active to false. No transaction reassignment required.
 
 ### 6.2. Categories Endpoints
 - GET `/api/categories` - List all user categories.
@@ -104,8 +104,9 @@ This phase will implement the full CRUD functionality for the following endpoint
 - DELETE `/api/categories/:id` - Delete category. The backend must handle the logic for reassigning transactions before deletion.
 
 ## 7. Technical Considerations
-- **Data Integrity**: The transaction reassignment logic is critical. This should be handled within a database transaction to ensure that either both the reassignment and the deletion succeed, or they both fail, preventing orphaned records.
+- **Data Integrity**: Account deletion uses soft delete (is_active = false) to maintain historical data integrity. Transactions continue to reference their original accounts for audit trail purposes.
 - **User Experience**:
-    - Deletion should be a two-step process: the user clicks delete, a dialog appears asking them to select a replacement account/category, and then they confirm.
+    - Account deletion should be a simple confirmation dialog without requiring transaction reassignment.
+    - Category deletion should be a two-step process: the user clicks delete, a dialog appears asking them to select a replacement category, and then they confirm.
     - Use optimistic updates for a smoother UI. For example, when a user edits a category name, update the UI immediately and revert only if the API call fails.
 - **Form Validation**: Use a library like `zod` with `react-hook-form` to validate all form inputs for creating and editing accounts and categories. 
