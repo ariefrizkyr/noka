@@ -1,7 +1,7 @@
 "use client"
 
 import { format } from "date-fns"
-import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight, MoreVertical, Edit, Trash2 } from "lucide-react"
+import { MoreVertical, Edit, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,91 +12,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
-interface Transaction {
-  id: string
-  type: "income" | "expense" | "transfer"
-  amount: number
-  description?: string
-  transaction_date: string
-  created_at: string
-  updated_at: string
-  
-  // For income/expense
-  accounts?: {
-    id: string
-    name: string
-    type: "bank_account" | "credit_card" | "investment_account"
-  }
-  categories?: {
-    id: string
-    name: string
-    type: "expense" | "income" | "investment"
-    icon?: string
-  }
-  
-  // For transfers
-  from_accounts?: {
-    id: string
-    name: string
-    type: "bank_account" | "credit_card" | "investment_account"
-  }
-  to_accounts?: {
-    id: string
-    name: string
-    type: "bank_account" | "credit_card" | "investment_account"
-  }
-  investment_categories?: {
-    id: string
-    name: string
-    type: "investment"
-    icon?: string
-  }
-}
+import { formatTransactionAmountWithStyle } from "@/lib/currency-utils"
+import { TRANSACTION_TYPE_CONFIG, ACCOUNT_TYPE_CONFIG, DATE_FORMATS, CURRENCY_DEFAULTS } from "@/lib/constants"
+import type { TransactionWithRelations } from "@/types/common"
 
 interface TransactionCardProps {
-  transaction: Transaction
-  onEdit?: (transaction: Transaction) => void
-  onDelete?: (transaction: Transaction) => void
+  transaction: TransactionWithRelations
+  onEdit?: (transaction: TransactionWithRelations) => void
+  onDelete?: (transaction: TransactionWithRelations) => void
   className?: string
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(amount)
-}
-
-const transactionTypeConfig = {
-  income: {
-    icon: ArrowUpRight,
-    color: "text-green-600",
-    bgColor: "bg-green-50",
-    iconColor: "text-green-600",
-    badge: "bg-green-100 text-green-800",
-  },
-  expense: {
-    icon: ArrowDownLeft,
-    color: "text-red-600",
-    bgColor: "bg-red-50",
-    iconColor: "text-red-600",
-    badge: "bg-red-100 text-red-800",
-  },
-  transfer: {
-    icon: ArrowLeftRight,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-    iconColor: "text-blue-600",
-    badge: "bg-blue-100 text-blue-800",
-  },
-}
-
-const accountTypeLabels = {
-  bank_account: "Bank",
-  credit_card: "Credit Card",
-  investment_account: "Investment",
+  currency?: string
 }
 
 export function TransactionCard({
@@ -104,8 +29,9 @@ export function TransactionCard({
   onEdit,
   onDelete,
   className,
+  currency = CURRENCY_DEFAULTS.DEFAULT_CURRENCY,
 }: TransactionCardProps) {
-  const config = transactionTypeConfig[transaction.type]
+  const config = TRANSACTION_TYPE_CONFIG[transaction.type]
   const Icon = config.icon
 
   const getTransactionDisplay = () => {
@@ -169,7 +95,7 @@ export function TransactionCard({
                   <>
                     <span>•</span>
                     <span className="text-xs">
-                      {accountTypeLabels[display.accountType]}
+                      {ACCOUNT_TYPE_CONFIG[display.accountType].shortLabel}
                     </span>
                   </>
                 )}
@@ -182,7 +108,7 @@ export function TransactionCard({
               )}
               
               <p className="text-xs text-gray-400 mt-1">
-                {format(new Date(transaction.transaction_date), "MMM dd, yyyy")}
+                {format(new Date(transaction.transaction_date), DATE_FORMATS.DISPLAY)}
               </p>
             </div>
           </div>
@@ -190,9 +116,8 @@ export function TransactionCard({
           {/* Right side - Amount and actions */}
           <div className="flex items-center gap-2 ml-4">
             <div className="text-right">
-              <p className={cn("font-semibold", config.color)}>
-                {transaction.type === "expense" ? "-" : "+"}
-                {formatCurrency(transaction.amount)}
+              <p className={cn("font-semibold", formatTransactionAmountWithStyle(transaction.amount, transaction.type, currency).colorClass)}>
+                {formatTransactionAmountWithStyle(transaction.amount, transaction.type, currency).formatted}
               </p>
             </div>
 

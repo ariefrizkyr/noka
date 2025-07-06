@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { Trash2, Loader2 } from "lucide-react"
 import { format } from "date-fns"
 import {
@@ -14,88 +13,38 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
-
-interface Transaction {
-  id: string
-  type: "income" | "expense" | "transfer"
-  amount: number
-  description?: string
-  transaction_date: string
-  
-  // For income/expense
-  accounts?: {
-    id: string
-    name: string
-    type: "bank_account" | "credit_card" | "investment_account"
-  }
-  categories?: {
-    id: string
-    name: string
-    type: "expense" | "income" | "investment"
-    icon?: string
-  }
-  
-  // For transfers
-  from_accounts?: {
-    id: string
-    name: string
-    type: "bank_account" | "credit_card" | "investment_account"
-  }
-  to_accounts?: {
-    id: string
-    name: string
-    type: "bank_account" | "credit_card" | "investment_account"
-  }
-  investment_categories?: {
-    id: string
-    name: string
-    type: "investment"
-    icon?: string
-  }
-}
+import { useTransactionMutations } from "@/hooks/use-transaction-mutations"
+import { formatTransactionAmount } from "@/lib/currency-utils"
+import { TRANSACTION_TYPE_CONFIG, DATE_FORMATS, CURRENCY_DEFAULTS } from "@/lib/constants"
+import type { TransactionWithRelations } from "@/types/common"
 
 interface DeleteTransactionDialogProps {
-  transaction: Transaction | null
+  transaction: TransactionWithRelations | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess?: () => void
+  currency?: string
 }
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(amount)
-}
-
-const transactionTypeConfig = {
-  income: {
-    color: "bg-green-100 text-green-800",
-    label: "Income",
-  },
-  expense: {
-    color: "bg-red-100 text-red-800", 
-    label: "Expense",
-  },
-  transfer: {
-    color: "bg-blue-100 text-blue-800",
-    label: "Transfer",
-  },
-}
 
 export function DeleteTransactionDialog({
   transaction,
   open,
   onOpenChange,
   onSuccess,
+  currency = CURRENCY_DEFAULTS.DEFAULT_CURRENCY,
 }: DeleteTransactionDialogProps) {
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // Use centralized transaction mutations hook
+  const { deleteTransaction, isLoading: isDeleting, error, clearErrors } = useTransactionMutations({
+    onSuccess: () => {
+      onSuccess?.()
+      onOpenChange(false)
+    },
+  })
 
   if (!transaction) return null
 
-  const config = transactionTypeConfig[transaction.type]
+  const config = TRANSACTION_TYPE_CONFIG[transaction.type]
 
   const getTransactionDisplay = () => {
     switch (transaction.type) {
@@ -124,33 +73,8 @@ export function DeleteTransactionDialog({
   const display = getTransactionDisplay()
 
   const handleDelete = async () => {
-    try {
-      setIsDeleting(true)
-      setError(null)
-
-      const response = await fetch("/api/transactions", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          transaction_id: transaction.id,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Failed to delete transaction")
-      }
-
-      onSuccess?.()
-      onOpenChange(false)
-    } catch (err) {
-      console.error("Error deleting transaction:", err)
-      setError(err instanceof Error ? err.message : "Failed to delete transaction")
-    } finally {
-      setIsDeleting(false)
-    }
+    clearErrors()
+    await deleteTransaction(transaction.id)
   }
 
   return (
@@ -179,7 +103,7 @@ export function DeleteTransactionDialog({
                 {display.icon && (
                   <span className="text-sm">{display.icon}</span>
                 )}
-                <Badge variant="secondary" className={config.color}>
+                <Badge variant="secondary" className={config.badge}>
                   {config.label}
                 </Badge>
               </div>
@@ -197,14 +121,14 @@ export function DeleteTransactionDialog({
                   </p>
                 )}
                 <p className="text-xs text-gray-400">
-                  {format(new Date(transaction.transaction_date), "MMM dd, yyyy")}
+                  {format(new Date(transaction.transaction_date), DATE_FORMATS.DISPLAY)}
                 </p>
               </div>
             </div>
 
             <div className="text-right">
               <p className="font-semibold text-gray-900">
-                {formatCurrency(transaction.amount)}
+                {formatTransactionAmount(transaction.amount, transaction.type, currency)}
               </p>
             </div>
           </div>

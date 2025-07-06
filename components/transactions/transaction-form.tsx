@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -29,13 +29,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AccountSelector } from "./account-selector"
 import { CategorySelector } from "./category-selector"
+import { useAccounts } from "@/hooks/use-accounts"
+import { useTransactionForm } from "@/hooks/use-transaction-mutations"
+import { FORM_LIMITS, DATE_FORMATS, CURRENCY_DEFAULTS, ACCOUNT_FILTER_OPTIONS } from "@/lib/constants"
+import type { TransactionFormData } from "@/types/common"
 
 // Validation schema based on existing API validation
 const transactionSchema = z.object({
   type: z.enum(["income", "expense", "transfer"] as const),
-  amount: z.number().positive("Amount must be positive"),
+  amount: z.number().positive("Amount must be positive").max(FORM_LIMITS.AMOUNT_MAX),
   transaction_date: z.date(),
-  description: z.string().max(500).optional(),
+  description: z.string().max(FORM_LIMITS.DESCRIPTION_MAX_LENGTH).optional(),
   
   // For income/expense
   account_id: z.string().uuid().optional(),
@@ -55,22 +59,15 @@ const transactionSchema = z.object({
   message: "Transfer requires both from and to accounts. Income/expense requires account and category.",
 })
 
-type TransactionFormData = z.infer<typeof transactionSchema>
-
-interface Account {
-  id: string
-  name: string
-  type: "bank_account" | "credit_card" | "investment_account"
-  current_balance: number
-  is_active: boolean
-}
+type TransactionFormSchema = z.infer<typeof transactionSchema>
 
 interface TransactionFormProps {
   onSuccess?: (transaction: unknown) => void
   onCancel?: () => void
-  defaultValues?: Partial<TransactionFormData>
+  defaultValues?: Partial<TransactionFormSchema>
   mode?: "create" | "edit"
   transactionId?: string
+  currency?: string
 }
 
 export function TransactionForm({
@@ -79,12 +76,17 @@ export function TransactionForm({
   defaultValues,
   mode = "create",
   transactionId,
+  currency = CURRENCY_DEFAULTS.DEFAULT_CURRENCY,
 }: TransactionFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [toAccount, setToAccount] = useState<Account | null>(null)
-  const [submitError, setSubmitError] = useState<string | null>(null)
+  // Use centralized transaction mutations hook
+  const { submitTransaction, isLoading, error: submitError, clearErrors } = useTransactionForm({
+    onSuccess,
+  })
 
-  const form = useForm<TransactionFormData>({
+  // Use centralized accounts hook for fetching account details
+  const { getAccountById } = useAccounts()
+
+  const form = useForm<TransactionFormSchema>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
       type: "expense",
@@ -98,29 +100,8 @@ export function TransactionForm({
   const watchedType = form.watch("type")
   const watchedToAccountId = form.watch("to_account_id")
 
-  // Fetch account details when to_account_id changes (for investment category logic)
-  useEffect(() => {
-    async function fetchAccountDetails() {
-      if (!watchedToAccountId) {
-        setToAccount(null)
-        return
-      }
-
-      try {
-        const response = await fetch(`/api/accounts`)
-        if (response.ok) {
-          const data = await response.json()
-          const account = data.data?.find((acc: Account) => acc.id === watchedToAccountId)
-          setToAccount(account || null)
-        }
-      } catch (error) {
-        console.error("Error fetching account details:", error)
-        setToAccount(null)
-      }
-    }
-
-    fetchAccountDetails()
-  }, [watchedToAccountId])
+  // Get account details using centralized hook
+  const toAccount = getAccountById(watchedToAccountId || '')
 
   // Reset form fields when transaction type changes
   useEffect(() => {
@@ -134,63 +115,32 @@ export function TransactionForm({
     }
   }, [watchedType, form])
 
-  const onSubmit = async (data: TransactionFormData) => {
-    try {
-      setIsSubmitting(true)
-      setSubmitError(null)
+  const onSubmit = async (data: TransactionFormSchema) => {
+    clearErrors()
+    
+    // Transform form data to match API format
+    const formData: TransactionFormData = {
+      type: data.type,
+      amount: data.amount.toString(),
+      transaction_date: data.transaction_date,
+      description: data.description,
+      account_id: data.account_id,
+      category_id: data.category_id,
+      from_account_id: data.from_account_id,
+      to_account_id: data.to_account_id,
+      investment_category_id: data.investment_category_id,
+    }
 
-      // Format the data for API - only include defined fields
-      const payload = {
-        type: data.type,
-        amount: data.amount,
-        transaction_date: format(data.transaction_date, "yyyy-MM-dd"),
-        ...(data.description && { description: data.description }),
-        ...(data.account_id && { account_id: data.account_id }),
-        ...(data.category_id && { category_id: data.category_id }),
-        ...(data.from_account_id && { from_account_id: data.from_account_id }),
-        ...(data.to_account_id && { to_account_id: data.to_account_id }),
-        ...(data.investment_category_id && { investment_category_id: data.investment_category_id }),
-      }
-
-      const url = mode === "edit" && transactionId 
-        ? "/api/transactions"
-        : "/api/transactions"
-      
-      const method = mode === "edit" ? "PUT" : "POST"
-      const body = mode === "edit" 
-        ? { transaction_id: transactionId, ...payload }
-        : payload
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
+    const result = await submitTransaction(formData, mode, transactionId)
+    
+    // Reset form if creating new transaction and submission was successful
+    if (mode === "create" && result) {
+      form.reset({
+        type: data.type, // Keep the same type
+        transaction_date: new Date(),
+        amount: 0,
+        description: "",
       })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || "Failed to save transaction")
-      }
-
-      const result = await response.json()
-      onSuccess?.(result.data)
-      
-      // Reset form if creating new transaction
-      if (mode === "create") {
-        form.reset({
-          type: data.type, // Keep the same type
-          transaction_date: new Date(),
-          amount: 0,
-          description: "",
-        })
-      }
-    } catch (error) {
-      console.error("Error saving transaction:", error)
-      setSubmitError(error instanceof Error ? error.message : "Failed to save transaction")
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -253,7 +203,7 @@ export function TransactionForm({
                     />
                   </FormControl>
                   <FormDescription>
-                    Enter the transaction amount in IDR
+                    Enter the transaction amount in {currency}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -278,7 +228,7 @@ export function TransactionForm({
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            format(field.value, DATE_FORMATS.FILTER_DISPLAY)
                           ) : (
                             <span>Pick a date</span>
                           )}
@@ -318,8 +268,9 @@ export function TransactionForm({
                           value={field.value}
                           onValueChange={field.onChange}
                           placeholder="Select source account..."
-                          filterByType="bank_account,credit_card"
+                          filterByType={ACCOUNT_FILTER_OPTIONS.TRANSFER_FROM}
                           error={form.formState.errors.from_account_id?.message}
+                          currency={currency}
                         />
                       </FormControl>
                       <FormMessage />
@@ -340,6 +291,7 @@ export function TransactionForm({
                           onValueChange={field.onChange}
                           placeholder="Select destination account..."
                           error={form.formState.errors.to_account_id?.message}
+                          currency={currency}
                         />
                       </FormControl>
                       <FormMessage />
@@ -362,6 +314,7 @@ export function TransactionForm({
                             placeholder="Select investment category..."
                             filterByType="investment"
                             error={form.formState.errors.investment_category_id?.message}
+                            currency={currency}
                           />
                         </FormControl>
                         <FormDescription>
@@ -388,6 +341,7 @@ export function TransactionForm({
                           onValueChange={field.onChange}
                           placeholder="Select account..."
                           error={form.formState.errors.account_id?.message}
+                          currency={currency}
                         />
                       </FormControl>
                       <FormMessage />
@@ -409,6 +363,7 @@ export function TransactionForm({
                           placeholder="Select category..."
                           filterByType={watchedType === "income" ? "income" : "expense"}
                           error={form.formState.errors.category_id?.message}
+                          currency={currency}
                         />
                       </FormControl>
                       <FormMessage />
@@ -451,8 +406,8 @@ export function TransactionForm({
                   Cancel
                 </Button>
               )}
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {mode === "edit" ? "Update Transaction" : "Add Transaction"}
               </Button>
             </div>

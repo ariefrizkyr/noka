@@ -27,25 +27,21 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { AccountSelector } from "./account-selector"
 import { CategorySelector } from "./category-selector"
-
-export interface TransactionFilters {
-  start_date?: Date
-  end_date?: Date
-  account_id?: string
-  category_id?: string
-  type?: "income" | "expense" | "transfer"
-}
+import { DATE_FORMATS, SELECTOR_PLACEHOLDERS } from "@/lib/constants"
+import type { TransactionFilters } from "@/types/common"
 
 interface TransactionFiltersProps {
   filters: TransactionFilters
   onFiltersChange: (filters: TransactionFilters) => void
   className?: string
+  currency?: string
 }
 
 export function TransactionFilters({
   filters,
   onFiltersChange,
   className,
+  currency,
 }: TransactionFiltersProps) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -117,7 +113,7 @@ export function TransactionFilters({
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {filters.start_date ? format(filters.start_date, "PPP") : "Select date"}
+                        {filters.start_date ? format(filters.start_date, DATE_FORMATS.FILTER_DISPLAY) : "Select date"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -156,7 +152,7 @@ export function TransactionFilters({
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {filters.end_date ? format(filters.end_date, "PPP") : "Select date"}
+                        {filters.end_date ? format(filters.end_date, DATE_FORMATS.FILTER_DISPLAY) : "Select date"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -195,7 +191,7 @@ export function TransactionFilters({
                     onValueChange={(value) => updateFilter("type", value || undefined)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="All types" />
+                      <SelectValue placeholder={SELECTOR_PLACEHOLDERS.TYPE_FILTER} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">All types</SelectItem>
@@ -223,7 +219,8 @@ export function TransactionFilters({
                   <AccountSelector
                     value={filters.account_id}
                     onValueChange={(value) => updateFilter("account_id", value || undefined)}
-                    placeholder="All accounts"
+                    placeholder={SELECTOR_PLACEHOLDERS.ACCOUNT_FILTER}
+                    currency={currency}
                   />
                   {filters.account_id && (
                     <Button
@@ -244,7 +241,8 @@ export function TransactionFilters({
                   <CategorySelector
                     value={filters.category_id}
                     onValueChange={(value) => updateFilter("category_id", value || undefined)}
-                    placeholder="All categories"
+                    placeholder={SELECTOR_PLACEHOLDERS.CATEGORY_FILTER}
+                    currency={currency}
                   />
                   {filters.category_id && (
                     <Button
@@ -268,7 +266,7 @@ export function TransactionFilters({
                     
                     {filters.start_date && (
                       <Badge variant="secondary" className="gap-1">
-                        From: {format(filters.start_date, "MMM dd")}
+                        From: {format(filters.start_date, DATE_FORMATS.BADGE_DISPLAY)}
                         <X 
                           className="h-3 w-3 cursor-pointer" 
                           onClick={() => clearFilter("start_date")} 
@@ -278,7 +276,7 @@ export function TransactionFilters({
                     
                     {filters.end_date && (
                       <Badge variant="secondary" className="gap-1">
-                        To: {format(filters.end_date, "MMM dd")}
+                        To: {format(filters.end_date, DATE_FORMATS.BADGE_DISPLAY)}
                         <X 
                           className="h-3 w-3 cursor-pointer" 
                           onClick={() => clearFilter("end_date")} 

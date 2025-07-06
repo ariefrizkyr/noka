@@ -71,12 +71,16 @@ CREATE OR REPLACE FUNCTION get_investment_progress(p_user_id UUID)
 RETURNS TABLE (...) AS $$ ... $$ LANGUAGE plpgsql;
 ```
 
+Check `supabase/migrations` to learn what has been implemented.
+
 ## 6. API Endpoints Specification
 This phase implements the dashboard-specific endpoints that call the database functions.
 
 - GET `/api/dashboard/summary` - Get financial summary for current period (uses `get_financial_summary` function).
 - GET `/api/dashboard/budget-progress` - Get budget progress for all expense categories (uses `get_budget_progress` function).
 - GET `/api/dashboard/investment-progress` - Get investment progress (uses `get_investment_progress` function).
+
+Use hooks (`hooks/`) to call the API - DO NOT call inline. The API is located in `app/api/`.
 
 ## 7. Technical Considerations
 - **Performance**: Calling database functions is more efficient than performing complex aggregations on the application server. The API layer should simply call these functions and return the results.

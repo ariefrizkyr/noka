@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -19,107 +19,46 @@ import {
 } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-
-interface Category {
-  id: string
-  name: string
-  type: "expense" | "income" | "investment"
-  icon?: string
-  budget_amount?: number
-  budget_frequency?: "weekly" | "monthly" | "one_time"
-  is_active: boolean
-}
+import { useCategories } from "@/hooks/use-categories"
+import { formatBudgetAmount } from "@/lib/currency-utils"
+import { CATEGORY_TYPE_CONFIG, SELECTOR_PLACEHOLDERS, CURRENCY_DEFAULTS } from "@/lib/constants"
+import type { CategoryType } from "@/types/common"
 
 interface CategorySelectorProps {
   value?: string
   onValueChange: (value: string) => void
   placeholder?: string
-  filterByType?: "expense" | "income" | "investment"
+  filterByType?: CategoryType
   disabled?: boolean
   error?: string
   className?: string
-}
-
-const categoryTypeLabels = {
-  expense: "Expense",
-  income: "Income",
-  investment: "Investment",
-}
-
-const categoryTypeColors = {
-  expense: "bg-red-100 text-red-800",
-  income: "bg-green-100 text-green-800",
-  investment: "bg-blue-100 text-blue-800",
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(amount)
+  currency?: string
 }
 
 export function CategorySelector({
   value,
   onValueChange,
-  placeholder = "Select category...",
+  placeholder = SELECTOR_PLACEHOLDERS.CATEGORY,
   filterByType,
   disabled = false,
   error,
   className,
+  currency = CURRENCY_DEFAULTS.DEFAULT_CURRENCY,
 }: CategorySelectorProps) {
   const [open, setOpen] = useState(false)
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
-  const [fetchError, setFetchError] = useState<string | null>(null)
 
-  // Fetch categories from API
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        setLoading(true)
-        const response = await fetch("/api/categories")
-        
-        if (!response.ok) {
-          throw new Error("Failed to fetch categories")
-        }
-        
-        const data = await response.json()
-        setCategories(data.data?.categories || [])
-        setFetchError(null)
-      } catch (err) {
-        console.error("Error fetching categories:", err)
-        setFetchError("Failed to load categories")
-        setCategories([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchCategories()
-  }, [])
-
-  // Filter categories based on type
-  const filteredCategories = categories.filter((category) => {
-    if (!category.is_active) return false
-    
-    if (!filterByType) return true
-    
-    return category.type === filterByType
+  // Use the centralized categories hook
+  const { 
+    loading, 
+    error: fetchError,
+    groupedCategories,
+    getCategoryById 
+  } = useCategories({ 
+    filterByType,
+    includeInactive: false 
   })
 
-  // Group categories by type
-  const groupedCategories = filteredCategories.reduce((acc, category) => {
-    const type = category.type
-    if (!acc[type]) {
-      acc[type] = []
-    }
-    acc[type].push(category)
-    return acc
-  }, {} as Record<Category["type"], Category[]>)
-
-  const selectedCategory = categories.find((category) => category.id === value)
+  const selectedCategory = getCategoryById(value || '')
 
   if (loading) {
     return <Skeleton className={cn("h-10 w-full", className)} />
@@ -147,14 +86,14 @@ export function CategorySelector({
                 )}
                 <Badge
                   variant="secondary"
-                  className={cn("text-xs", categoryTypeColors[selectedCategory.type])}
+                  className={cn("text-xs", CATEGORY_TYPE_CONFIG[selectedCategory.type].color)}
                 >
-                  {categoryTypeLabels[selectedCategory.type]}
+                  {CATEGORY_TYPE_CONFIG[selectedCategory.type].label}
                 </Badge>
                 <span className="truncate">{selectedCategory.name}</span>
-                {selectedCategory.budget_amount && (
+                {selectedCategory.budget_amount && selectedCategory.budget_frequency && (
                   <span className="text-sm text-muted-foreground ml-auto">
-                    {formatCurrency(selectedCategory.budget_amount)}/{selectedCategory.budget_frequency}
+                    {formatBudgetAmount(selectedCategory.budget_amount, selectedCategory.budget_frequency, currency)}
                   </span>
                 )}
               </div>
@@ -174,7 +113,7 @@ export function CategorySelector({
                 <CommandEmpty>No categories found.</CommandEmpty>
               ) : (
                 Object.entries(groupedCategories).map(([type, typeCategories]) => (
-                  <CommandGroup key={type} heading={categoryTypeLabels[type as Category["type"]]}>
+                  <CommandGroup key={type} heading={CATEGORY_TYPE_CONFIG[type as CategoryType].label}>
                     {typeCategories.map((category) => (
                       <CommandItem
                         key={category.id}
@@ -197,14 +136,14 @@ export function CategorySelector({
                           )}
                           <Badge
                             variant="secondary"
-                            className={cn("text-xs", categoryTypeColors[category.type])}
+                            className={cn("text-xs", CATEGORY_TYPE_CONFIG[category.type].color)}
                           >
-                            {categoryTypeLabels[category.type]}
+                            {CATEGORY_TYPE_CONFIG[category.type].label}
                           </Badge>
                           <span className="truncate">{category.name}</span>
-                          {category.budget_amount && (
+                          {category.budget_amount && category.budget_frequency && (
                             <span className="text-sm text-muted-foreground ml-auto">
-                              {formatCurrency(category.budget_amount)}/{category.budget_frequency}
+                              {formatBudgetAmount(category.budget_amount, category.budget_frequency, currency)}
                             </span>
                           )}
                         </div>

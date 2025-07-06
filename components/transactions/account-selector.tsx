@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -19,110 +19,46 @@ import {
 } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-
-interface Account {
-  id: string
-  name: string
-  type: "bank_account" | "credit_card" | "investment_account"
-  current_balance: number
-  is_active: boolean
-}
+import { useAccounts } from "@/hooks/use-accounts"
+import { formatAccountBalance } from "@/lib/currency-utils"
+import { ACCOUNT_TYPE_CONFIG, SELECTOR_PLACEHOLDERS, CURRENCY_DEFAULTS } from "@/lib/constants"
+import type { AccountType } from "@/types/common"
 
 interface AccountSelectorProps {
   value?: string
   onValueChange: (value: string) => void
   placeholder?: string
-  filterByType?: "bank_account" | "credit_card" | "investment_account" | "bank_account,credit_card"
+  filterByType?: AccountType | string
   disabled?: boolean
   error?: string
   className?: string
-}
-
-const accountTypeLabels = {
-  bank_account: "Bank Account",
-  credit_card: "Credit Card", 
-  investment_account: "Investment Account",
-}
-
-const accountTypeColors = {
-  bank_account: "bg-blue-100 text-blue-800",
-  credit_card: "bg-orange-100 text-orange-800",
-  investment_account: "bg-green-100 text-green-800",
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(amount)
+  currency?: string
 }
 
 export function AccountSelector({
   value,
   onValueChange,
-  placeholder = "Select account...",
+  placeholder = SELECTOR_PLACEHOLDERS.ACCOUNT,
   filterByType,
   disabled = false,
   error,
   className,
+  currency = CURRENCY_DEFAULTS.DEFAULT_CURRENCY,
 }: AccountSelectorProps) {
   const [open, setOpen] = useState(false)
-  const [accounts, setAccounts] = useState<Account[]>([])
-  const [loading, setLoading] = useState(true)
-  const [fetchError, setFetchError] = useState<string | null>(null)
 
-  // Fetch accounts from API
-  useEffect(() => {
-    async function fetchAccounts() {
-      try {
-        setLoading(true)
-        const response = await fetch("/api/accounts")
-        
-        if (!response.ok) {
-          throw new Error("Failed to fetch accounts")
-        }
-        
-        const data = await response.json()
-        setAccounts(data.data || [])
-        setFetchError(null)
-      } catch (err) {
-        console.error("Error fetching accounts:", err)
-        setFetchError("Failed to load accounts")
-        setAccounts([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchAccounts()
-  }, [])
-
-  // Filter accounts based on type
-  const filteredAccounts = accounts.filter((account) => {
-    if (!account.is_active) return false
-    
-    if (!filterByType) return true
-    
-    if (filterByType.includes(",")) {
-      const allowedTypes = filterByType.split(",") as Array<Account["type"]>
-      return allowedTypes.includes(account.type)
-    }
-    
-    return account.type === filterByType
+  // Use the centralized accounts hook
+  const { 
+    loading, 
+    error: fetchError,
+    groupedAccounts,
+    getAccountById 
+  } = useAccounts({ 
+    filterByType,
+    includeInactive: false 
   })
 
-  // Group accounts by type
-  const groupedAccounts = filteredAccounts.reduce((acc, account) => {
-    const type = account.type
-    if (!acc[type]) {
-      acc[type] = []
-    }
-    acc[type].push(account)
-    return acc
-  }, {} as Record<Account["type"], Account[]>)
-
-  const selectedAccount = accounts.find((account) => account.id === value)
+  const selectedAccount = getAccountById(value || '')
 
   if (loading) {
     return <Skeleton className={cn("h-10 w-full", className)} />
@@ -147,13 +83,13 @@ export function AccountSelector({
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <Badge
                   variant="secondary"
-                  className={cn("text-xs", accountTypeColors[selectedAccount.type])}
+                  className={cn("text-xs", ACCOUNT_TYPE_CONFIG[selectedAccount.type].color)}
                 >
-                  {accountTypeLabels[selectedAccount.type]}
+                  {ACCOUNT_TYPE_CONFIG[selectedAccount.type].shortLabel}
                 </Badge>
                 <span className="truncate">{selectedAccount.name}</span>
                 <span className="text-sm text-muted-foreground ml-auto">
-                  {formatCurrency(selectedAccount.current_balance)}
+                  {formatAccountBalance(selectedAccount.current_balance, selectedAccount.type, currency)}
                 </span>
               </div>
             ) : (
@@ -172,7 +108,7 @@ export function AccountSelector({
                 <CommandEmpty>No accounts found.</CommandEmpty>
               ) : (
                 Object.entries(groupedAccounts).map(([type, typeAccounts]) => (
-                  <CommandGroup key={type} heading={accountTypeLabels[type as Account["type"]]}>
+                  <CommandGroup key={type} heading={ACCOUNT_TYPE_CONFIG[type as AccountType].label}>
                     {typeAccounts.map((account) => (
                       <CommandItem
                         key={account.id}
@@ -183,22 +119,22 @@ export function AccountSelector({
                         }}
                         className="flex items-center gap-2 py-2"
                       >
-                        <Check
+                        {/* <Check
                           className={cn(
                             "mr-2 h-4 w-4",
                             value === account.id ? "opacity-100" : "opacity-0"
                           )}
-                        />
+                        /> */}
                         <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <Badge
+                          {/* <Badge
                             variant="secondary"
-                            className={cn("text-xs", accountTypeColors[account.type])}
+                            className={cn("text-xs", ACCOUNT_TYPE_CONFIG[account.type].color)}
                           >
-                            {accountTypeLabels[account.type]}
-                          </Badge>
+                            {ACCOUNT_TYPE_CONFIG[account.type].shortLabel}
+                          </Badge> */}
                           <span className="truncate">{account.name}</span>
                           <span className="text-sm text-muted-foreground ml-auto">
-                            {formatCurrency(account.current_balance)}
+                            {formatAccountBalance(account.current_balance, account.type, currency)}
                           </span>
                         </div>
                       </CommandItem>

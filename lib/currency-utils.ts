@@ -150,6 +150,149 @@ export function calculateTotalBalance(
 }
 
 /**
+ * Format transaction amount with appropriate +/- signs
+ * @param amount - Transaction amount
+ * @param transactionType - Type of transaction (income, expense, transfer)
+ * @param currency - Currency code
+ * @returns Formatted amount with sign prefix
+ */
+export function formatTransactionAmount(
+  amount: number,
+  transactionType: 'income' | 'expense' | 'transfer',
+  currency: string = 'IDR'
+): string {
+  const formatted = formatCurrency(amount, { currency });
+  
+  switch (transactionType) {
+    case 'income':
+      return `+${formatted}`;
+    case 'expense':
+      return `-${formatted}`;
+    case 'transfer':
+      return formatted; // No prefix for transfers
+    default:
+      return formatted;
+  }
+}
+
+/**
+ * Format currency for selector components with consistent display
+ * @param amount - Amount to format
+ * @param currency - Currency code
+ * @param compact - Whether to use compact format for large numbers
+ * @returns Formatted currency string
+ */
+export function formatCurrencyForSelector(
+  amount: number,
+  currency: string = 'IDR',
+  compact: boolean = false
+): string {
+  if (compact && Math.abs(amount) >= 1000000) {
+    // Format large numbers with K/M suffixes
+    const formatter = new Intl.NumberFormat(getLocaleForCurrency(currency), {
+      style: 'currency',
+      currency,
+      notation: 'compact',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1,
+    });
+    return formatter.format(amount);
+  }
+  
+  return formatCurrency(amount, { currency });
+}
+
+/**
+ * Format budget amount with frequency display
+ * @param amount - Budget amount
+ * @param frequency - Budget frequency
+ * @param currency - Currency code
+ * @returns Formatted budget string with frequency
+ */
+export function formatBudgetAmount(
+  amount: number,
+  frequency: 'weekly' | 'monthly' | 'one_time',
+  currency: string = 'IDR'
+): string {
+  const formatted = formatCurrency(amount, { currency });
+  const frequencyLabel = frequency === 'one_time' ? 'total' : frequency.replace('ly', '');
+  return `${formatted}/${frequencyLabel}`;
+}
+
+/**
+ * Format currency with transaction type styling
+ * @param amount - Amount to format
+ * @param transactionType - Type of transaction
+ * @param currency - Currency code
+ * @returns Object with formatted amount and CSS color class
+ */
+export function formatTransactionAmountWithStyle(
+  amount: number,
+  transactionType: 'income' | 'expense' | 'transfer',
+  currency: string = 'IDR'
+): { formatted: string; colorClass: string } {
+  const formatted = formatTransactionAmount(amount, transactionType, currency);
+  
+  let colorClass = '';
+  switch (transactionType) {
+    case 'income':
+      colorClass = 'text-green-600';
+      break;
+    case 'expense':
+      colorClass = 'text-red-600';
+      break;
+    case 'transfer':
+      colorClass = 'text-blue-600';
+      break;
+    default:
+      colorClass = 'text-gray-600';
+  }
+  
+  return { formatted, colorClass };
+}
+
+/**
+ * Parse currency input string to number (for form inputs)
+ * @param input - User input string
+ * @returns Parsed number or 0 if invalid
+ */
+export function parseCurrencyInput(input: string): number {
+  // Remove currency symbols, spaces, and commas
+  const cleaned = input.replace(/[^\d.-]/g, '');
+  const parsed = parseFloat(cleaned);
+  return isNaN(parsed) ? 0 : Math.abs(parsed); // Always return positive for input
+}
+
+/**
+ * Validate currency amount input
+ * @param input - Input string to validate
+ * @param min - Minimum allowed value
+ * @param max - Maximum allowed value
+ * @returns Validation result with error message if invalid
+ */
+export function validateCurrencyInput(
+  input: string,
+  min: number = 0.01,
+  max: number = 999999999
+): { isValid: boolean; error?: string; value?: number } {
+  const value = parseCurrencyInput(input);
+  
+  if (value === 0 && input.trim() !== '' && input.trim() !== '0') {
+    return { isValid: false, error: 'Please enter a valid amount' };
+  }
+  
+  if (value < min) {
+    return { isValid: false, error: `Amount must be at least ${formatCurrency(min)}` };
+  }
+  
+  if (value > max) {
+    return { isValid: false, error: `Amount cannot exceed ${formatCurrency(max)}` };
+  }
+  
+  return { isValid: true, value };
+}
+
+/**
  * Get appropriate locale for currency
  */
 export function getLocaleForCurrency(currency: string): string {
