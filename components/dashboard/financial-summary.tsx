@@ -152,7 +152,7 @@ export function FinancialSummary({ currency = 'IDR', className }: FinancialSumma
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-2xl font-bold">
-                      {formatCurrency(card.value, card.currency)}
+                      {formatCurrency(card.value, { currency: card.currency })}
                     </div>
                     {card.badge && (
                       <Badge variant="outline" className="mt-1">
@@ -177,7 +177,7 @@ export function FinancialSummary({ currency = 'IDR', className }: FinancialSumma
                 <div>
                   <p className="text-sm font-medium text-blue-900">Monthly Income</p>
                   <p className="text-xl font-bold text-blue-900">
-                    {formatCurrency(quickStats.monthly_income, currency)}
+                    {formatCurrency(quickStats.monthly_income, { currency })}
                   </p>
                 </div>
               </div>
@@ -192,7 +192,7 @@ export function FinancialSummary({ currency = 'IDR', className }: FinancialSumma
                   <p className="text-sm font-medium text-green-900">Savings Rate</p>
                   <p className="text-xl font-bold text-green-900">{savingsRate.toFixed(1)}%</p>
                   <p className="text-xs text-green-700">
-                    {formatCurrency(quickStats.monthly_savings, currency)} saved
+                    {formatCurrency(quickStats.monthly_savings, { currency })} saved
                   </p>
                 </div>
               </div>

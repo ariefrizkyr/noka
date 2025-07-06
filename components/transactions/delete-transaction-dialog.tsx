@@ -74,7 +74,7 @@ export function DeleteTransactionDialog({
 
   const handleDelete = async () => {
     clearErrors()
-    await deleteTransaction(transaction.id)
+    await deleteTransaction({ transaction_id: transaction.id })
   }
 
   return (

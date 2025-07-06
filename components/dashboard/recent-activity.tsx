@@ -184,7 +184,7 @@ export function RecentActivity({
                     }`}>
                       {display.isPositive === true && '+'}
                       {display.isPositive === false && '-'}
-                      {formatCurrency(Math.abs(display.amount), currency)}
+                      {formatCurrency(Math.abs(display.amount), { currency })}
                     </p>
                   </div>
                 </div>

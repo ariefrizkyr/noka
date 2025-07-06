@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
+import { UserSettings } from '@/types/common'
 import OnboardingLayout from './components/onboarding-layout'
 import SettingsSetupStep from './steps/settings-setup'
 import AccountSetupStep from './steps/account-setup'
@@ -57,7 +58,7 @@ export default function OnboardingPage() {
   }, [user, isInitialized, router])
 
   // Determine which step user should start from
-  const determineStartingStep = async (settings: any) => {
+  const determineStartingStep = async (settings: UserSettings | null) => {
     try {
       // Step 1: Settings (currency + financial periods)
       if (!settings) {

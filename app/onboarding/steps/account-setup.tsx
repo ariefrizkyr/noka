@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/auth-context'
+import { Account as BaseAccount } from '@/types/common'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -94,7 +95,7 @@ export default function AccountSetupStep({
           const result = await response.json()
           if (result.data) {
             // Transform API accounts to match local interface
-            const existingAccounts = result.data.map((acc: any) => ({
+            const existingAccounts = result.data.map((acc: BaseAccount) => ({
               id: acc.id,
               name: acc.name,
               type: acc.type,

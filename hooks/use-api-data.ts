@@ -11,6 +11,7 @@ interface ApiOptions {
   showErrorToast?: boolean;
   showSuccessToast?: boolean;
   successMessage?: string;
+  enabled?: boolean;
 }
 
 interface ApiState<T> {
@@ -21,7 +22,7 @@ interface ApiState<T> {
 }
 
 export function useApiData<T = any>(
-  endpoint: string,
+  endpoint: string | null,
   options: ApiOptions = {}
 ): ApiState<T> {
   const [data, setData] = useState<T | null>(null);
@@ -35,11 +36,12 @@ export function useApiData<T = any>(
     onError,
     showErrorToast = true,
     showSuccessToast = false,
-    successMessage = 'Data loaded successfully'
+    successMessage = 'Data loaded successfully',
+    enabled = true
   } = options;
 
   const fetchData = useCallback(async () => {
-    if (!endpoint) return;
+    if (!endpoint || !enabled) return;
     
     setLoading(true);
     setError(null);
@@ -81,7 +83,7 @@ export function useApiData<T = any>(
     } finally {
       setLoading(false);
     }
-  }, [endpoint, router, onSuccess, onError, showErrorToast, showSuccessToast, successMessage]);
+  }, [endpoint, router, onSuccess, onError, showErrorToast, showSuccessToast, successMessage, enabled]);
 
   useEffect(() => {
     fetchData();

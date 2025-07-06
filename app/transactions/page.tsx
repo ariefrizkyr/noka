@@ -13,66 +13,26 @@ import { TransactionList } from "@/components/transactions/transaction-list"
 import { TransactionForm } from "@/components/transactions/transaction-form"
 import { DeleteTransactionDialog } from "@/components/transactions/delete-transaction-dialog"
 import { MainLayout } from "@/components/layout/main-layout"
-
-interface Transaction {
-  id: string
-  type: "income" | "expense" | "transfer"
-  amount: number
-  description?: string
-  transaction_date: string
-  created_at: string
-  updated_at: string
-  
-  // For income/expense
-  accounts?: {
-    id: string
-    name: string
-    type: "bank_account" | "credit_card" | "investment_account"
-  }
-  categories?: {
-    id: string
-    name: string
-    type: "expense" | "income" | "investment"
-    icon?: string
-  }
-  
-  // For transfers
-  from_accounts?: {
-    id: string
-    name: string
-    type: "bank_account" | "credit_card" | "investment_account"
-  }
-  to_accounts?: {
-    id: string
-    name: string
-    type: "bank_account" | "credit_card" | "investment_account"
-  }
-  investment_categories?: {
-    id: string
-    name: string
-    type: "investment"
-    icon?: string
-  }
-}
+import type { TransactionWithRelations } from "@/types/common"
 
 export default function TransactionsPage() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [showEditForm, setShowEditForm] = useState(false)
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
+  const [editingTransaction, setEditingTransaction] = useState<TransactionWithRelations | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null)
+  const [deletingTransaction, setDeletingTransaction] = useState<TransactionWithRelations | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
 
   const handleAddTransaction = () => {
     setShowAddForm(true)
   }
 
-  const handleEditTransaction = (transaction: Transaction) => {
+  const handleEditTransaction = (transaction: TransactionWithRelations) => {
     setEditingTransaction(transaction)
     setShowEditForm(true)
   }
 
-  const handleDeleteTransaction = (transaction: Transaction) => {
+  const handleDeleteTransaction = (transaction: TransactionWithRelations) => {
     setDeletingTransaction(transaction)
     setShowDeleteDialog(true)
   }

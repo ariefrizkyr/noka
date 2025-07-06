@@ -120,7 +120,7 @@ export function TransactionFilters({
                       <Calendar
                         mode="single"
                         selected={filters.start_date}
-                        onSelect={(date) => updateFilter("start_date", date)}
+                        onSelect={(date) => updateFilter("start_date", date ?? null)}
                         disabled={(date) => date > new Date()}
                         initialFocus
                       />
@@ -159,7 +159,7 @@ export function TransactionFilters({
                       <Calendar
                         mode="single"
                         selected={filters.end_date}
-                        onSelect={(date) => updateFilter("end_date", date)}
+                        onSelect={(date) => updateFilter("end_date", date ?? null)}
                         disabled={(date) => {
                           if (filters.start_date) {
                             return date < filters.start_date || date > new Date()
@@ -188,7 +188,7 @@ export function TransactionFilters({
                   <label className="text-sm font-medium">Type</label>
                   <Select
                     value={filters.type || ""}
-                    onValueChange={(value) => updateFilter("type", value || undefined)}
+                    onValueChange={(value) => updateFilter("type", value || null)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={SELECTOR_PLACEHOLDERS.TYPE_FILTER} />
@@ -218,7 +218,7 @@ export function TransactionFilters({
                   <label className="text-sm font-medium">Account</label>
                   <AccountSelector
                     value={filters.account_id}
-                    onValueChange={(value) => updateFilter("account_id", value || undefined)}
+                    onValueChange={(value) => updateFilter("account_id", value || null)}
                     placeholder={SELECTOR_PLACEHOLDERS.ACCOUNT_FILTER}
                     currency={currency}
                   />
@@ -240,7 +240,7 @@ export function TransactionFilters({
                   <label className="text-sm font-medium">Category</label>
                   <CategorySelector
                     value={filters.category_id}
-                    onValueChange={(value) => updateFilter("category_id", value || undefined)}
+                    onValueChange={(value) => updateFilter("category_id", value || null)}
                     placeholder={SELECTOR_PLACEHOLDERS.CATEGORY_FILTER}
                     currency={currency}
                   />

@@ -110,7 +110,7 @@ export function ProgressCard({
               {type === 'budget' ? 'Spent' : 'Invested'}
             </span>
             <span className="text-sm font-medium">
-              {formatCurrency(currentAmount, currency)}
+              {formatCurrency(currentAmount, { currency })}
             </span>
           </div>
           
@@ -119,7 +119,7 @@ export function ProgressCard({
               {type === 'budget' ? 'Budget' : 'Target'}
             </span>
             <span className="text-sm font-medium">
-              {formatCurrency(targetAmount, currency)}
+              {formatCurrency(targetAmount, { currency })}
             </span>
           </div>
 
@@ -134,7 +134,7 @@ export function ProgressCard({
                 : "text-blue-600"
             )}>
               {type === 'budget' && remainingAmount < 0 ? '-' : ''}
-              {formatCurrency(Math.abs(remainingAmount), currency)}
+              {formatCurrency(Math.abs(remainingAmount), { currency })}
             </span>
           </div>
         </div>
@@ -150,7 +150,7 @@ export function ProgressCard({
         {type === 'budget' && percentage > 100 && (
           <div className="bg-red-50 border border-red-200 rounded-md p-2">
             <p className="text-xs text-red-800">
-              Over budget by {formatCurrency(Math.abs(remainingAmount), currency)}
+              Over budget by {formatCurrency(Math.abs(remainingAmount), { currency })}
             </p>
           </div>
         )}

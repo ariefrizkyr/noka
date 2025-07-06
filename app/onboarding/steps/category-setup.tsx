@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/auth-context'
+import { Category as BaseCategory, CategoryType, BudgetFrequency } from '@/types/common'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -21,10 +22,10 @@ interface CategorySetupStepProps {
 interface Category {
   id: string
   name: string
-  type: 'expense' | 'income' | 'investment'
+  type: CategoryType
   icon: string
   budget_amount?: number
-  budget_frequency?: 'weekly' | 'monthly' | 'one_time'
+  budget_frequency?: BudgetFrequency
 }
 
 const categoryTypes = [
@@ -71,16 +72,15 @@ export default function CategorySetupStep({
   onNext,
   onPrevious,
   isFirstStep,
-  isLastStep,
 }: CategorySetupStepProps) {
   const [categories, setCategories] = useState<Category[]>([])
-  const [activeTab, setActiveTab] = useState<'expense' | 'income' | 'investment'>('expense')
+  const [activeTab, setActiveTab] = useState<CategoryType>('expense')
   const [newCategory, setNewCategory] = useState({
     name: '',
-    type: 'expense' as 'expense' | 'income' | 'investment',
+    type: 'expense' as CategoryType,
     icon: '',
     budget_amount: '',
-    budget_frequency: '' as 'weekly' | 'monthly' | 'one_time' | ''
+    budget_frequency: '' as BudgetFrequency | ''
   })
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingData, setIsLoadingData] = useState(true)
@@ -109,7 +109,7 @@ export default function CategorySetupStep({
           const categoriesResult = await categoriesResponse.json()
           if (categoriesResult.data?.categories) {
             // Transform API categories to match local interface
-            const existingCategories = categoriesResult.data.categories.map((cat: any) => ({
+            const existingCategories = categoriesResult.data.categories.map((cat: BaseCategory) => ({
               id: cat.id,
               name: cat.name,
               type: cat.type,
@@ -137,7 +137,7 @@ export default function CategorySetupStep({
   }
 
   // Helper function to get valid budget frequencies for category type
-  const getBudgetFrequenciesForCategory = (categoryType: 'expense' | 'income' | 'investment') => {
+  const getBudgetFrequenciesForCategory = (categoryType: CategoryType) => {
     switch (categoryType) {
       case 'expense':
         return expenseBudgetFrequencies
@@ -148,7 +148,7 @@ export default function CategorySetupStep({
     }
   }
 
-  const addDefaultCategories = (type: 'expense' | 'income' | 'investment') => {
+  const addDefaultCategories = (type: CategoryType) => {
     const defaults = defaultCategories[type].map(cat => ({
       id: `default-${type}-${Date.now()}-${Math.random()}`,
       name: cat.name,
@@ -336,7 +336,7 @@ export default function CategorySetupStep({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => addDefaultCategories(type.value as any)}
+                    onClick={() => addDefaultCategories(type.value as CategoryType)}
                     className="border-blue-300 text-blue-700 hover:bg-blue-100"
                   >
                     <Plus className="w-4 h-4 mr-2" />
@@ -378,7 +378,7 @@ export default function CategorySetupStep({
                     />
                     <Select 
                       value={newCategory.budget_frequency} 
-                      onValueChange={(value) => setNewCategory(prev => ({ ...prev, budget_frequency: value as any }))}
+                      onValueChange={(value) => setNewCategory(prev => ({ ...prev, budget_frequency: value as BudgetFrequency }))}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Frequency" />

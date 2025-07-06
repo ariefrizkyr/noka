@@ -1,6 +1,6 @@
 "use client"
 
-import { formatCurrency } from '@/lib/currency-utils';
+import { formatCurrency, formatCurrencyForSelector } from '@/lib/currency-utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useDashboard } from '@/hooks/use-dashboard';
@@ -121,7 +121,7 @@ export function DashboardCharts({ currency = 'IDR', className }: DashboardCharts
           <p className="font-medium text-gray-900">{label}</p>
           {payload.map((entry: { name: string; value: number; color: string }, index: number) => (
             <p key={index} style={{ color: entry.color }}>
-              {entry.name}: {formatCurrency(entry.value, currency)}
+              {entry.name}: {formatCurrency(entry.value, { currency })}
             </p>
           ))}
         </div>
@@ -137,8 +137,8 @@ export function DashboardCharts({ currency = 'IDR', className }: DashboardCharts
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-medium text-gray-900">{data.name}</p>
-          <p style={{ color: payload[0].color }}>
-            Amount: {formatCurrency(data.value, currency)}
+          <p style={{ color: data.fill }}>
+            Amount: {formatCurrency(data.value, { currency })}
           </p>
           <p className="text-gray-600">
             {data.percentage?.toFixed(1)}% of total
@@ -176,7 +176,7 @@ export function DashboardCharts({ currency = 'IDR', className }: DashboardCharts
                   />
                   <YAxis 
                     tick={{ fontSize: 12 }}
-                    tickFormatter={(value) => formatCurrency(value, currency, true)}
+                    tickFormatter={(value) => formatCurrencyForSelector(value, currency, true)}
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
@@ -195,7 +195,7 @@ export function DashboardCharts({ currency = 'IDR', className }: DashboardCharts
               <CardTitle className="flex items-center justify-between">
                 Spending by Category
                 <Badge variant="outline">
-                  Total: {formatCurrency(
+                  Total: {formatCurrencyForSelector(
                     chartData.categorySpendingData.reduce((sum, item) => sum + item.value, 0), 
                     currency, 
                     true
@@ -248,12 +248,12 @@ export function DashboardCharts({ currency = 'IDR', className }: DashboardCharts
                   />
                   <YAxis 
                     tick={{ fontSize: 12 }}
-                    tickFormatter={(value) => formatCurrency(value, currency, true)}
+                    tickFormatter={(value) => formatCurrencyForSelector(value, currency, true)}
                   />
                   <Tooltip 
-                    formatter={(value: number, name: string, props: { payload: { count: number } }) => [
-                      formatCurrency(value, currency),
-                      `Total Balance (${props.payload.count} accounts)`
+                    formatter={(value: number, name: string, props: { payload?: { count?: number } }) => [
+                      formatCurrency(value, { currency }),
+                      `Total Balance (${props?.payload?.count || 0} accounts)`
                     ]}
                     labelFormatter={(label) => `Account Type: ${label}`}
                   />
@@ -289,7 +289,7 @@ export function DashboardCharts({ currency = 'IDR', className }: DashboardCharts
                   <div>
                     <div className="text-gray-600">On Track Categories</div>
                     <div className="text-lg font-semibold text-green-600">
-                      {data.budget_overview.categories_on_track || 0}
+                      {(data.budget_overview as typeof data.budget_overview & { categories_on_track?: number })?.categories_on_track || 0}
                     </div>
                   </div>
                 </div>
@@ -298,19 +298,19 @@ export function DashboardCharts({ currency = 'IDR', className }: DashboardCharts
                   <div className="flex items-center justify-between text-sm">
                     <span>Total Budget</span>
                     <span className="font-medium">
-                      {formatCurrency(data.budget_overview.total_budget, currency)}
+                      {formatCurrency(data.budget_overview.total_budget, { currency })}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm mt-1">
                     <span>Total Spent</span>
                     <span className="font-medium">
-                      {formatCurrency(data.budget_overview.total_spent, currency)}
+                      {formatCurrency(data.budget_overview.total_spent, { currency })}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm mt-1 font-semibold">
                     <span>Remaining</span>
                     <span className={data.budget_overview.remaining_budget >= 0 ? "text-green-600" : "text-red-600"}>
-                      {formatCurrency(data.budget_overview.remaining_budget, currency)}
+                      {formatCurrency(data.budget_overview.remaining_budget, { currency })}
                     </span>
                   </div>
                 </div>
