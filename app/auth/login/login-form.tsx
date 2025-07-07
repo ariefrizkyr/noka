@@ -50,7 +50,7 @@ export default function LoginForm() {
       return
     }
     toast.success("Logged in successfully!")
-    router.replace("/")
+    router.replace("/dashboard")
   }
 
   return (
