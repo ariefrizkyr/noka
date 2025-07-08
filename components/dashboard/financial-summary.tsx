@@ -117,7 +117,7 @@ export function FinancialSummary({ currency = 'IDR', className }: FinancialSumma
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Financial Overview</h2>
+            <h2 className="text-xl font-bold text-gray-900">Financial Overview</h2>
             <p className="text-sm text-gray-600">
               Period: {periodDisplay}
             </p>
@@ -126,6 +126,8 @@ export function FinancialSummary({ currency = 'IDR', className }: FinancialSumma
       </div>
 
       {/* Summary Cards */}
+      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {summaryCards.map((card, index) => {
           const Icon = card.icon;
