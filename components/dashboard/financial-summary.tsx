@@ -3,7 +3,7 @@
 import { formatCurrency } from '@/lib/currency-utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, DollarSign, ArrowUpRight, ArrowDownRight, Wallet } from 'lucide-react';
+import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Wallet } from 'lucide-react';
 import { format } from 'date-fns';
 import { useDashboardSummary } from '@/hooks/use-dashboard';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -71,7 +71,6 @@ export function FinancialSummary({ currency = 'IDR', className }: FinancialSumma
   // Determine trend indicators
   const isPositiveSavings = financialSummary.net_savings > 0;
   const savingsRate = quickStats?.savings_rate || 0;
-  const budgetHealth = quickStats?.budget_health || 0;
 
   // Format period display
   const periodDisplay = `${format(periodStart, 'MMM d')} - ${format(periodEnd, 'MMM d, yyyy')}`;
@@ -123,14 +122,6 @@ export function FinancialSummary({ currency = 'IDR', className }: FinancialSumma
               Period: {periodDisplay}
             </p>
           </div>
-          <div className="flex gap-2">
-            <Badge variant={savingsRate > 20 ? "default" : savingsRate > 0 ? "secondary" : "destructive"}>
-              Savings Rate: {savingsRate.toFixed(1)}%
-            </Badge>
-            <Badge variant={budgetHealth > 70 ? "default" : budgetHealth > 40 ? "secondary" : "destructive"}>
-              Budget Health: {budgetHealth.toFixed(0)}%
-            </Badge>
-          </div>
         </div>
       </div>
 
@@ -166,55 +157,6 @@ export function FinancialSummary({ currency = 'IDR', className }: FinancialSumma
           );
         })}
       </div>
-
-      {/* Quick Insights */}
-      {quickStats && (
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <DollarSign className="h-8 w-8 text-blue-600" />
-                <div>
-                  <p className="text-sm font-medium text-blue-900">Monthly Income</p>
-                  <p className="text-xl font-bold text-blue-900">
-                    {formatCurrency(quickStats.monthly_income, { currency })}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-r from-green-50 to-emerald-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="h-8 w-8 text-green-600" />
-                <div>
-                  <p className="text-sm font-medium text-green-900">Savings Rate</p>
-                  <p className="text-xl font-bold text-green-900">{savingsRate.toFixed(1)}%</p>
-                  <p className="text-xs text-green-700">
-                    {formatCurrency(quickStats.monthly_savings, { currency })} saved
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-r from-purple-50 to-pink-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Wallet className="h-8 w-8 text-purple-600" />
-                <div>
-                  <p className="text-sm font-medium text-purple-900">Budget Health</p>
-                  <p className="text-xl font-bold text-purple-900">{budgetHealth.toFixed(0)}%</p>
-                  <p className="text-xs text-purple-700">
-                    {budgetHealth > 70 ? 'Excellent' : budgetHealth > 40 ? 'Good' : 'Needs attention'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 }

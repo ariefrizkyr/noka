@@ -1,12 +1,10 @@
 "use client"
 
-import { formatCurrency } from '@/lib/currency-utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ProgressCard } from './progress-card';
 import { useInvestmentOverview } from '@/hooks/use-dashboard';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TrendingUp, Target, Award, PiggyBank } from 'lucide-react';
+import { PiggyBank } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -85,82 +83,8 @@ export function InvestmentOverview({
   const monthlyGoals = investmentProgress.filter(investment => investment.target_frequency === 'monthly');
   const oneTimeGoals = investmentProgress.filter(investment => investment.target_frequency === 'one_time');
 
-  // Overview stats
-  const overviewStats = [
-    {
-      title: "Total Target",
-      value: investmentOverview.total_target,
-      icon: Target,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
-    },
-    {
-      title: "Total Invested",
-      value: investmentOverview.total_invested,
-      icon: TrendingUp,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
-      badge: `${(investmentOverview?.average_progress || 0).toFixed(1)}%`,
-    },
-    {
-      title: "Remaining",
-      value: investmentOverview.remaining_to_invest,
-      icon: PiggyBank,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-    },
-  ];
-
   return (
     <div className={className}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Investment Overview</h2>
-          <p className="text-sm text-gray-600">
-            Track progress towards your financial goals
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {investmentProgress.filter(inv => (inv.progress_percentage || 0) >= 100).length > 0 && (
-            <Badge variant="default">
-              {investmentProgress.filter(inv => (inv.progress_percentage || 0) >= 100).length} completed
-            </Badge>
-          )}
-          <Badge variant="outline">
-            {investmentProgress.length} goals
-          </Badge>
-        </div>
-      </div>
-
-      {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {overviewStats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={index}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
-                  {stat.title}
-                </CardTitle>
-                <div className={`p-2 rounded-full ${stat.bgColor}`}>
-                  <Icon className={`h-4 w-4 ${stat.color}`} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatCurrency(stat.value, { currency })}
-                </div>
-                {stat.badge && (
-                  <Badge variant="outline" className="mt-1">
-                    {stat.badge}
-                  </Badge>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
 
       {/* Monthly Investment Goals */}
       {monthlyGoals.length > 0 && (
@@ -227,54 +151,6 @@ export function InvestmentOverview({
           )}
         </div>
       )}
-
-      {/* Investment Progress Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="bg-gradient-to-r from-green-50 to-emerald-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-lg font-semibold text-green-900">Completion Rate</h4>
-                <p className="text-sm text-green-700">
-                  {(investmentOverview?.investment_completion_rate || 0) > 75 
-                    ? "Excellent progress! You're on track with your goals."
-                    : (investmentOverview?.investment_completion_rate || 0) > 50
-                    ? "Good progress! Keep up the momentum."
-                    : "Early stages. Consider increasing your investment contributions."
-                  }
-                </p>
-              </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-green-900">
-                  {(investmentOverview?.investment_completion_rate || 0).toFixed(1)}%
-                </div>
-                <div className="text-sm text-green-700">Complete</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-purple-50 to-pink-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-lg font-semibold text-purple-900">Goal Status</h4>
-                <div className="space-y-1 text-sm text-purple-700">
-                  <div>{investmentOverview?.categories_completed || 0} completed</div>
-                  <div>{investmentOverview?.categories_on_track || 0} on track</div>
-                  <div>{investmentOverview?.categories_starting || 0} starting</div>
-                </div>
-              </div>
-              <div className="text-right">
-                <Award className="h-8 w-8 text-purple-600" />
-                <div className="text-sm text-purple-700 mt-1">
-                  {investmentOverview?.total_categories || 0} goals
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
