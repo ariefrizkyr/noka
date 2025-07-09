@@ -1,12 +1,13 @@
 "use client";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ProgressCard } from "./progress-card";
 import { useBudgetOverview } from "@/hooks/use-dashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DollarSign } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { formatCurrency } from "@/lib/currency-utils";
 
 interface BudgetOverviewProps {
   currency?: string;
@@ -26,20 +27,32 @@ export function BudgetOverview({
     return (
       <div className={className}>
         <div className="space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i}>
-                <CardHeader>
-                  <Skeleton className="h-4 w-20" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="mb-2 h-8 w-24" />
-                  <Skeleton className="h-3 w-32" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div className={className}>
+              <div className="flex flex-row rounded-lg border border-zinc-100 bg-white p-2">
+                {/* Column 1: 33% width, content aligned left. */}
+                <div className="flex w-2/6 items-start justify-start">
+                  <div className="text-left">
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                </div>
+
+                {/* Column 2: 33% width, content aligned right. */}
+                <div className="flex w-2/6 items-start justify-end">
+                  <div className="text-right">
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                </div>
+
+                {/* Column 3: 33% width, content aligned right. */}
+                <div className="flex w-2/6 items-start justify-end">
+                  <div className="text-right">
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -102,6 +115,36 @@ export function BudgetOverview({
   const weeklyDaysLeft = Math.ceil(differenceInWeeks / (1000 * 60 * 60 * 24));
   const monthlyDaysLeft = Math.ceil(differenceInMonths / (1000 * 60 * 60 * 24));
 
+  // Calculate sums for weekly budgets
+  const weeklyBudgetedSum = weeklyBudgets.reduce(
+    (sum, budget) => sum + budget.budget_amount,
+    0,
+  );
+  const weeklyRemainingSum = weeklyBudgets.reduce(
+    (sum, budget) => sum + (budget.budget_amount - budget.spent_amount),
+    0,
+  );
+
+  // Calculate sums for monthly budgets
+  const monthlyBudgetedSum = monthlyBudgets.reduce(
+    (sum, budget) => sum + budget.budget_amount,
+    0,
+  );
+  const monthlyRemainingSum = monthlyBudgets.reduce(
+    (sum, budget) => sum + (budget.budget_amount - budget.spent_amount),
+    0,
+  );
+
+  // Calculate sums for one-time budgets
+  const oneTimeBudgetedSum = oneTimeBudgets.reduce(
+    (sum, budget) => sum + budget.budget_amount,
+    0,
+  );
+  const oneTimeRemainingSum = oneTimeBudgets.reduce(
+    (sum, budget) => sum + (budget.budget_amount - budget.spent_amount),
+    0,
+  );
+
   return (
     <div className={className}>
       {/* Weekly Budgets */}
@@ -113,8 +156,8 @@ export function BudgetOverview({
               <div className="text-left">
                 <span className="text-xs text-gray-400">Weekly</span>
                 <br />
-                <span className="text-xs text-gray-800">
-                  {weeklyDaysLeft} days left
+                <span className="text-xs font-medium text-gray-800">
+                  {weeklyDaysLeft} days to go
                 </span>
               </div>
             </div>
@@ -124,9 +167,8 @@ export function BudgetOverview({
               <div className="text-right">
                 <span className="text-xs text-gray-400">Budgeted</span>
                 <br />
-                <span className="text-xs whitespace-nowrap text-gray-800">
-                  {/* TODO: replace with dynamic sum of all weekly budgets */}
-                  Rp 1.000.000
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                  {formatCurrency(weeklyBudgetedSum, { currency })}
                 </span>
               </div>
             </div>
@@ -136,9 +178,8 @@ export function BudgetOverview({
               <div className="text-right">
                 <span className="text-xs text-gray-400">Remaining</span>
                 <br />
-                <span className="text-xs whitespace-nowrap text-gray-800">
-                  {/* TODO: replace with dynamic sum of all weekly remaining budgets */}
-                  Rp 2.500.000
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                  {formatCurrency(weeklyRemainingSum, { currency })}
                 </span>
               </div>
             </div>
@@ -175,8 +216,8 @@ export function BudgetOverview({
               <div className="text-left">
                 <span className="text-xs text-gray-400">Monthly</span>
                 <br />
-                <span className="text-xs text-gray-800">
-                  {monthlyDaysLeft} days left
+                <span className="text-xs font-medium text-gray-800">
+                  {monthlyDaysLeft} days to go
                 </span>
               </div>
             </div>
@@ -186,9 +227,8 @@ export function BudgetOverview({
               <div className="text-right">
                 <span className="text-xs text-gray-400">Budgeted</span>
                 <br />
-                <span className="text-xs whitespace-nowrap text-gray-800">
-                  {/* TODO: replace with dynamic sum of all monthly budgets */}
-                  Rp 1.000.000
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                  {formatCurrency(monthlyBudgetedSum, { currency })}
                 </span>
               </div>
             </div>
@@ -198,9 +238,8 @@ export function BudgetOverview({
               <div className="text-right">
                 <span className="text-xs text-gray-400">Remaining</span>
                 <br />
-                <span className="text-xs whitespace-nowrap text-gray-800">
-                  {/* TODO: replace with dynamic sum of all monthly remaining budgets */}
-                  Rp 2.500.000
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                  {formatCurrency(monthlyRemainingSum, { currency })}
                 </span>
               </div>
             </div>
@@ -243,7 +282,9 @@ export function BudgetOverview({
               <div className="text-left">
                 <span className="text-xs text-gray-400">One-time</span>
                 <br />
-                <span className="text-xs text-gray-800">All time</span>
+                <span className="text-xs font-medium text-gray-800">
+                  All time
+                </span>
               </div>
             </div>
 
@@ -252,9 +293,8 @@ export function BudgetOverview({
               <div className="text-right">
                 <span className="text-xs text-gray-400">Budgeted</span>
                 <br />
-                <span className="text-xs whitespace-nowrap text-gray-800">
-                  {/* TODO: replace with dynamic sum of all all-time budgets */}
-                  Rp 1.000.000
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                  {formatCurrency(oneTimeBudgetedSum, { currency })}
                 </span>
               </div>
             </div>
@@ -264,9 +304,8 @@ export function BudgetOverview({
               <div className="text-right">
                 <span className="text-xs text-gray-400">Remaining</span>
                 <br />
-                <span className="text-xs whitespace-nowrap text-gray-800">
-                  {/* TODO: replace with dynamic sum of all all-time remaining budgets */}
-                  Rp 2.500.000
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                  {formatCurrency(oneTimeRemainingSum, { currency })}
                 </span>
               </div>
             </div>

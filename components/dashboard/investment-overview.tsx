@@ -1,12 +1,13 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ProgressCard } from "./progress-card";
 import { useInvestmentOverview } from "@/hooks/use-dashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PiggyBank } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { formatCurrency } from "@/lib/currency-utils";
 
 interface InvestmentOverviewProps {
   currency?: string;
@@ -26,20 +27,32 @@ export function InvestmentOverview({
     return (
       <div className={className}>
         <div className="space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i}>
-                <CardHeader>
-                  <Skeleton className="h-4 w-20" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="mb-2 h-8 w-24" />
-                  <Skeleton className="h-3 w-32" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div className={className}>
+              <div className="flex flex-row rounded-lg border border-zinc-100 bg-white p-2">
+                {/* Column 1: 33% width, content aligned left. */}
+                <div className="flex w-2/6 items-start justify-start">
+                  <div className="text-left">
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                </div>
+
+                {/* Column 2: 33% width, content aligned right. */}
+                <div className="flex w-2/6 items-start justify-end">
+                  <div className="text-right">
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                </div>
+
+                {/* Column 3: 33% width, content aligned right. */}
+                <div className="flex w-2/6 items-start justify-end">
+                  <div className="text-right">
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -95,6 +108,26 @@ export function InvestmentOverview({
 
   const monthlyDaysLeft = Math.ceil(differenceInMonths / (1000 * 60 * 60 * 24));
 
+  // Calculate sums for monthly investment goals
+  const monthlyTargetedSum = monthlyGoals.reduce(
+    (sum, investment) => sum + investment.target_amount,
+    0,
+  );
+  const monthlyInvestedSum = monthlyGoals.reduce(
+    (sum, investment) => sum + investment.invested_amount,
+    0,
+  );
+
+  // Calculate sums for one-time investment goals
+  const oneTimeTargetedSum = oneTimeGoals.reduce(
+    (sum, investment) => sum + investment.target_amount,
+    0,
+  );
+  const oneTimeInvestedSum = oneTimeGoals.reduce(
+    (sum, investment) => sum + investment.invested_amount,
+    0,
+  );
+
   return (
     <div className={className}>
       {/* Monthly Investment Goals */}
@@ -106,8 +139,8 @@ export function InvestmentOverview({
               <div className="text-left">
                 <span className="text-xs text-gray-400">Monthly</span>
                 <br />
-                <span className="text-xs text-gray-800">
-                  {monthlyDaysLeft} days left
+                <span className="text-xs font-medium text-gray-800">
+                  {monthlyDaysLeft} days to go
                 </span>
               </div>
             </div>
@@ -117,9 +150,8 @@ export function InvestmentOverview({
               <div className="text-right">
                 <span className="text-xs text-gray-400">Targeted</span>
                 <br />
-                <span className="text-xs whitespace-nowrap text-gray-800">
-                  {/* TODO: replace with dynamic sum of all monthly target */}
-                  Rp 1.000.000
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                  {formatCurrency(monthlyTargetedSum, { currency })}
                 </span>
               </div>
             </div>
@@ -129,9 +161,8 @@ export function InvestmentOverview({
               <div className="text-right">
                 <span className="text-xs text-gray-400">Invested</span>
                 <br />
-                <span className="text-xs whitespace-nowrap text-gray-800">
-                  {/* TODO: replace with dynamic sum of all monthly invested amount */}
-                  Rp 2.500.000
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                  {formatCurrency(monthlyInvestedSum, { currency })}
                 </span>
               </div>
             </div>
@@ -177,7 +208,9 @@ export function InvestmentOverview({
               <div className="text-left">
                 <span className="text-xs text-gray-400">One-time</span>
                 <br />
-                <span className="text-xs text-gray-800">All time</span>
+                <span className="text-xs font-medium text-gray-800">
+                  All time
+                </span>
               </div>
             </div>
 
@@ -186,9 +219,8 @@ export function InvestmentOverview({
               <div className="text-right">
                 <span className="text-xs text-gray-400">Targeted</span>
                 <br />
-                <span className="text-xs whitespace-nowrap text-gray-800">
-                  {/* TODO: replace with dynamic sum of all all-time target */}
-                  Rp 1.000.000
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                  {formatCurrency(oneTimeTargetedSum, { currency })}
                 </span>
               </div>
             </div>
@@ -198,9 +230,8 @@ export function InvestmentOverview({
               <div className="text-right">
                 <span className="text-xs text-gray-400">Invested</span>
                 <br />
-                <span className="text-xs whitespace-nowrap text-gray-800">
-                  {/* TODO: replace with dynamic sum of all all-time invested amount */}
-                  Rp 2.500.000
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                  {formatCurrency(oneTimeInvestedSum, { currency })}
                 </span>
               </div>
             </div>
