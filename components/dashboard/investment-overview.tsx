@@ -186,13 +186,8 @@ export function InvestmentOverview({
                   currentAmount={investment.invested_amount}
                   targetAmount={investment.target_amount}
                   percentage={investment.progress_percentage}
-                  frequency="monthly"
                   currency={currency}
                   type="investment"
-                  period={{
-                    start: investment.period_start,
-                    end: investment.period_end,
-                  }}
                 />
               ))}
           </div>
@@ -253,7 +248,6 @@ export function InvestmentOverview({
                 currentAmount={investment.invested_amount}
                 targetAmount={investment.target_amount}
                 percentage={investment.progress_percentage}
-                frequency="one_time"
                 currency={currency}
                 type="investment"
               />

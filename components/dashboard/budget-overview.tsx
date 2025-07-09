@@ -211,13 +211,8 @@ export function BudgetOverview({
                 currentAmount={budget.spent_amount}
                 targetAmount={budget.budget_amount}
                 percentage={budget.progress_percentage}
-                frequency="weekly"
                 currency={currency}
                 type="budget"
-                period={{
-                  start: budget.period_start,
-                  end: budget.period_end,
-                }}
               />
             ))}
         </div>
@@ -270,13 +265,8 @@ export function BudgetOverview({
                 currentAmount={budget.spent_amount}
                 targetAmount={budget.budget_amount}
                 percentage={budget.progress_percentage}
-                frequency="monthly"
                 currency={currency}
                 type="budget"
-                period={{
-                  start: budget.period_start,
-                  end: budget.period_end,
-                }}
               />
             ))}
           {!showAllCategories && monthlyBudgets.length > 6 && (
@@ -334,7 +324,6 @@ export function BudgetOverview({
               currentAmount={budget.spent_amount}
               targetAmount={budget.budget_amount}
               percentage={budget.progress_percentage}
-              frequency="one_time"
               currency={currency}
               type="budget"
             />
