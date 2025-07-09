@@ -102,11 +102,18 @@ export function InvestmentOverview({
   );
 
   const today = new Date();
-  const monthlyPeriodEnd = new Date(monthlyGoals[0].period_end);
 
-  const differenceInMonths = monthlyPeriodEnd.getTime() - today.getTime();
+  // Calculate monthly days left only when monthly goals exist
+  let monthlyDaysLeft = 0;
+  if (monthlyGoals.length > 0) {
+    const monthlyPeriodEnd = new Date(monthlyGoals[0].period_end);
 
-  const monthlyDaysLeft = Math.ceil(differenceInMonths / (1000 * 60 * 60 * 24));
+    // Validate the date
+    if (!isNaN(monthlyPeriodEnd.getTime())) {
+      const differenceInMs = monthlyPeriodEnd.getTime() - today.getTime();
+      monthlyDaysLeft = Math.ceil(differenceInMs / (1000 * 60 * 60 * 24));
+    }
+  }
 
   // Calculate sums for monthly investment goals
   const monthlyTargetedSum = monthlyGoals.reduce(

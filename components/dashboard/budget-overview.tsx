@@ -106,14 +106,30 @@ export function BudgetOverview({
   );
 
   const today = new Date();
-  const weeklyPeriodEnd = new Date(weeklyBudgets[0].period_end);
-  const monthlyPeriodEnd = new Date(monthlyBudgets[0].period_end);
 
-  const differenceInWeeks = weeklyPeriodEnd.getTime() - today.getTime();
-  const differenceInMonths = monthlyPeriodEnd.getTime() - today.getTime();
+  // Calculate weekly days left only when weekly budgets exist
+  let weeklyDaysLeft = 0;
+  if (weeklyBudgets.length > 0) {
+    const weeklyPeriodEnd = new Date(weeklyBudgets[0].period_end);
 
-  const weeklyDaysLeft = Math.ceil(differenceInWeeks / (1000 * 60 * 60 * 24));
-  const monthlyDaysLeft = Math.ceil(differenceInMonths / (1000 * 60 * 60 * 24));
+    // Validate the date
+    if (!isNaN(weeklyPeriodEnd.getTime())) {
+      const differenceInMs = weeklyPeriodEnd.getTime() - today.getTime();
+      weeklyDaysLeft = Math.ceil(differenceInMs / (1000 * 60 * 60 * 24));
+    }
+  }
+
+  // Calculate monthly days left only when monthly budgets exist
+  let monthlyDaysLeft = 0;
+  if (monthlyBudgets.length > 0) {
+    const monthlyPeriodEnd = new Date(monthlyBudgets[0].period_end);
+
+    // Validate the date
+    if (!isNaN(monthlyPeriodEnd.getTime())) {
+      const differenceInMs = monthlyPeriodEnd.getTime() - today.getTime();
+      monthlyDaysLeft = Math.ceil(differenceInMs / (1000 * 60 * 60 * 24));
+    }
+  }
 
   // Calculate sums for weekly budgets
   const weeklyBudgetedSum = weeklyBudgets.reduce(
