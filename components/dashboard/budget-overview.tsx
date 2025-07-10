@@ -28,7 +28,7 @@ export function BudgetOverview({
       <div className={className}>
         <div className="space-y-4">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div className={className}>
+            <div key={i} className={className}>
               <div className="flex flex-row rounded-lg border border-zinc-100 bg-white p-2">
                 {/* Column 1: 33% width, content aligned left. */}
                 <div className="flex w-2/6 items-start justify-start">
@@ -170,10 +170,10 @@ export function BudgetOverview({
             {/* Column 1: 33% width, content aligned left. */}
             <div className="flex w-2/6 items-start justify-start">
               <div className="text-left">
-                <span className="text-xs text-gray-400">Weekly</span>
+                <span className="text-xs text-gray-400 sm:text-sm">Weekly</span>
                 <br />
-                <span className="text-xs font-medium text-gray-800">
-                  {weeklyDaysLeft} days to go
+                <span className="text-xs font-medium text-gray-800 sm:text-sm">
+                  {weeklyDaysLeft} days left
                 </span>
               </div>
             </div>
@@ -181,9 +181,11 @@ export function BudgetOverview({
             {/* Column 2: 33% width, content aligned right. */}
             <div className="flex w-2/6 items-start justify-end">
               <div className="text-right">
-                <span className="text-xs text-gray-400">Budgeted</span>
+                <span className="text-xs text-gray-400 sm:text-sm">
+                  Budgeted
+                </span>
                 <br />
-                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800 sm:text-sm">
                   {formatCurrency(weeklyBudgetedSum, { currency })}
                 </span>
               </div>
@@ -192,9 +194,11 @@ export function BudgetOverview({
             {/* Column 3: 33% width, content aligned right. */}
             <div className="flex w-2/6 items-start justify-end">
               <div className="text-right">
-                <span className="text-xs text-gray-400">Remaining</span>
+                <span className="text-xs text-gray-400 sm:text-sm">
+                  Remaining
+                </span>
                 <br />
-                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800 sm:text-sm">
                   {formatCurrency(weeklyRemainingSum, { currency })}
                 </span>
               </div>
@@ -215,6 +219,13 @@ export function BudgetOverview({
                 type="budget"
               />
             ))}
+          {!showAllCategories && weeklyBudgets.length > 6 && (
+            <div className="mt-4 text-center">
+              <Button variant="outline" size="sm">
+                View All {weeklyBudgets.length} Weekly Budgets
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
@@ -225,10 +236,12 @@ export function BudgetOverview({
             {/* Column 1: 33% width, content aligned left. */}
             <div className="flex w-2/6 items-start justify-start">
               <div className="text-left">
-                <span className="text-xs text-gray-400">Monthly</span>
+                <span className="text-xs text-gray-400 sm:text-sm">
+                  Monthly
+                </span>
                 <br />
-                <span className="text-xs font-medium text-gray-800">
-                  {monthlyDaysLeft} days to go
+                <span className="text-xs font-medium text-gray-800 sm:text-sm">
+                  {monthlyDaysLeft} days left
                 </span>
               </div>
             </div>
@@ -236,9 +249,11 @@ export function BudgetOverview({
             {/* Column 2: 33% width, content aligned right. */}
             <div className="flex w-2/6 items-start justify-end">
               <div className="text-right">
-                <span className="text-xs text-gray-400">Budgeted</span>
+                <span className="text-xs text-gray-400 sm:text-sm">
+                  Budgeted
+                </span>
                 <br />
-                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800 sm:text-sm">
                   {formatCurrency(monthlyBudgetedSum, { currency })}
                 </span>
               </div>
@@ -247,9 +262,11 @@ export function BudgetOverview({
             {/* Column 3: 33% width, content aligned right. */}
             <div className="flex w-2/6 items-start justify-end">
               <div className="text-right">
-                <span className="text-xs text-gray-400">Remaining</span>
+                <span className="text-xs text-gray-400 sm:text-sm">
+                  Remaining
+                </span>
                 <br />
-                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800 sm:text-sm">
                   {formatCurrency(monthlyRemainingSum, { currency })}
                 </span>
               </div>
@@ -286,9 +303,11 @@ export function BudgetOverview({
             {/* Column 1: 33% width, content aligned left. */}
             <div className="flex w-2/6 items-start justify-start">
               <div className="text-left">
-                <span className="text-xs text-gray-400">One-time</span>
+                <span className="text-xs text-gray-400 sm:text-sm">
+                  One-time
+                </span>
                 <br />
-                <span className="text-xs font-medium text-gray-800">
+                <span className="text-xs font-medium text-gray-800 sm:text-sm">
                   All time
                 </span>
               </div>
@@ -297,9 +316,11 @@ export function BudgetOverview({
             {/* Column 2: 33% width, content aligned right. */}
             <div className="flex w-2/6 items-start justify-end">
               <div className="text-right">
-                <span className="text-xs text-gray-400">Budgeted</span>
+                <span className="text-xs text-gray-400 sm:text-sm">
+                  Budgeted
+                </span>
                 <br />
-                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800 sm:text-sm">
                   {formatCurrency(oneTimeBudgetedSum, { currency })}
                 </span>
               </div>
@@ -308,26 +329,37 @@ export function BudgetOverview({
             {/* Column 3: 33% width, content aligned right. */}
             <div className="flex w-2/6 items-start justify-end">
               <div className="text-right">
-                <span className="text-xs text-gray-400">Remaining</span>
+                <span className="text-xs text-gray-400 sm:text-sm">
+                  Remaining
+                </span>
                 <br />
-                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800 sm:text-sm">
                   {formatCurrency(oneTimeRemainingSum, { currency })}
                 </span>
               </div>
             </div>
           </div>
-          {oneTimeBudgets.map((budget) => (
-            <ProgressCard
-              key={budget.category_id}
-              title={budget.category_name}
-              icon={budget.category_icon}
-              currentAmount={budget.spent_amount}
-              targetAmount={budget.budget_amount}
-              percentage={budget.progress_percentage}
-              currency={currency}
-              type="budget"
-            />
-          ))}
+          {oneTimeBudgets
+            .slice(0, showAllCategories ? undefined : 6)
+            .map((budget) => (
+              <ProgressCard
+                key={budget.category_id}
+                title={budget.category_name}
+                icon={budget.category_icon}
+                currentAmount={budget.spent_amount}
+                targetAmount={budget.budget_amount}
+                percentage={budget.progress_percentage}
+                currency={currency}
+                type="budget"
+              />
+            ))}
+          {!showAllCategories && oneTimeBudgets.length > 6 && (
+            <div className="mt-4 text-center">
+              <Button variant="outline" size="sm">
+                View All {oneTimeBudgets.length} One-time Budgets
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

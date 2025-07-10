@@ -28,7 +28,7 @@ export function InvestmentOverview({
       <div className={className}>
         <div className="space-y-4">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div className={className}>
+            <div key={i} className={className}>
               <div className="flex flex-row rounded-lg border border-zinc-100 bg-white p-2">
                 {/* Column 1: 33% width, content aligned left. */}
                 <div className="flex w-2/6 items-start justify-start">
@@ -144,10 +144,12 @@ export function InvestmentOverview({
             {/* Column 1: 33% width, content aligned left. */}
             <div className="flex w-2/6 items-start justify-start">
               <div className="text-left">
-                <span className="text-xs text-gray-400">Monthly</span>
+                <span className="text-xs text-gray-400 sm:text-sm">
+                  Monthly
+                </span>
                 <br />
-                <span className="text-xs font-medium text-gray-800">
-                  {monthlyDaysLeft} days to go
+                <span className="text-xs font-medium text-gray-800 sm:text-sm">
+                  {monthlyDaysLeft} days left
                 </span>
               </div>
             </div>
@@ -155,9 +157,11 @@ export function InvestmentOverview({
             {/* Column 2: 33% width, content aligned right. */}
             <div className="flex w-2/6 items-start justify-end">
               <div className="text-right">
-                <span className="text-xs text-gray-400">Targeted</span>
+                <span className="text-xs text-gray-400 sm:text-sm">
+                  Targeted
+                </span>
                 <br />
-                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800 sm:text-sm">
                   {formatCurrency(monthlyTargetedSum, { currency })}
                 </span>
               </div>
@@ -166,31 +170,31 @@ export function InvestmentOverview({
             {/* Column 3: 33% width, content aligned right. */}
             <div className="flex w-2/6 items-start justify-end">
               <div className="text-right">
-                <span className="text-xs text-gray-400">Invested</span>
+                <span className="text-xs text-gray-400 sm:text-sm">
+                  Invested
+                </span>
                 <br />
-                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800 sm:text-sm">
                   {formatCurrency(monthlyInvestedSum, { currency })}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {monthlyGoals
-              .slice(0, showAllCategories ? undefined : 6)
-              .map((investment) => (
-                <ProgressCard
-                  key={investment.category_id}
-                  title={investment.category_name}
-                  icon={investment.category_icon}
-                  currentAmount={investment.invested_amount}
-                  targetAmount={investment.target_amount}
-                  percentage={investment.progress_percentage}
-                  currency={currency}
-                  type="investment"
-                />
-              ))}
-          </div>
+          {monthlyGoals
+            .slice(0, showAllCategories ? undefined : 6)
+            .map((investment) => (
+              <ProgressCard
+                key={investment.category_id}
+                title={investment.category_name}
+                icon={investment.category_icon}
+                currentAmount={investment.invested_amount}
+                targetAmount={investment.target_amount}
+                percentage={investment.progress_percentage}
+                currency={currency}
+                type="investment"
+              />
+            ))}
           {!showAllCategories && monthlyGoals.length > 6 && (
             <div className="mt-4 text-center">
               <Button variant="outline" size="sm">
@@ -208,9 +212,11 @@ export function InvestmentOverview({
             {/* Column 1: 33% width, content aligned left. */}
             <div className="flex w-2/6 items-start justify-start">
               <div className="text-left">
-                <span className="text-xs text-gray-400">One-time</span>
+                <span className="text-xs text-gray-400 sm:text-sm">
+                  One-time
+                </span>
                 <br />
-                <span className="text-xs font-medium text-gray-800">
+                <span className="text-xs font-medium text-gray-800 sm:text-sm">
                   All time
                 </span>
               </div>
@@ -219,9 +225,11 @@ export function InvestmentOverview({
             {/* Column 2: 33% width, content aligned right. */}
             <div className="flex w-2/6 items-start justify-end">
               <div className="text-right">
-                <span className="text-xs text-gray-400">Targeted</span>
+                <span className="text-xs text-gray-400 sm:text-sm">
+                  Targeted
+                </span>
                 <br />
-                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800 sm:text-sm">
                   {formatCurrency(oneTimeTargetedSum, { currency })}
                 </span>
               </div>
@@ -230,9 +238,11 @@ export function InvestmentOverview({
             {/* Column 3: 33% width, content aligned right. */}
             <div className="flex w-2/6 items-start justify-end">
               <div className="text-right">
-                <span className="text-xs text-gray-400">Invested</span>
+                <span className="text-xs text-gray-400 sm:text-sm">
+                  Invested
+                </span>
                 <br />
-                <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+                <span className="text-xs font-medium whitespace-nowrap text-gray-800 sm:text-sm">
                   {formatCurrency(oneTimeInvestedSum, { currency })}
                 </span>
               </div>

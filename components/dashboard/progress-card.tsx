@@ -61,13 +61,15 @@ export function ProgressCard({
         <div className="flex w-2/6 items-start justify-start">
           <div className="text-left">
             <span className="text-md mr-1">{icon}</span>
-            <span className="text-sm font-medium text-gray-800">{title}</span>
+            <span className="text-xs font-medium text-gray-800 sm:text-sm">
+              {title}
+            </span>
           </div>
         </div>
 
         <div className="flex w-2/6 items-start justify-end">
           <div className="text-right">
-            <span className="text-xs font-medium whitespace-nowrap text-gray-800">
+            <span className="text-xs font-medium whitespace-nowrap text-gray-800 sm:text-sm">
               {formatCurrency(targetAmount, { currency })}
             </span>
           </div>
@@ -75,7 +77,7 @@ export function ProgressCard({
 
         <div className="flex w-2/6 items-start justify-end">
           <div className="text-right">
-            <Badge className={cn(statusBadge.className, "text-xs")}>
+            <Badge className={cn(statusBadge.className, "text-xs sm:text-sm")}>
               {type === "budget"
                 ? formatCurrency(remainingAmount, { currency })
                 : formatCurrency(currentAmount, { currency })}
