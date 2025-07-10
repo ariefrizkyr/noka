@@ -18,8 +18,7 @@ export function DashboardTabs({
   className,
   defaultTab = "expenses",
 }: DashboardTabsProps) {
-  const { budgetProgress, investmentProgress, recentTransactions, loading } =
-    useDashboard();
+  const { budgetProgress, investmentProgress, loading } = useDashboard();
 
   // Calculate tab indicators
   const expenseTabIndicators = {

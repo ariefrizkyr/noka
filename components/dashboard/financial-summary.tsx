@@ -1,14 +1,12 @@
 "use client";
 
 import { formatCurrency } from "@/lib/currency-utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   TrendingUp,
   TrendingDown,
   ArrowUpRight,
   ArrowDownRight,
-  Wallet,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useDashboardSummary } from "@/hooks/use-dashboard";
