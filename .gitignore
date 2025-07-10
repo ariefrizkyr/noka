@@ -58,10 +58,12 @@ node_modules/
 *.sln
 *.sw?
 
+# Cursor
+.cursor/mcp.json
+.claude/settings.local.json
+
 # OS specific
 
 # Task files
 # tasks.json
 # tasks/ 
-
-.cursor/mcp.json
