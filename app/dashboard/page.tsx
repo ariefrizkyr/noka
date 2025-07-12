@@ -14,23 +14,15 @@ export default function DashboardPage() {
       <MainLayout>
         <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
           <div className="space-y-6">
-            {/* Loading skeleton for header */}
-            <div className="space-y-2">
-              <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-4 w-96" />
-            </div>
-
             {/* Loading skeleton for summary cards */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Card key={i}>
-                  <CardContent className="pt-6">
-                    <Skeleton className="mb-2 h-4 w-20" />
-                    <Skeleton className="mb-2 h-8 w-24" />
-                    <Skeleton className="h-3 w-16" />
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <Skeleton className="mb-2 h-4 w-24" />
+                  <Skeleton className="mb-2 h-4 w-24" />
+                  <Skeleton className="h-4 w-24" />
+                </CardContent>
+              </Card>
             </div>
 
             {/* Loading skeleton for tabs */}

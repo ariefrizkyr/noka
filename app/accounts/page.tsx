@@ -1,40 +1,47 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wallet, Plus, TrendingUp, CreditCard, Building, Loader2 } from 'lucide-react';
-import { MainLayout } from '@/components/layout/main-layout';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { useApiData } from '@/hooks/use-api-data';
-import { formatCurrency, calculateTotalBalance } from '@/lib/currency-utils';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Wallet,
+  Plus,
+  TrendingUp,
+  CreditCard,
+  Building,
+  Loader2,
+  Banknote,
+} from "lucide-react";
+import { MainLayout } from "@/components/layout/main-layout";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useApiData } from "@/hooks/use-api-data";
+import { formatCurrency, calculateTotalBalance } from "@/lib/currency-utils";
 
-import { Account } from '@/types/common';
+import { Account } from "@/types/common";
 
 export default function AccountsPage() {
-  const { data: accounts, loading } = useApiData<Account[]>('/api/accounts');
+  const { data: accounts, loading } = useApiData<Account[]>("/api/accounts");
 
   const getAccountIcon = (type: string) => {
     switch (type) {
-      case 'bank_account':
+      case "bank_account":
         return <Building className="h-5 w-5" />;
-      case 'credit_card':
+      case "credit_card":
         return <CreditCard className="h-5 w-5" />;
-      case 'investment_account':
+      case "investment_account":
         return <TrendingUp className="h-5 w-5" />;
       default:
         return <Wallet className="h-5 w-5" />;
     }
   };
 
-
   const getAccountTypeLabel = (type: string) => {
     switch (type) {
-      case 'bank_account':
-        return 'Bank Account';
-      case 'credit_card':
-        return 'Credit Card';
-      case 'investment_account':
-        return 'Investment Account';
+      case "bank_account":
+        return "Bank Account";
+      case "credit_card":
+        return "Credit Card";
+      case "investment_account":
+        return "Investment Account";
       default:
         return type;
     }
@@ -47,7 +54,7 @@ export default function AccountsPage() {
       <MainLayout>
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin" />
+            <Loader2 className="h-6 w-6 animate-spin" />
           </div>
         </div>
       </MainLayout>
@@ -59,13 +66,11 @@ export default function AccountsPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <Wallet className="w-6 h-6 text-blue-600" />
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Accounts
-                </h1>
+              <div className="mb-2 flex items-center gap-3">
+                <Wallet className="h-6 w-6 text-blue-600" />
+                <h1 className="text-3xl font-bold text-gray-900">Accounts</h1>
               </div>
               <p className="text-gray-600">
                 Manage your financial accounts and view balances
@@ -84,9 +89,9 @@ export default function AccountsPage() {
         <Card className="mb-8">
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-sm text-gray-600 mb-2">Total Net Worth</p>
+              <p className="mb-2 text-sm text-gray-600">Total Net Worth</p>
               <p className="text-3xl font-bold text-gray-900">
-                {formatCurrency(totalBalance, { currency: 'IDR' })}
+                {formatCurrency(totalBalance, { currency: "IDR" })}
               </p>
             </div>
           </CardContent>
@@ -95,11 +100,14 @@ export default function AccountsPage() {
         {/* Accounts List */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {(accounts || []).map((account) => (
-            <Card key={account.id} className="hover:shadow-md transition-shadow">
+            <Card
+              key={account.id}
+              className="transition-shadow hover:shadow-md"
+            >
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-full text-blue-600">
+                    <div className="rounded-full bg-blue-100 p-2 text-blue-600">
                       {getAccountIcon(account.type)}
                     </div>
                     <div>
@@ -113,14 +121,24 @@ export default function AccountsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Current Balance</span>
-                    <span className={`font-semibold ${
-                      account.type === 'credit_card' 
-                        ? account.current_balance < 0 ? 'text-red-600' : 'text-green-600'
-                        : account.current_balance >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {formatCurrency(account.current_balance, { currency: 'IDR' })}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">
+                      Current Balance
+                    </span>
+                    <span
+                      className={`font-semibold ${
+                        account.type === "credit_card"
+                          ? account.current_balance < 0
+                            ? "text-red-600"
+                            : "text-green-600"
+                          : account.current_balance >= 0
+                            ? "text-green-600"
+                            : "text-red-600"
+                      }`}
+                    >
+                      {formatCurrency(account.current_balance, {
+                        currency: "IDR",
+                      })}
                     </span>
                   </div>
                 </div>
@@ -131,13 +149,13 @@ export default function AccountsPage() {
 
         {/* Empty State */}
         {(!accounts || accounts.length === 0) && (
-          <Card className="text-center py-12">
+          <Card className="py-12 text-center">
             <CardContent>
-              <Wallet className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <Wallet className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+              <h3 className="mb-2 text-lg font-semibold text-gray-900">
                 No Accounts Yet
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="mb-6 text-gray-600">
                 Add your first financial account to start tracking your finances
               </p>
               <Link href="/settings?tab=accounts">
