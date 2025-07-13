@@ -1,7 +1,7 @@
 "use client";
 
 import { formatCurrency } from "@/lib/currency-utils";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   TrendingUp,
   TrendingDown,
