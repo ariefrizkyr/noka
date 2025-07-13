@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Receipt } from "lucide-react";
 import {
   Dialog,
@@ -50,21 +50,27 @@ export default function TransactionsPage() {
     // Transaction list will auto-refresh via event system
   };
 
-  const getEditFormDefaultValues = () => {
-    if (!editingTransaction) return undefined;
+  // Memoize defaultValues to prevent unnecessary object recreation
+  const editFormDefaultValues = useMemo(() => {
+    if (!editingTransaction) {
+      return undefined;
+    }
 
-    return {
+
+    const defaultValues = {
       type: editingTransaction.type,
       amount: editingTransaction.amount,
       transaction_date: new Date(editingTransaction.transaction_date),
       description: editingTransaction.description || "",
-      account_id: editingTransaction.accounts?.id,
-      category_id: editingTransaction.categories?.id,
-      from_account_id: editingTransaction.from_accounts?.id,
-      to_account_id: editingTransaction.to_accounts?.id,
-      investment_category_id: editingTransaction.investment_categories?.id,
+      account_id: editingTransaction.account_id || undefined,
+      category_id: editingTransaction.category_id || undefined,
+      from_account_id: editingTransaction.from_account_id || undefined,
+      to_account_id: editingTransaction.to_account_id || undefined,
+      investment_category_id: editingTransaction.investment_category_id || undefined,
     };
-  };
+
+    return defaultValues;
+  }, [editingTransaction]);
 
   if (loading) {
     return (
@@ -184,7 +190,7 @@ export default function TransactionsPage() {
           <TransactionForm
             mode="edit"
             transactionId={editingTransaction?.id}
-            defaultValues={getEditFormDefaultValues()}
+            defaultValues={editFormDefaultValues}
             onSuccess={handleTransactionSuccess}
             onCancel={() => {
               setShowEditForm(false);

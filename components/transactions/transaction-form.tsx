@@ -112,6 +112,7 @@ export function TransactionForm({
       transaction_date: new Date(),
       amount: 0,
       description: "",
+      // Merge defaultValues appropriately based on mode
       ...defaultValues,
     },
   });
@@ -122,8 +123,31 @@ export function TransactionForm({
   // Get account details using centralized hook
   const toAccount = getAccountById(watchedToAccountId || "");
 
-  // Reset form fields when transaction type changes
+  // Reset form with defaultValues when they change in edit mode
   useEffect(() => {
+
+    if (mode === "edit" && defaultValues) {
+      
+      const resetData = {
+        type: defaultValues.type || "expense",
+        transaction_date: new Date(),
+        amount: 0,
+        description: "",
+        ...defaultValues,
+      };
+      
+      
+      form.reset(resetData);
+      
+    } else {
+    }
+  }, [mode, defaultValues, form]);
+
+  // Reset form fields when transaction type changes (only in create mode)
+  useEffect(() => {
+    // Skip field reset in edit mode to preserve prepopulated values
+    if (mode === "edit") return;
+    
     if (watchedType === "transfer") {
       form.setValue("account_id", undefined);
       form.setValue("category_id", undefined);
@@ -132,7 +156,7 @@ export function TransactionForm({
       form.setValue("to_account_id", undefined);
       form.setValue("investment_category_id", undefined);
     }
-  }, [watchedType, form]);
+  }, [watchedType, form, mode]);
 
   const onSubmit = async (data: TransactionFormSchema) => {
     clearErrors();
@@ -182,14 +206,27 @@ export function TransactionForm({
             <FormItem>
               <FormLabel>Transaction Type</FormLabel>
               <FormControl>
-                <Tabs value={field.value} onValueChange={field.onChange}>
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="income">Income</TabsTrigger>
-                    <TabsTrigger value="expense">Expense</TabsTrigger>
-                    <TabsTrigger value="transfer">Transfer</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                {mode === "edit" ? (
+                  // In edit mode, show transaction type as read-only
+                  <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm capitalize">
+                    {field.value}
+                  </div>
+                ) : (
+                  // In create mode, allow type selection
+                  <Tabs value={field.value} onValueChange={field.onChange}>
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="income">Income</TabsTrigger>
+                      <TabsTrigger value="expense">Expense</TabsTrigger>
+                      <TabsTrigger value="transfer">Transfer</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                )}
               </FormControl>
+              {mode === "edit" && (
+                <FormDescription>
+                  Transaction type cannot be changed when editing
+                </FormDescription>
+              )}
               <FormMessage />
             </FormItem>
           )}
@@ -256,7 +293,6 @@ export function TransactionForm({
                     disabled={(date) =>
                       date > new Date() || date < new Date("1900-01-01")
                     }
-                    initialFocus
                   />
                 </PopoverContent>
               </Popover>
