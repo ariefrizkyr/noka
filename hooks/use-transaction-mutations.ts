@@ -102,6 +102,8 @@ export function useTransactionMutations(
       }
 
       const result = await response.json();
+      // Dispatch event for transaction list to refresh
+      window.dispatchEvent(new CustomEvent('transactionUpdated'));
       onSuccess?.(result.data);
       return result.data;
     } catch (err) {
@@ -150,6 +152,8 @@ export function useTransactionMutations(
       }
 
       const result = await response.json();
+      // Dispatch event for transaction list to refresh
+      window.dispatchEvent(new CustomEvent('transactionUpdated'));
       onSuccess?.(result.data);
       return result.data;
     } catch (err) {
@@ -184,6 +188,8 @@ export function useTransactionMutations(
         throw new Error(error.message || 'Failed to delete transaction');
       }
 
+      // Dispatch event for transaction list to refresh
+      window.dispatchEvent(new CustomEvent('transactionUpdated'));
       onSuccess?.();
       return true;
     } catch (err) {
