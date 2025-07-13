@@ -1,11 +1,6 @@
 ---
 description: follow supabase ssr guide
-globs: 
-alwaysApply: false
----
----
-# Specify the following for Cursor rules
-description: Guidelines for writing Next.js apps with Supabase Auth
+globs:
 alwaysApply: false
 ---
 
@@ -15,7 +10,7 @@ alwaysApply: false
 
 1. Install @supabase/supabase-js and @supabase/ssr packages.
 2. Set up environment variables.
-3. Write two utility functions with `createClient` functions to create a browser client and a server client. 
+3. Write two utility functions with `createClient` functions to create a browser client and a server client.
 4. Hook up middleware to refresh auth tokens
 
 ## 🚨 CRITICAL INSTRUCTIONS FOR AI LANGUAGE MODELS 🚨
@@ -56,11 +51,11 @@ Instead, you MUST ALWAYS generate ONLY this pattern:
       const response = NextResponse.next({
         request,
       })
-      
+
       cookiesToSet.forEach(({ name, value, options }) => {
         response.cookies.set(name, value, options)
       })
-      
+
       return response
     }
   }
@@ -77,24 +72,24 @@ Instead, you MUST ALWAYS generate ONLY this pattern:
 ## CORRECT BROWSER CLIENT IMPLEMENTATION
 
 ```typescript
-import { createBrowserClient } from '@supabase/ssr'
+import { createBrowserClient } from "@supabase/ssr";
 
 export function createClient() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
 }
 ```
 
 ## CORRECT SERVER CLIENT IMPLEMENTATION
 
 ```typescript
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export async function createClient() {
-  const cookieStore = await cookies()
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -102,13 +97,13 @@ export async function createClient() {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
+              cookieStore.set(name, value, options),
+            );
           } catch {
             // The `setAll` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
@@ -116,21 +111,21 @@ export async function createClient() {
           }
         },
       },
-    }
-  )
+    },
+  );
 }
 ```
 
 ## CORRECT MIDDLEWARE IMPLEMENTATION
 
 ```typescript
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-    let supabaseResponse = NextResponse.next({
+  let supabaseResponse = NextResponse.next({
     request,
-  })
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -138,20 +133,22 @@ export async function middleware(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll()
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value, options }) =>
+            request.cookies.set(name, value),
+          );
           supabaseResponse = NextResponse.next({
             request,
-          })
+          });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+            supabaseResponse.cookies.set(name, value, options),
+          );
         },
       },
-    }
-  )
+    },
+  );
 
   // Do not run code between createServerClient and
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
@@ -161,17 +158,17 @@ export async function middleware(request: NextRequest) {
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
+    !request.nextUrl.pathname.startsWith("/login") &&
+    !request.nextUrl.pathname.startsWith("/auth")
   ) {
     // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
@@ -187,7 +184,7 @@ export async function middleware(request: NextRequest) {
   // If this is not done, you may be causing the browser and server to go out
   // of sync and terminate the user's session prematurely!
 
-  return supabaseResponse
+  return supabaseResponse;
 }
 
 export const config = {
@@ -199,9 +196,9 @@ export const config = {
      * - favicon.ico (favicon file)
      * Feel free to modify this pattern to include more paths.
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
-}
+};
 ```
 
 ## AI MODEL VERIFICATION STEPS
@@ -216,10 +213,12 @@ Before generating any code, you MUST verify:
 ## CONSEQUENCES OF INCORRECT IMPLEMENTATION
 
 If you generate code using:
+
 - Individual cookie methods (`get`/`set`/`remove`)
 - `auth-helpers-nextjs` package
 
 The implementation will:
+
 1. Break in production
 2. Fail to maintain session state
 3. Cause authentication loops
@@ -228,6 +227,7 @@ The implementation will:
 ## AI MODEL RESPONSE TEMPLATE
 
 When asked about Supabase Auth SSR implementation, you MUST:
+
 1. ONLY use code from this guide
 2. NEVER suggest deprecated approaches
 3. ALWAYS use the exact cookie handling shown above

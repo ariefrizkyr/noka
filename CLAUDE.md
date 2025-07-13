@@ -18,6 +18,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run test:coverage` - Run tests with coverage report
 - `npm run test:debug` - Run tests in verbose mode
 
+### Supabase CLI
+
+- `npx supabase db push` - Push the migration file to production
+- `npx supabase db reset` - Run migration locally
+
 ## Project Architecture
 
 ### Tech Stack
@@ -79,7 +84,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Use descriptive variable names with auxiliary verbs (`isLoading`, `hasError`)
 - Structure files: exported components, subcomponents, helpers, static content, types
 - Use lowercase with dashes for directory names (`auth-wizard`)
-- Never create a file longer than 500 lines of code. If a file approaches this limit, refactor by splitting it into modules or helper files.
+- **NEVER** create a file longer than 500 lines of code. If a file approaches this limit, refactor by splitting it into modules or helper files.
 
 ### Testing
 
@@ -90,6 +95,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### UI Components
 
-- When working with UI, please check the existing shadcn/ui components in `components/ui/` before creating new ones
+- When working with UI, **YOU MUST** check the existing shadcn/ui components in `components/ui/` before creating new ones
 - Only use custom Tailwind CSS when shadcn components aren't available
 - Follow mobile-first responsive design patterns
