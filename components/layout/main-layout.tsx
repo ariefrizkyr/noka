@@ -20,7 +20,6 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const pathname = usePathname();
   const [showAddForm, setShowAddForm] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   // Define pages where FAB should be shown
   const fabPages = ["/dashboard", "/accounts", "/transactions"];
@@ -35,9 +34,6 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   const handleTransactionSuccess = () => {
     setShowAddForm(false);
-    // Force refresh of transaction list
-    setRefreshKey((prev) => prev + 1);
-
     // Dispatch custom event to notify other components
     window.dispatchEvent(new CustomEvent("transactionUpdated"));
   };

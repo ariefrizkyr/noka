@@ -38,7 +38,6 @@ export function TransactionList({
   // Use our centralized transactions hook
   const {
     transactions,
-    pagination,
     groupedTransactions,
     loading,
     loadingMore,
