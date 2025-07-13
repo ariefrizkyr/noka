@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 // interface UserSettings {
 //   id: string;
@@ -16,31 +22,31 @@ import { Loader2 } from 'lucide-react';
 // }
 
 const CURRENCIES = [
-  { code: 'USD', name: 'US Dollar' },
-  { code: 'IDR', name: 'Indonesian Rupiah' },
-  { code: 'EUR', name: 'Euro' },
-  { code: 'GBP', name: 'British Pound' },
-  { code: 'JPY', name: 'Japanese Yen' },
-  { code: 'AUD', name: 'Australian Dollar' },
-  { code: 'CAD', name: 'Canadian Dollar' },
-  { code: 'SGD', name: 'Singapore Dollar' },
+  { code: "USD", name: "US Dollar" },
+  { code: "IDR", name: "Indonesian Rupiah" },
+  { code: "EUR", name: "Euro" },
+  { code: "GBP", name: "British Pound" },
+  { code: "JPY", name: "Japanese Yen" },
+  { code: "AUD", name: "Australian Dollar" },
+  { code: "CAD", name: "Canadian Dollar" },
+  { code: "SGD", name: "Singapore Dollar" },
 ];
 
 const WEEKDAYS = [
-  { value: 0, name: 'Sunday' },
-  { value: 1, name: 'Monday' },
-  { value: 2, name: 'Tuesday' },
-  { value: 3, name: 'Wednesday' },
-  { value: 4, name: 'Thursday' },
-  { value: 5, name: 'Friday' },
-  { value: 6, name: 'Saturday' },
+  { value: 0, name: "Sunday" },
+  { value: 1, name: "Monday" },
+  { value: 2, name: "Tuesday" },
+  { value: 3, name: "Wednesday" },
+  { value: 4, name: "Thursday" },
+  { value: 5, name: "Friday" },
+  { value: 6, name: "Saturday" },
 ];
 
 export default function GeneralSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
-    currency_code: 'USD',
+    currency_code: "IDR",
     financial_month_start_day: 1,
     financial_week_start_day: 1,
   });
@@ -51,9 +57,9 @@ export default function GeneralSettings() {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('/api/settings');
-      if (!response.ok) throw new Error('Failed to fetch settings');
-      
+      const response = await fetch("/api/settings");
+      if (!response.ok) throw new Error("Failed to fetch settings");
+
       const data = await response.json();
       setFormData({
         currency_code: data.data.currency_code,
@@ -61,8 +67,8 @@ export default function GeneralSettings() {
         financial_week_start_day: data.data.financial_week_start_day,
       });
     } catch (error) {
-      console.error('Error fetching settings:', error);
-      toast.error('Failed to load settings');
+      console.error("Error fetching settings:", error);
+      toast.error("Failed to load settings");
     } finally {
       setLoading(false);
     }
@@ -71,27 +77,27 @@ export default function GeneralSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await fetch('/api/settings', {
-        method: 'PUT',
+      const response = await fetch("/api/settings", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error('Failed to update settings');
+      if (!response.ok) throw new Error("Failed to update settings");
 
-      toast.success('Settings updated successfully');
+      toast.success("Settings updated successfully");
     } catch (error) {
-      console.error('Error updating settings:', error);
-      toast.error('Failed to update settings');
+      console.error("Error updating settings:", error);
+      toast.error("Failed to update settings");
     } finally {
       setSaving(false);
     }
   };
 
   const handleInputChange = (field: string, value: string | number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -100,7 +106,7 @@ export default function GeneralSettings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin" />
+        <Loader2 className="h-6 w-6 animate-spin" />
       </div>
     );
   }
@@ -110,11 +116,11 @@ export default function GeneralSettings() {
       {/* Currency Settings */}
       <div className="space-y-2">
         <Label htmlFor="currency">Primary Currency</Label>
-        <Select 
-          value={formData.currency_code} 
-          onValueChange={(value) => handleInputChange('currency_code', value)}
+        <Select
+          value={formData.currency_code}
+          onValueChange={(value) => handleInputChange("currency_code", value)}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select currency" />
           </SelectTrigger>
           <SelectContent>
@@ -133,11 +139,13 @@ export default function GeneralSettings() {
       {/* Financial Month Start Day */}
       <div className="space-y-2">
         <Label htmlFor="month-start">Financial Month Start Day</Label>
-        <Select 
-          value={formData.financial_month_start_day.toString()} 
-          onValueChange={(value) => handleInputChange('financial_month_start_day', parseInt(value))}
+        <Select
+          value={formData.financial_month_start_day.toString()}
+          onValueChange={(value) =>
+            handleInputChange("financial_month_start_day", parseInt(value))
+          }
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select day" />
           </SelectTrigger>
           <SelectContent>
@@ -156,11 +164,13 @@ export default function GeneralSettings() {
       {/* Financial Week Start Day */}
       <div className="space-y-2">
         <Label htmlFor="week-start">Financial Week Start Day</Label>
-        <Select 
-          value={formData.financial_week_start_day.toString()} 
-          onValueChange={(value) => handleInputChange('financial_week_start_day', parseInt(value))}
+        <Select
+          value={formData.financial_week_start_day.toString()}
+          onValueChange={(value) =>
+            handleInputChange("financial_week_start_day", parseInt(value))
+          }
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select day" />
           </SelectTrigger>
           <SelectContent>
@@ -178,18 +188,18 @@ export default function GeneralSettings() {
 
       {/* Save Button */}
       <div className="flex justify-end pt-4">
-        <Button 
-          onClick={handleSave} 
+        <Button
+          onClick={handleSave}
           disabled={saving}
           className="min-w-[120px]"
         >
           {saving ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Saving...
             </>
           ) : (
-            'Save Changes'
+            "Save Changes"
           )}
         </Button>
       </div>
