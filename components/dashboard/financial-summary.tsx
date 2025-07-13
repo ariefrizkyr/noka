@@ -108,10 +108,10 @@ export function FinancialSummary({
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-l font-bold text-gray-900">
+            <h2 className="text-lg font-bold text-gray-900">
               Financial Overview
             </h2>
-            <p className="text-sm text-gray-600">Period: {periodDisplay}</p>
+            <p className="text-sm text-gray-600">{periodDisplay}</p>
           </div>
         </div>
       </div>

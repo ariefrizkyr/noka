@@ -118,5 +118,21 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Prevent double-tap zoom and other touch-based zoom behaviors */
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  /* Restore text selection for input elements */
+  input,
+  textarea,
+  [contenteditable] {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
   }
 }
