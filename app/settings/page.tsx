@@ -113,7 +113,7 @@ export default function SettingsPage() {
             disabled={isSigningOut}
           >
             <LogOut className="mr-1 h-4 w-4" />
-            {isSigningOut ? "Signing Out..." : "Sign Out"}
+            {isSigningOut ? "Logging Out..." : "Logout"}
           </Button>
         </div>
       </div>
