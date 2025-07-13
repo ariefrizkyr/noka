@@ -1,22 +1,15 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Wallet,
-  Plus,
-  TrendingUp,
-  CreditCard,
-  Building,
-  Loader2,
-  Banknote,
-} from "lucide-react";
+import { Wallet, Plus, TrendingUp, CreditCard, Building } from "lucide-react";
 import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useApiData } from "@/hooks/use-api-data";
-import { formatCurrency, calculateTotalBalance } from "@/lib/currency-utils";
+import { formatCurrency } from "@/lib/currency-utils";
 
 import { Account } from "@/types/common";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AccountsPage() {
   const { data: accounts, loading } = useApiData<Account[]>("/api/accounts");
@@ -24,13 +17,13 @@ export default function AccountsPage() {
   const getAccountIcon = (type: string) => {
     switch (type) {
       case "bank_account":
-        return <Building className="h-5 w-5" />;
+        return <Building className="h-4 w-4" />;
       case "credit_card":
-        return <CreditCard className="h-5 w-5" />;
+        return <CreditCard className="h-4 w-4" />;
       case "investment_account":
-        return <TrendingUp className="h-5 w-5" />;
+        return <TrendingUp className="h-4 w-4" />;
       default:
-        return <Wallet className="h-5 w-5" />;
+        return <Wallet className="h-4 w-4" />;
     }
   };
 
@@ -47,126 +40,170 @@ export default function AccountsPage() {
     }
   };
 
-  const totalBalance = calculateTotalBalance(accounts || []);
+  // Group accounts by type
+  const groupAccountsByType = (accounts: Account[]) => {
+    const grouped = accounts.reduce(
+      (acc, account) => {
+        const type = account.type;
+        if (!acc[type]) {
+          acc[type] = [];
+        }
+        acc[type].push(account);
+        return acc;
+      },
+      {} as Record<string, Account[]>,
+    );
+
+    return grouped;
+  };
+
+  // Define the order of account types
+  const accountTypeOrder = [
+    "bank_account",
+    "credit_card",
+    "investment_account",
+  ];
 
   if (loading) {
     return (
       <MainLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin" />
+        <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+          <div className="space-y-6">
+            {/* Loading skeleton for summary cards */}
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <Skeleton className="mb-2 h-4 w-24" />
+                  <Skeleton className="mb-2 h-4 w-24" />
+                  <Skeleton className="h-4 w-24" />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Loading skeleton for tabs */}
+            <div className="space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-64 w-full" />
+            </div>
           </div>
         </div>
       </MainLayout>
     );
   }
 
+  const groupedAccounts = accounts ? groupAccountsByType(accounts) : {};
+
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
+      <div className="min-h-screen bg-white">
+        <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
+          {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <div className="mb-2 flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Wallet className="h-6 w-6 text-blue-600" />
-                <h1 className="text-3xl font-bold text-gray-900">Accounts</h1>
+                <h1 className="text-xl font-bold text-gray-900">Accounts</h1>
               </div>
-              <p className="text-gray-600">
-                Manage your financial accounts and view balances
-              </p>
             </div>
-            <Link href="/settings?tab=accounts">
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add Account
-              </Button>
-            </Link>
           </div>
-        </div>
 
-        {/* Total Balance Card */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="text-center">
-              <p className="mb-2 text-sm text-gray-600">Total Net Worth</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {formatCurrency(totalBalance, { currency: "IDR" })}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Accounts List Grouped by Type */}
+          <div className="space-y-8">
+            {accountTypeOrder.map((accountType) => {
+              const accountsOfType = groupedAccounts[accountType];
+              if (!accountsOfType || accountsOfType.length === 0) {
+                return null;
+              }
 
-        {/* Accounts List */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {(accounts || []).map((account) => (
-            <Card
-              key={account.id}
-              className="transition-shadow hover:shadow-md"
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-blue-100 p-2 text-blue-600">
-                      {getAccountIcon(account.type)}
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{account.name}</CardTitle>
-                      <p className="text-sm text-gray-500">
-                        {getAccountTypeLabel(account.type)}
-                      </p>
-                    </div>
+              return (
+                <div key={accountType} className="space-y-4">
+                  {/* Section Title */}
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {getAccountTypeLabel(accountType)}s
+                    </h2>
+                    <span className="rounded-sm bg-gray-50 px-2 py-1 text-xs text-gray-400">
+                      {accountsOfType.length}
+                    </span>
+                  </div>
+
+                  {/* Accounts Grid */}
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {accountsOfType.map((account) => (
+                      <Card
+                        key={account.id}
+                        className="transition-shadow hover:shadow-md"
+                      >
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="rounded-full bg-blue-100 p-2 text-blue-600">
+                                {getAccountIcon(account.type)}
+                              </div>
+                              <div>
+                                <CardTitle className="text-lg">
+                                  {account.name}
+                                </CardTitle>
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <div className="flex w-full items-center">
+                              <span className="text-sm text-gray-600">
+                                Balance
+                              </span>
+                            </div>
+                            <div className="flex w-full items-center">
+                              <span
+                                className={`font-semibold ${
+                                  account.type === "credit_card"
+                                    ? account.current_balance < 0
+                                      ? "text-red-600"
+                                      : "text-green-600"
+                                    : account.current_balance >= 0
+                                      ? "text-green-600"
+                                      : "text-red-600"
+                                }`}
+                              >
+                                {formatCurrency(account.current_balance, {
+                                  currency: "IDR",
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
                 </div>
-              </CardHeader>
+              );
+            })}
+          </div>
+
+          {/* Empty State */}
+          {(!accounts || accounts.length === 0) && (
+            <Card className="py-12 text-center">
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">
-                      Current Balance
-                    </span>
-                    <span
-                      className={`font-semibold ${
-                        account.type === "credit_card"
-                          ? account.current_balance < 0
-                            ? "text-red-600"
-                            : "text-green-600"
-                          : account.current_balance >= 0
-                            ? "text-green-600"
-                            : "text-red-600"
-                      }`}
-                    >
-                      {formatCurrency(account.current_balance, {
-                        currency: "IDR",
-                      })}
-                    </span>
-                  </div>
-                </div>
+                <Wallet className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                <h3 className="mb-2 text-lg font-semibold text-gray-900">
+                  No Accounts Yet
+                </h3>
+                <p className="mb-6 text-gray-600">
+                  Add your first financial account to start tracking your
+                  finances
+                </p>
+                <Link href="/settings?tab=accounts">
+                  <Button className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Your First Account
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
-          ))}
+          )}
         </div>
-
-        {/* Empty State */}
-        {(!accounts || accounts.length === 0) && (
-          <Card className="py-12 text-center">
-            <CardContent>
-              <Wallet className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-              <h3 className="mb-2 text-lg font-semibold text-gray-900">
-                No Accounts Yet
-              </h3>
-              <p className="mb-6 text-gray-600">
-                Add your first financial account to start tracking your finances
-              </p>
-              <Link href="/settings?tab=accounts">
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Your First Account
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </MainLayout>
   );
