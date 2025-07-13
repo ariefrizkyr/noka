@@ -39,7 +39,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Main content with padding for bottom nav */}
       <main className="pb-20">{children}</main>
 

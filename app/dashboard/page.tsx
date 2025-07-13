@@ -38,16 +38,14 @@ export default function DashboardPage() {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-white">
-        <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
-          {/* Financial Summary Section */}
-          <div className="rounded-lg border bg-white shadow-sm">
-            <FinancialSummary currency={currency} className="p-6" />
-          </div>
-
-          {/* Dashboard Tabs Section */}
-          <DashboardTabs currency={currency} defaultTab="expenses" />
+      <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
+        {/* Financial Summary Section */}
+        <div className="rounded-lg border bg-white shadow-sm">
+          <FinancialSummary currency={currency} className="p-6" />
         </div>
+
+        {/* Dashboard Tabs Section */}
+        <DashboardTabs currency={currency} defaultTab="expenses" />
       </div>
     </MainLayout>
   );

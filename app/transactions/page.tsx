@@ -80,27 +80,23 @@ export default function TransactionsPage() {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-white">
-        <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <Receipt className="h-6 w-6 text-blue-600" />
-                <h1 className="text-xl font-bold text-gray-900">
-                  Transactions
-                </h1>
-              </div>
+      <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Receipt className="h-6 w-6 text-blue-600" />
+              <h1 className="text-xl font-bold text-gray-900">Transactions</h1>
             </div>
           </div>
-
-          {/* Transaction List */}
-          <TransactionList
-            key={refreshKey}
-            onEditTransaction={handleEditTransaction}
-            onDeleteTransaction={handleDeleteTransaction}
-          />
         </div>
+
+        {/* Transaction List */}
+        <TransactionList
+          key={refreshKey}
+          onEditTransaction={handleEditTransaction}
+          onDeleteTransaction={handleDeleteTransaction}
+        />
       </div>
 
       {/* Edit Transaction Dialog */}

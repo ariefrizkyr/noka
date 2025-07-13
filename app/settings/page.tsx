@@ -31,91 +31,86 @@ export default function SettingsPage() {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-white">
-        <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <Settings className="h-6 w-6 text-blue-600" />
-                <h1 className="text-xl font-bold text-gray-900">Settings</h1>
-              </div>
+      <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Settings className="h-6 w-6 text-blue-600" />
+              <h1 className="text-xl font-bold text-gray-900">Settings</h1>
             </div>
           </div>
-
-          {/* Tabs */}
-          <Tabs defaultValue="general" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="general" className="flex items-center gap-2">
-                <Palette className="h-4 w-4" />
-                <span className="hidden sm:inline">General</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="categories"
-                className="flex items-center gap-2"
-              >
-                <Tags className="h-4 w-4" />
-                <span className="hidden sm:inline">Categories</span>
-              </TabsTrigger>
-              <TabsTrigger value="accounts" className="flex items-center gap-2">
-                <Wallet className="h-4 w-4" />
-                <span className="hidden sm:inline">Accounts</span>
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="general" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Palette className="h-5 w-5" />
-                    General Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <GeneralSettings />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="categories" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Tags className="h-5 w-5" />
-                    Categories Management
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CategoriesSettings />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="accounts" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Wallet className="h-5 w-5" />
-                    Accounts Management
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <AccountsSettings />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-
-          <Button
-            onClick={handleSignOut}
-            variant="destructive"
-            className="w-full"
-            disabled={isSigningOut}
-          >
-            <LogOut className="mr-1 h-4 w-4" />
-            {isSigningOut ? "Logging Out..." : "Logout"}
-          </Button>
         </div>
+
+        {/* Tabs */}
+        <Tabs defaultValue="general" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="general" className="flex items-center gap-2">
+              <Palette className="h-4 w-4" />
+              <span className="hidden sm:inline">General</span>
+            </TabsTrigger>
+            <TabsTrigger value="categories" className="flex items-center gap-2">
+              <Tags className="h-4 w-4" />
+              <span className="hidden sm:inline">Categories</span>
+            </TabsTrigger>
+            <TabsTrigger value="accounts" className="flex items-center gap-2">
+              <Wallet className="h-4 w-4" />
+              <span className="hidden sm:inline">Accounts</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="general" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="h-5 w-5" />
+                  General Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <GeneralSettings />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="categories" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Tags className="h-5 w-5" />
+                  Categories Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CategoriesSettings />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="accounts" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Wallet className="h-5 w-5" />
+                  Accounts Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AccountsSettings />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        <Button
+          onClick={handleSignOut}
+          variant="destructive"
+          className="w-full"
+          disabled={isSigningOut}
+        >
+          <LogOut className="mr-1 h-4 w-4" />
+          {isSigningOut ? "Logging Out..." : "Logout"}
+        </Button>
       </div>
     </MainLayout>
   );
