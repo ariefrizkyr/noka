@@ -142,7 +142,7 @@ export default function AccountsPage() {
                             <span
                               className={`font-semibold ${
                                 account.type === "credit_card"
-                                  ? account.current_balance < 0
+                                  ? account.current_balance > 0
                                     ? "text-red-600"
                                     : "text-green-600"
                                   : account.current_balance >= 0
