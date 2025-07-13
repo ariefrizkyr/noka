@@ -15,6 +15,7 @@ import { TransactionForm } from "@/components/transactions/transaction-form";
 import { DeleteTransactionDialog } from "@/components/transactions/delete-transaction-dialog";
 import { MainLayout } from "@/components/layout/main-layout";
 import { useTransactions } from "@/hooks/use-transactions";
+import { useCurrencySettings } from "@/hooks/use-currency-settings";
 import type { TransactionWithRelations } from "@/types/common";
 
 export default function TransactionsPage() {
@@ -25,8 +26,16 @@ export default function TransactionsPage() {
   const [deletingTransaction, setDeletingTransaction] =
     useState<TransactionWithRelations | null>(null);
 
+  // Use currency settings hook
+  const { currency, loading: currencyLoading } = useCurrencySettings();
+
   // Use transactions hook for loading state
-  const { loading } = useTransactions({ autoFetch: false });
+  const { loading: transactionsLoading } = useTransactions({
+    autoFetch: false,
+  });
+
+  // Combined loading state
+  const loading = currencyLoading || transactionsLoading;
 
   const handleEditTransaction = (transaction: TransactionWithRelations) => {
     setEditingTransaction(transaction);
@@ -56,7 +65,6 @@ export default function TransactionsPage() {
       return undefined;
     }
 
-
     const defaultValues = {
       type: editingTransaction.type,
       amount: editingTransaction.amount,
@@ -66,7 +74,8 @@ export default function TransactionsPage() {
       category_id: editingTransaction.category_id || undefined,
       from_account_id: editingTransaction.from_account_id || undefined,
       to_account_id: editingTransaction.to_account_id || undefined,
-      investment_category_id: editingTransaction.investment_category_id || undefined,
+      investment_category_id:
+        editingTransaction.investment_category_id || undefined,
     };
 
     return defaultValues;
@@ -178,6 +187,7 @@ export default function TransactionsPage() {
         <TransactionList
           onEditTransaction={handleEditTransaction}
           onDeleteTransaction={handleDeleteTransaction}
+          currency={currency}
         />
       </div>
 
@@ -196,6 +206,7 @@ export default function TransactionsPage() {
               setShowEditForm(false);
               setEditingTransaction(null);
             }}
+            currency={currency}
           />
         </DialogContent>
       </Dialog>
@@ -206,6 +217,7 @@ export default function TransactionsPage() {
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         onSuccess={handleDeleteSuccess}
+        currency={currency}
       />
     </MainLayout>
   );

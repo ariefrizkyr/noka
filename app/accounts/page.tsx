@@ -8,14 +8,19 @@ import Link from "next/link";
 import { useApiData } from "@/hooks/use-api-data";
 import { formatCurrency } from "@/lib/currency-utils";
 import { getAccountTypeInfo } from "@/lib/account-utils";
+import { useCurrencySettings } from "@/hooks/use-currency-settings";
 
 import { Account } from "@/types/common";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AccountsPage() {
-  const { data: accounts, loading } = useApiData<Account[]>("/api/accounts", {
-    listenToEvents: ["transactionUpdated"],
-  });
+  const { currency, loading: currencyLoading } = useCurrencySettings();
+  const { data: accounts, loading: accountsLoading } = useApiData<Account[]>(
+    "/api/accounts",
+    {
+      listenToEvents: ["transactionUpdated"],
+    },
+  );
 
   // Group accounts by type
   const groupAccountsByType = (accounts: Account[]) => {
@@ -40,6 +45,9 @@ export default function AccountsPage() {
     "credit_card",
     "investment_account",
   ];
+
+  // Combined loading state
+  const loading = currencyLoading || accountsLoading;
 
   if (loading) {
     return (
@@ -151,7 +159,7 @@ export default function AccountsPage() {
                               }`}
                             >
                               {formatCurrency(account.current_balance, {
-                                currency: "IDR",
+                                currency: currency,
                               })}
                             </span>
                           </div>
