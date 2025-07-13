@@ -103,7 +103,10 @@ export async function PUT(request: NextRequest) {
       const { step, completed } = updateStepSchema.parse(body);
 
       const stepField = `onboarding_step_${step}_completed`;
-      const updateData: Record<string, any> = {
+      const updateData: Record<string, boolean | string | number> & {
+        updated_at: string;
+        onboarding_current_step?: number;
+      } = {
         [stepField]: completed,
         updated_at: new Date().toISOString(),
       };
