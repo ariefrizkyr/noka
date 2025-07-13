@@ -3,9 +3,9 @@
  * Replaces inline API fetching in components
  */
 
-import { useMemo } from 'react';
-import { useApiData } from './use-api-data';
-import type { Category, CategoryType } from '@/types/common';
+import { useMemo } from "react";
+import { useApiData } from "./use-api-data";
+import type { Category, CategoryType } from "@/types/common";
 
 interface UseCategoriesOptions {
   filterByType?: CategoryType | CategoryType[];
@@ -17,27 +17,28 @@ interface UseCategoriesReturn {
   loading: boolean;
   error: string | null;
   refetch: () => void;
-  
+
   // Convenience functions
   getCategoryById: (id: string) => Category | undefined;
   getCategoriesByType: (type: CategoryType) => Category[];
   groupedCategories: Record<CategoryType, Category[]>;
 }
 
-export function useCategories(options: UseCategoriesOptions = {}): UseCategoriesReturn {
-  const { 
-    filterByType, 
-    includeInactive = false 
-  } = options;
+export function useCategories(
+  options: UseCategoriesOptions = {},
+): UseCategoriesReturn {
+  const { filterByType, includeInactive = false } = options;
 
   // Fetch all categories using existing useApiData hook
   // Note: API returns { data: { categories: Category[] } }
-  const { 
-    data: apiResponse, 
-    loading, 
-    error, 
-    refetch 
-  } = useApiData<{ categories: Category[] }>('/api/categories');
+  const {
+    data: apiResponse,
+    loading,
+    error,
+    refetch,
+  } = useApiData<{ categories: Category[] }>("/api/categories", {
+    listenToEvents: ["transactionUpdated"],
+  });
 
   const allCategories = apiResponse?.categories || [];
 
@@ -47,15 +48,19 @@ export function useCategories(options: UseCategoriesOptions = {}): UseCategories
 
     // Filter by active status
     if (!includeInactive) {
-      filtered = filtered.filter(category => category.is_active);
+      filtered = filtered.filter((category) => category.is_active);
     }
 
     // Filter by category type
     if (filterByType) {
       if (Array.isArray(filterByType)) {
-        filtered = filtered.filter(category => filterByType.includes(category.type));
+        filtered = filtered.filter((category) =>
+          filterByType.includes(category.type),
+        );
       } else {
-        filtered = filtered.filter(category => category.type === filterByType);
+        filtered = filtered.filter(
+          (category) => category.type === filterByType,
+        );
       }
     }
 
@@ -68,31 +73,35 @@ export function useCategories(options: UseCategoriesOptions = {}): UseCategories
       if (!allCategories || !Array.isArray(allCategories)) {
         return undefined;
       }
-      return allCategories.find(category => category.id === id);
+      return allCategories.find((category) => category.id === id);
     };
   }, [allCategories]);
 
   // Convenience function to get categories by type
   const getCategoriesByType = useMemo(() => {
-    return (type: CategoryType) => categories.filter(category => category.type === type);
+    return (type: CategoryType) =>
+      categories.filter((category) => category.type === type);
   }, [categories]);
 
   // Group categories by type
   const groupedCategories = useMemo(() => {
-    return categories.reduce((acc, category) => {
-      const type = category.type;
-      if (!acc[type]) {
-        acc[type] = [];
-      }
-      acc[type].push(category);
-      return acc;
-    }, {} as Record<CategoryType, Category[]>);
+    return categories.reduce(
+      (acc, category) => {
+        const type = category.type;
+        if (!acc[type]) {
+          acc[type] = [];
+        }
+        acc[type].push(category);
+        return acc;
+      },
+      {} as Record<CategoryType, Category[]>,
+    );
   }, [categories]);
 
   return {
     categories,
     loading,
-    error: error ? 'Failed to load categories' : null,
+    error: error ? "Failed to load categories" : null,
     refetch,
     getCategoryById,
     getCategoriesByType,
@@ -103,24 +112,24 @@ export function useCategories(options: UseCategoriesOptions = {}): UseCategories
 // Specialized hooks for common use cases
 export function useExpenseCategories() {
   return useCategories({
-    filterByType: 'expense'
+    filterByType: "expense",
   });
 }
 
 export function useIncomeCategories() {
   return useCategories({
-    filterByType: 'income'
+    filterByType: "income",
   });
 }
 
 export function useInvestmentCategories() {
   return useCategories({
-    filterByType: 'investment'
+    filterByType: "investment",
   });
 }
 
 export function useActiveCategories() {
   return useCategories({
-    includeInactive: false
+    includeInactive: false,
   });
 }

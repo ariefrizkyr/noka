@@ -25,13 +25,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AccountSelector } from "./account-selector";
 import { CategorySelector } from "./category-selector";
@@ -157,6 +151,11 @@ export function TransactionForm({
     };
 
     const result = await submitTransaction(formData, mode, transactionId);
+
+    // Dispatch event to notify other components about transaction update
+    if (result) {
+      window.dispatchEvent(new Event("transactionUpdated"));
+    }
 
     // Reset form if creating new transaction and submission was successful
     if (mode === "create" && result) {

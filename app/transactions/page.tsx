@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Receipt } from "lucide-react";
 import {
   Dialog,
@@ -24,25 +24,9 @@ export default function TransactionsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingTransaction, setDeletingTransaction] =
     useState<TransactionWithRelations | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   // Use transactions hook for loading state
   const { loading } = useTransactions({ autoFetch: false });
-
-  // Listen for transaction updates from the FAB in main layout
-  useEffect(() => {
-    const handleTransactionUpdated = () => {
-      setRefreshKey((prev) => prev + 1);
-    };
-
-    window.addEventListener("transactionUpdated", handleTransactionUpdated);
-    return () => {
-      window.removeEventListener(
-        "transactionUpdated",
-        handleTransactionUpdated,
-      );
-    };
-  }, []);
 
   const handleEditTransaction = (transaction: TransactionWithRelations) => {
     setEditingTransaction(transaction);
@@ -57,15 +41,13 @@ export default function TransactionsPage() {
   const handleTransactionSuccess = () => {
     setShowEditForm(false);
     setEditingTransaction(null);
-    // Force refresh of transaction list
-    setRefreshKey((prev) => prev + 1);
+    // Transaction list will auto-refresh via event system
   };
 
   const handleDeleteSuccess = () => {
     setShowDeleteDialog(false);
     setDeletingTransaction(null);
-    // Force refresh of transaction list
-    setRefreshKey((prev) => prev + 1);
+    // Transaction list will auto-refresh via event system
   };
 
   const getEditFormDefaultValues = () => {
@@ -188,7 +170,6 @@ export default function TransactionsPage() {
 
         {/* Transaction List */}
         <TransactionList
-          key={refreshKey}
           onEditTransaction={handleEditTransaction}
           onDeleteTransaction={handleDeleteTransaction}
         />

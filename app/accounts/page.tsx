@@ -13,7 +13,9 @@ import { Account } from "@/types/common";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AccountsPage() {
-  const { data: accounts, loading } = useApiData<Account[]>("/api/accounts");
+  const { data: accounts, loading } = useApiData<Account[]>("/api/accounts", {
+    listenToEvents: ["transactionUpdated"],
+  });
 
   // Group accounts by type
   const groupAccountsByType = (accounts: Account[]) => {

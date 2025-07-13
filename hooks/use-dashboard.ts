@@ -3,16 +3,15 @@
  * Provides comprehensive dashboard data with proper caching and error handling
  */
 
-import { useMemo } from 'react';
-import { useApiData } from './use-api-data';
-import type { 
-  Account,
-  TransactionWithRelations 
-} from '@/types/common';
-import type { Database } from '@/types/database';
+import { useMemo } from "react";
+import { useApiData } from "./use-api-data";
+import type { Account, TransactionWithRelations } from "@/types/common";
+import type { Database } from "@/types/database";
 
-type BudgetProgress = Database['public']['Functions']['get_budget_progress']['Returns'][0];
-type InvestmentProgress = Database['public']['Functions']['get_investment_progress']['Returns'][0];
+type BudgetProgress =
+  Database["public"]["Functions"]["get_budget_progress"]["Returns"][0];
+type InvestmentProgress =
+  Database["public"]["Functions"]["get_investment_progress"]["Returns"][0];
 
 // Dashboard data types based on the existing API structure
 interface FinancialSummary {
@@ -85,33 +84,38 @@ interface UseDashboardReturn {
   loading: boolean;
   error: string | null;
   refetch: () => void;
-  
+
   // Convenience accessors
   financialSummary: FinancialSummary | null;
   budgetProgress: BudgetProgress[];
   investmentProgress: InvestmentProgress[];
   recentTransactions: TransactionWithRelations[];
-  quickStats: DashboardData['quick_stats'] | null;
+  quickStats: DashboardData["quick_stats"] | null;
   accounts: Account[];
-  
+
   // Helper functions
   getBudgetByCategory: (categoryId: string) => BudgetProgress | undefined;
-  getInvestmentByCategory: (categoryId: string) => InvestmentProgress | undefined;
+  getInvestmentByCategory: (
+    categoryId: string,
+  ) => InvestmentProgress | undefined;
   getAccountsByType: (type: string) => Account[];
 }
 
-export function useDashboard(options: UseDashboardOptions = {}): UseDashboardReturn {
+export function useDashboard(
+  options: UseDashboardOptions = {},
+): UseDashboardReturn {
   const { autoRefresh = true } = options;
 
   // Fetch comprehensive dashboard data
-  const { 
-    data: dashboardData, 
-    loading, 
-    error, 
-    refetch 
-  } = useApiData<DashboardData>('/api/dashboard', {
+  const {
+    data: dashboardData,
+    loading,
+    error,
+    refetch,
+  } = useApiData<DashboardData>("/api/dashboard", {
     showErrorToast: true,
     showSuccessToast: false,
+    listenToEvents: ["transactionUpdated"],
   });
 
   // Memoized convenience accessors
@@ -142,13 +146,15 @@ export function useDashboard(options: UseDashboardOptions = {}): UseDashboardRet
   // Helper functions
   const getBudgetByCategory = useMemo(() => {
     return (categoryId: string) => {
-      return budgetProgress.find(budget => budget.category_id === categoryId);
+      return budgetProgress.find((budget) => budget.category_id === categoryId);
     };
   }, [budgetProgress]);
 
   const getInvestmentByCategory = useMemo(() => {
     return (categoryId: string) => {
-      return investmentProgress.find(investment => investment.category_id === categoryId);
+      return investmentProgress.find(
+        (investment) => investment.category_id === categoryId,
+      );
     };
   }, [investmentProgress]);
 
@@ -161,9 +167,9 @@ export function useDashboard(options: UseDashboardOptions = {}): UseDashboardRet
   return {
     data: dashboardData,
     loading,
-    error: error ? 'Failed to load dashboard data' : null,
+    error: error ? "Failed to load dashboard data" : null,
     refetch,
-    
+
     // Convenience accessors
     financialSummary,
     budgetProgress,
@@ -171,7 +177,7 @@ export function useDashboard(options: UseDashboardOptions = {}): UseDashboardRet
     recentTransactions,
     quickStats,
     accounts,
-    
+
     // Helper functions
     getBudgetByCategory,
     getInvestmentByCategory,
@@ -181,8 +187,9 @@ export function useDashboard(options: UseDashboardOptions = {}): UseDashboardRet
 
 // Specialized hooks for specific dashboard sections
 export function useDashboardSummary() {
-  const { financialSummary, quickStats, loading, error, refetch } = useDashboard();
-  
+  const { financialSummary, quickStats, loading, error, refetch } =
+    useDashboard();
+
   return {
     financialSummary,
     quickStats,
@@ -193,8 +200,9 @@ export function useDashboardSummary() {
 }
 
 export function useBudgetOverview() {
-  const { data, budgetProgress, getBudgetByCategory, loading, error, refetch } = useDashboard();
-  
+  const { data, budgetProgress, getBudgetByCategory, loading, error, refetch } =
+    useDashboard();
+
   const budgetOverview = useMemo(() => {
     return data?.budget_overview || null;
   }, [data]);
@@ -210,8 +218,15 @@ export function useBudgetOverview() {
 }
 
 export function useInvestmentOverview() {
-  const { data, investmentProgress, getInvestmentByCategory, loading, error, refetch } = useDashboard();
-  
+  const {
+    data,
+    investmentProgress,
+    getInvestmentByCategory,
+    loading,
+    error,
+    refetch,
+  } = useDashboard();
+
   const investmentOverview = useMemo(() => {
     return data?.investment_overview || null;
   }, [data]);
@@ -227,8 +242,9 @@ export function useInvestmentOverview() {
 }
 
 export function useAccountsOverview() {
-  const { data, accounts, getAccountsByType, loading, error, refetch } = useDashboard();
-  
+  const { data, accounts, getAccountsByType, loading, error, refetch } =
+    useDashboard();
+
   const accountsOverview = useMemo(() => {
     return data?.accounts_summary || null;
   }, [data]);
