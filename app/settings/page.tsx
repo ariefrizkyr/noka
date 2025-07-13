@@ -1,12 +1,34 @@
+"use client";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, Palette, Wallet, Tags } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Settings, Palette, Wallet, Tags, LogOut } from "lucide-react";
 import GeneralSettings from "./components/general-settings";
 import CategoriesSettings from "./components/categories-settings";
 import AccountsSettings from "./components/accounts-settings";
 import { MainLayout } from "@/components/layout/main-layout";
+import { useAuth } from "@/contexts/auth-context";
+import { useState } from "react";
 
 export default function SettingsPage() {
+  const { signOut } = useAuth();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      const { error } = await signOut();
+      if (error) {
+        console.error("Failed to sign out:", error);
+      }
+    } catch (error) {
+      console.error("Error during sign out:", error);
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
+
   return (
     <MainLayout>
       <div className="min-h-screen bg-white">
@@ -22,7 +44,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Tabs */}
-          <Tabs defaultValue="general" className="space-y-6">
+          <Tabs defaultValue="general" className="space-y-4">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="general" className="flex items-center gap-2">
                 <Palette className="h-4 w-4" />
@@ -83,6 +105,16 @@ export default function SettingsPage() {
               </Card>
             </TabsContent>
           </Tabs>
+
+          <Button
+            onClick={handleSignOut}
+            variant="destructive"
+            className="w-full"
+            disabled={isSigningOut}
+          >
+            <LogOut className="mr-1 h-4 w-4" />
+            {isSigningOut ? "Signing Out..." : "Sign Out"}
+          </Button>
         </div>
       </div>
     </MainLayout>
