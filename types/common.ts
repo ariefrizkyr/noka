@@ -3,19 +3,19 @@
  * Aligned with database.ts structure for consistency
  */
 
-import { Tables, Enums } from './database';
+import { Tables, Enums } from "./database";
 
 // Re-export database types for application use
-export type Account = Tables<'accounts'>;
-export type Category = Tables<'categories'>;
-export type Transaction = Tables<'transactions'>;
-export type UserSettings = Tables<'user_settings'>;
+export type Account = Tables<"accounts">;
+export type Category = Tables<"categories">;
+export type Transaction = Tables<"transactions">;
+export type UserSettings = Tables<"user_settings">;
 
 // Re-export enums
-export type AccountType = Enums<'account_type'>;
-export type CategoryType = Enums<'category_type'>;
-export type TransactionType = Enums<'transaction_type'>;
-export type BudgetFrequency = Enums<'budget_frequency'>;
+export type AccountType = Enums<"account_type">;
+export type CategoryType = Enums<"category_type">;
+export type TransactionType = Enums<"transaction_type">;
+export type BudgetFrequency = Enums<"budget_frequency">;
 
 // Application-specific form data interfaces
 export interface AccountFormData {
@@ -29,7 +29,7 @@ export interface CategoryFormData {
   type: CategoryType;
   icon: string;
   budget_amount: string;
-  budget_frequency: BudgetFrequency | '';
+  budget_frequency: BudgetFrequency | "";
 }
 
 export interface TransactionFormData {
@@ -92,11 +92,6 @@ export interface LoadingState {
 }
 
 // Account type information
-export interface AccountTypeInfo {
-  label: string;
-  icon: React.ComponentType<{ className?: string }>; // Lucide icon component
-  color: string;
-}
 
 // Category type information
 export interface CategoryTypeInfo {
@@ -125,7 +120,7 @@ export interface TransactionWithRelations extends Transaction {
     type: CategoryType;
     icon?: string;
   };
-  
+
   // For transfer transactions
   from_accounts?: {
     id: string;
@@ -140,7 +135,7 @@ export interface TransactionWithRelations extends Transaction {
   investment_categories?: {
     id: string;
     name: string;
-    type: 'investment';
+    type: "investment";
     icon?: string;
   };
 }
@@ -196,7 +191,7 @@ export interface CategoryTypeConfig {
 }
 
 // Entity types for generic components
-export type EntityType = 'account' | 'category' | 'transaction';
+export type EntityType = "account" | "category" | "transaction";
 
 // Common props for form components
 export interface FormComponentProps<T> {

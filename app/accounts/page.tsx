@@ -1,44 +1,19 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wallet, Plus, TrendingUp, CreditCard, Building } from "lucide-react";
+import { Wallet, Plus } from "lucide-react";
 import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useApiData } from "@/hooks/use-api-data";
 import { formatCurrency } from "@/lib/currency-utils";
+import { getAccountTypeInfo } from "@/lib/account-utils";
 
 import { Account } from "@/types/common";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AccountsPage() {
   const { data: accounts, loading } = useApiData<Account[]>("/api/accounts");
-
-  const getAccountIcon = (type: string) => {
-    switch (type) {
-      case "bank_account":
-        return <Building className="h-4 w-4" />;
-      case "credit_card":
-        return <CreditCard className="h-4 w-4" />;
-      case "investment_account":
-        return <TrendingUp className="h-4 w-4" />;
-      default:
-        return <Wallet className="h-4 w-4" />;
-    }
-  };
-
-  const getAccountTypeLabel = (type: string) => {
-    switch (type) {
-      case "bank_account":
-        return "Bank Account";
-      case "credit_card":
-        return "Credit Card";
-      case "investment_account":
-        return "Investment Account";
-      default:
-        return type;
-    }
-  };
 
   // Group accounts by type
   const groupAccountsByType = (accounts: Account[]) => {
@@ -120,7 +95,7 @@ export default function AccountsPage() {
                   {/* Section Title */}
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold text-gray-900">
-                      {getAccountTypeLabel(accountType)}s
+                      {getAccountTypeInfo(accountType).pluralLabel}
                     </h2>
                     <span className="rounded-sm bg-gray-50 px-2 py-1 text-xs text-gray-400">
                       {accountsOfType.length}
@@ -137,8 +112,15 @@ export default function AccountsPage() {
                         <CardHeader>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <div className="rounded-full bg-blue-100 p-2 text-blue-600">
-                                {getAccountIcon(account.type)}
+                              <div
+                                className={`rounded-full p-2 ${getAccountTypeInfo(account.type).iconBgColor} ${getAccountTypeInfo(account.type).iconTextColor}`}
+                              >
+                                {(() => {
+                                  const Icon = getAccountTypeInfo(
+                                    account.type,
+                                  ).icon;
+                                  return <Icon className="h-4 w-4" />;
+                                })()}
                               </div>
                               <div>
                                 <CardTitle className="text-lg">
