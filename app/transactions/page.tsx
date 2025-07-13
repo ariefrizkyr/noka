@@ -1,59 +1,69 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Plus } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react";
+import { Receipt } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { TransactionList } from "@/components/transactions/transaction-list"
-import { TransactionForm } from "@/components/transactions/transaction-form"
-import { DeleteTransactionDialog } from "@/components/transactions/delete-transaction-dialog"
-import { MainLayout } from "@/components/layout/main-layout"
-import type { TransactionWithRelations } from "@/types/common"
+} from "@/components/ui/dialog";
+import { TransactionList } from "@/components/transactions/transaction-list";
+import { TransactionForm } from "@/components/transactions/transaction-form";
+import { DeleteTransactionDialog } from "@/components/transactions/delete-transaction-dialog";
+import { MainLayout } from "@/components/layout/main-layout";
+import type { TransactionWithRelations } from "@/types/common";
 
 export default function TransactionsPage() {
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [showEditForm, setShowEditForm] = useState(false)
-  const [editingTransaction, setEditingTransaction] = useState<TransactionWithRelations | null>(null)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [deletingTransaction, setDeletingTransaction] = useState<TransactionWithRelations | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingTransaction, setEditingTransaction] =
+    useState<TransactionWithRelations | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingTransaction, setDeletingTransaction] =
+    useState<TransactionWithRelations | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const handleAddTransaction = () => {
-    setShowAddForm(true)
-  }
+  // Listen for transaction updates from the FAB in main layout
+  useEffect(() => {
+    const handleTransactionUpdated = () => {
+      setRefreshKey((prev) => prev + 1);
+    };
+
+    window.addEventListener("transactionUpdated", handleTransactionUpdated);
+    return () => {
+      window.removeEventListener(
+        "transactionUpdated",
+        handleTransactionUpdated,
+      );
+    };
+  }, []);
 
   const handleEditTransaction = (transaction: TransactionWithRelations) => {
-    setEditingTransaction(transaction)
-    setShowEditForm(true)
-  }
+    setEditingTransaction(transaction);
+    setShowEditForm(true);
+  };
 
   const handleDeleteTransaction = (transaction: TransactionWithRelations) => {
-    setDeletingTransaction(transaction)
-    setShowDeleteDialog(true)
-  }
+    setDeletingTransaction(transaction);
+    setShowDeleteDialog(true);
+  };
 
   const handleTransactionSuccess = () => {
-    setShowAddForm(false)
-    setShowEditForm(false)
-    setEditingTransaction(null)
+    setShowEditForm(false);
+    setEditingTransaction(null);
     // Force refresh of transaction list
-    setRefreshKey(prev => prev + 1)
-  }
+    setRefreshKey((prev) => prev + 1);
+  };
 
   const handleDeleteSuccess = () => {
-    setShowDeleteDialog(false)
-    setDeletingTransaction(null)
+    setShowDeleteDialog(false);
+    setDeletingTransaction(null);
     // Force refresh of transaction list
-    setRefreshKey(prev => prev + 1)
-  }
+    setRefreshKey((prev) => prev + 1);
+  };
 
   const getEditFormDefaultValues = () => {
-    if (!editingTransaction) return undefined
+    if (!editingTransaction) return undefined;
 
     return {
       type: editingTransaction.type,
@@ -65,52 +75,37 @@ export default function TransactionsPage() {
       from_account_id: editingTransaction.from_accounts?.id,
       to_account_id: editingTransaction.to_accounts?.id,
       investment_category_id: editingTransaction.investment_categories?.id,
-    }
-  }
+    };
+  };
 
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex justify-between items-center">
+      <div className="min-h-screen bg-white">
+        <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
+          {/* Header */}
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
-              <p className="text-gray-600 mt-2">
-                View and manage all your financial transactions
-              </p>
+              <div className="flex items-center gap-2">
+                <Receipt className="h-6 w-6 text-blue-600" />
+                <h1 className="text-xl font-bold text-gray-900">
+                  Transactions
+                </h1>
+              </div>
             </div>
-            <Button onClick={handleAddTransaction} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Transaction
-            </Button>
           </div>
-        </div>
 
-      {/* Transaction List */}
-      <TransactionList
-        key={refreshKey}
-        onAddTransaction={handleAddTransaction}
-        onEditTransaction={handleEditTransaction}
-        onDeleteTransaction={handleDeleteTransaction}
-      />
-
-      {/* Add Transaction Dialog */}
-      <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Transaction</DialogTitle>
-          </DialogHeader>
-          <TransactionForm
-            mode="create"
-            onSuccess={handleTransactionSuccess}
-            onCancel={() => setShowAddForm(false)}
+          {/* Transaction List */}
+          <TransactionList
+            key={refreshKey}
+            onEditTransaction={handleEditTransaction}
+            onDeleteTransaction={handleDeleteTransaction}
           />
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
 
       {/* Edit Transaction Dialog */}
       <Dialog open={showEditForm} onOpenChange={setShowEditForm}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Transaction</DialogTitle>
           </DialogHeader>
@@ -120,8 +115,8 @@ export default function TransactionsPage() {
             defaultValues={getEditFormDefaultValues()}
             onSuccess={handleTransactionSuccess}
             onCancel={() => {
-              setShowEditForm(false)
-              setEditingTransaction(null)
+              setShowEditForm(false);
+              setEditingTransaction(null);
             }}
           />
         </DialogContent>
@@ -134,7 +129,6 @@ export default function TransactionsPage() {
         onOpenChange={setShowDeleteDialog}
         onSuccess={handleDeleteSuccess}
       />
-      </div>
     </MainLayout>
-  )
+  );
 }

@@ -1,27 +1,32 @@
-"use client"
+"use client";
 
-import { format } from "date-fns"
-import { MoreVertical, Edit, Trash2 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { format } from "date-fns";
+import { MoreVertical, Edit, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { formatTransactionAmountWithStyle } from "@/lib/currency-utils"
-import { TRANSACTION_TYPE_CONFIG, ACCOUNT_TYPE_CONFIG, DATE_FORMATS, CURRENCY_DEFAULTS } from "@/lib/constants"
-import type { TransactionWithRelations } from "@/types/common"
+} from "@/components/ui/dropdown-menu";
+import { formatTransactionAmountWithStyle } from "@/lib/currency-utils";
+import {
+  TRANSACTION_TYPE_CONFIG,
+  ACCOUNT_TYPE_CONFIG,
+  DATE_FORMATS,
+  CURRENCY_DEFAULTS,
+} from "@/lib/constants";
+import type { TransactionWithRelations } from "@/types/common";
 
 interface TransactionCardProps {
-  transaction: TransactionWithRelations
-  onEdit?: (transaction: TransactionWithRelations) => void
-  onDelete?: (transaction: TransactionWithRelations) => void
-  className?: string
-  currency?: string
+  transaction: TransactionWithRelations;
+  onEdit?: (transaction: TransactionWithRelations) => void;
+  onDelete?: (transaction: TransactionWithRelations) => void;
+  className?: string;
+  currency?: string;
 }
 
 export function TransactionCard({
@@ -31,8 +36,8 @@ export function TransactionCard({
   className,
   currency = CURRENCY_DEFAULTS.DEFAULT_CURRENCY,
 }: TransactionCardProps) {
-  const config = TRANSACTION_TYPE_CONFIG[transaction.type]
-  const Icon = config.icon
+  const config = TRANSACTION_TYPE_CONFIG[transaction.type];
+  const Icon = config.icon;
 
   const getTransactionDisplay = () => {
     switch (transaction.type) {
@@ -43,52 +48,49 @@ export function TransactionCard({
           secondaryText: transaction.accounts?.name || "Unknown Account",
           icon: transaction.categories?.icon,
           accountType: transaction.accounts?.type,
-        }
+        };
       case "transfer":
         return {
           primaryText: `${transaction.from_accounts?.name} → ${transaction.to_accounts?.name}`,
           secondaryText: transaction.investment_categories?.name || "Transfer",
           icon: transaction.investment_categories?.icon,
           accountType: undefined,
-        }
+        };
       default:
         return {
           primaryText: "Unknown Transaction",
           secondaryText: "",
           icon: undefined,
           accountType: undefined,
-        }
+        };
     }
-  }
+  };
 
-  const display = getTransactionDisplay()
-  const showActions = onEdit || onDelete
+  const display = getTransactionDisplay();
+  const showActions = onEdit || onDelete;
 
   return (
     <Card className={cn("transition-colors hover:bg-gray-50", className)}>
-      <CardContent className="p-4">
+      <CardContent>
         <div className="flex items-center justify-between">
           {/* Left side - Icon and details */}
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             {/* Transaction type icon */}
-            <div className={cn("p-2 rounded-full", config.bgColor)}>
+            <div className={cn("rounded-full p-2", config.bgColor)}>
               <Icon className={cn("h-4 w-4", config.iconColor)} />
             </div>
 
             {/* Transaction details */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex items-center gap-2">
                 {display.icon && (
                   <span className="text-sm">{display.icon}</span>
                 )}
-                <p className="font-medium text-gray-900 truncate">
+                <p className="truncate font-medium text-gray-900">
                   {display.primaryText}
                 </p>
-                <Badge variant="secondary" className={cn("text-xs ml-auto", config.badge)}>
-                  {transaction.type}
-                </Badge>
               </div>
-              
+
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <span className="truncate">{display.secondaryText}</span>
                 {display.accountType && (
@@ -100,24 +102,42 @@ export function TransactionCard({
                   </>
                 )}
               </div>
-              
+
               {transaction.description && (
-                <p className="text-sm text-gray-500 truncate mt-1">
+                <p className="mt-1 truncate text-sm text-gray-500">
                   {transaction.description}
                 </p>
               )}
-              
-              <p className="text-xs text-gray-400 mt-1">
-                {format(new Date(transaction.transaction_date), DATE_FORMATS.DISPLAY)}
+
+              <p className="mt-1 text-xs text-gray-400">
+                {format(
+                  new Date(transaction.transaction_date),
+                  DATE_FORMATS.DISPLAY,
+                )}
               </p>
             </div>
           </div>
 
           {/* Right side - Amount and actions */}
-          <div className="flex items-center gap-2 ml-4">
+          <div className="ml-4 flex items-center gap-2">
             <div className="text-right">
-              <p className={cn("font-semibold", formatTransactionAmountWithStyle(transaction.amount, transaction.type, currency).colorClass)}>
-                {formatTransactionAmountWithStyle(transaction.amount, transaction.type, currency).formatted}
+              <p
+                className={cn(
+                  "font-semibold",
+                  formatTransactionAmountWithStyle(
+                    transaction.amount,
+                    transaction.type,
+                    currency,
+                  ).colorClass,
+                )}
+              >
+                {
+                  formatTransactionAmountWithStyle(
+                    transaction.amount,
+                    transaction.type,
+                    currency,
+                  ).formatted
+                }
               </p>
             </div>
 
@@ -156,5 +176,5 @@ export function TransactionCard({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
