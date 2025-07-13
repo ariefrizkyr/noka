@@ -5,6 +5,7 @@ import { FinancialSummary, DashboardTabs } from "@/components/dashboard";
 import { useCurrencySettings } from "@/hooks/use-currency-settings";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+import { Home } from "lucide-react";
 
 export default function DashboardPage() {
   const { currency, loading: currencyLoading } = useCurrencySettings();
@@ -39,6 +40,16 @@ export default function DashboardPage() {
   return (
     <MainLayout>
       <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Home className="h-6 w-6 text-blue-600" />
+              <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+            </div>
+          </div>
+        </div>
+
         {/* Financial Summary Section */}
         <div className="rounded-lg border bg-white shadow-sm">
           <FinancialSummary currency={currency} className="p-6" />
