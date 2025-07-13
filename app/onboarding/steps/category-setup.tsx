@@ -327,6 +327,24 @@ export default function CategorySetupStep({
       if (promises.length > 0) {
         await Promise.all(promises);
       }
+
+      // Mark step 3 as completed
+      const stepResponse = await fetch("/api/onboarding", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          step: 3,
+          completed: true,
+        }),
+      });
+
+      if (!stepResponse.ok) {
+        const errorData = await stepResponse.json();
+        throw new Error(errorData.message || "Failed to update step progress");
+      }
+
       onNext();
     } catch (error) {
       console.error("Error creating categories:", error);
