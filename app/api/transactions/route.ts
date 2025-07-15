@@ -15,7 +15,13 @@ import {
   updateTransactionSchema,
   transactionQuerySchema
 } from '../utils/validation'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { User } from '@supabase/supabase-js'
+import type { Database } from '@/types/database'
 // Type imports removed - balance updates are now handled by database triggers
+
+type Transaction = Database['public']['Tables']['transactions']['Row']
+type TransactionUpdate = Database['public']['Tables']['transactions']['Update']
 
 /**
  * GET /api/transactions
@@ -170,6 +176,7 @@ export async function POST(request: NextRequest) {
 /**
  * PUT /api/transactions
  * Update transaction (requires transaction_id in request body)
+ * Handles transaction type changes using delete-and-recreate approach
  */
 export async function PUT(request: NextRequest) {
   try {
@@ -197,27 +204,46 @@ export async function PUT(request: NextRequest) {
       throw new Error('Transaction not found or access denied')
     }
 
-    // Update the transaction
-    const { data: updatedTransaction, error: updateError } = await supabase
-      .from('transactions')
-      .update({
-        ...validatedData,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', transaction_id)
-      .eq('user_id', user.id)
-      .select()
-      .single()
+    // Check if transaction type is being changed
+    const isTypeChanged = validatedData.type && validatedData.type !== originalTransaction.type
 
-    if (updateError) throw updateError
+    if (isTypeChanged) {
+      // Use delete-and-recreate approach for type changes
+      return handleTransactionTypeChange(supabase, user, originalTransaction, validatedData, transaction_id)
+    } else {
+      // Use regular update for non-type changes
+      const { error: updateError } = await supabase
+        .from('transactions')
+        .update({
+          ...validatedData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', transaction_id)
+        .eq('user_id', user.id)
 
-    // Balance updates for transaction modifications are handled by the database trigger
-    // Application-level balance reversal/reapplication is not needed
+      if (updateError) throw updateError
 
-    return createUpdatedResponse(
-      updatedTransaction,
-      'Transaction updated successfully'
-    )
+      // Fetch the complete transaction with related data
+      const { data: completeTransaction, error: completeError } = await supabase
+        .from('transactions')
+        .select(`
+          *,
+          accounts!transactions_account_id_fkey(name, type),
+          categories!transactions_category_id_fkey(name, type, icon),
+          from_accounts:accounts!transactions_from_account_id_fkey(name, type),
+          to_accounts:accounts!transactions_to_account_id_fkey(name, type),
+          investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon)
+        `)
+        .eq('id', transaction_id)
+        .single()
+
+      if (completeError) throw completeError
+
+      return createUpdatedResponse(
+        completeTransaction,
+        'Transaction updated successfully'
+      )
+    }
   } catch (error) {
     return handleApiError(error)
   }
@@ -265,6 +291,142 @@ export async function DELETE(request: NextRequest) {
     return createDeletedResponse('Transaction deleted successfully')
   } catch (error) {
     return handleApiError(error)
+  }
+}
+
+/**
+ * Handles transaction type changes using delete-and-recreate approach
+ * Maps fields appropriately for the new transaction type
+ */
+async function handleTransactionTypeChange(
+  supabase: SupabaseClient<Database>,
+  user: User,
+  originalTransaction: Transaction,
+  validatedData: TransactionUpdate,
+  transaction_id: string
+) {
+  // Map fields from original transaction to new transaction type
+  const newTransactionData = mapTransactionFields(originalTransaction, validatedData)
+  
+  // Validate the new transaction data using create schema
+  try {
+    const validatedNewTransaction = createTransactionSchema.parse(newTransactionData)
+
+    // Delete the original transaction (this will trigger balance reversal)
+    const { error: deleteError } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('id', transaction_id)
+      .eq('user_id', user.id)
+
+    if (deleteError) throw deleteError
+
+    // Create new transaction with new type and mapped fields
+    const { data: newTransaction, error: createError } = await supabase
+      .from('transactions')
+      .insert({
+        ...validatedNewTransaction,
+        user_id: user.id,
+        created_at: originalTransaction.created_at, // Preserve original creation time
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single()
+
+    if (createError) throw createError
+
+    // Fetch the complete transaction with related data
+    const { data: completeTransaction, error: fetchError } = await supabase
+      .from('transactions')
+      .select(`
+        *,
+        accounts!transactions_account_id_fkey(name, type),
+        categories!transactions_category_id_fkey(name, type, icon),
+        from_accounts:accounts!transactions_from_account_id_fkey(name, type),
+        to_accounts:accounts!transactions_to_account_id_fkey(name, type),
+        investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon)
+      `)
+      .eq('id', newTransaction.id)
+      .single()
+
+    if (fetchError) throw fetchError
+
+    return createUpdatedResponse(
+      completeTransaction,
+      'Transaction updated successfully'
+    )
+  } catch (validationError) {
+    console.error('Transaction type change validation failed:', {
+      originalTransaction,
+      validatedData,
+      newTransactionData,
+      error: validationError
+    })
+    throw new Error(`Transaction validation failed: ${validationError instanceof Error ? validationError.message : 'Unknown error'}`)
+  }
+}
+
+/**
+ * Maps fields from original transaction to new transaction type
+ */
+function mapTransactionFields(originalTransaction: Transaction, validatedData: TransactionUpdate) {
+  const newType = validatedData.type
+  const originalType = originalTransaction.type
+  
+  // Base fields that are common to all transaction types
+  const baseData = {
+    type: newType,
+    amount: validatedData.amount ?? originalTransaction.amount,
+    transaction_date: validatedData.transaction_date ?? originalTransaction.transaction_date,
+    ...(validatedData.description !== undefined || originalTransaction.description !== null 
+      ? { description: validatedData.description ?? originalTransaction.description } 
+      : {})
+  }
+
+  // Build type-specific data objects to avoid null values for optional fields
+  if (newType === 'transfer') {
+    // Transfer transaction: only include transfer-specific fields
+    let fromAccountId: string | undefined
+    let toAccountId: string | undefined
+    
+    if (originalType === 'income' || originalType === 'expense') {
+      // Income/Expense → Transfer: map account_id to from_account_id
+      fromAccountId = validatedData.from_account_id ?? (originalTransaction.account_id || undefined)
+      toAccountId = validatedData.to_account_id || undefined
+    } else {
+      // Transfer → Transfer: keep existing values or use form data
+      fromAccountId = validatedData.from_account_id ?? (originalTransaction.from_account_id || undefined)
+      toAccountId = validatedData.to_account_id ?? (originalTransaction.to_account_id || undefined)
+    }
+    
+    return {
+      ...baseData,
+      from_account_id: fromAccountId,
+      to_account_id: toAccountId,
+      ...(validatedData.investment_category_id !== undefined 
+        ? { investment_category_id: validatedData.investment_category_id }
+        : {})
+    }
+  } else {
+    // Income/Expense transaction: only include income/expense-specific fields
+    let accountId: string | undefined
+    let categoryId: string | undefined
+    
+    if (originalType === 'transfer') {
+      // Transfer → Income/Expense: map from_account_id to account_id
+      accountId = validatedData.account_id ?? (originalTransaction.from_account_id || undefined)
+      categoryId = validatedData.category_id || undefined
+    } else {
+      // Income/Expense → Income/Expense: keep account_id, category comes from form
+      accountId = validatedData.account_id ?? (originalTransaction.account_id || undefined)
+      categoryId = validatedData.category_id || undefined
+    }
+    
+    return {
+      ...baseData,
+      account_id: accountId,
+      category_id: categoryId
+    }
   }
 }
 

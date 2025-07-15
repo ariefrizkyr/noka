@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -120,6 +120,9 @@ export function TransactionForm({
   const watchedType = form.watch("type");
   const watchedToAccountId = form.watch("to_account_id");
 
+  // Track previous transaction type to detect actual changes
+  const prevTypeRef = useRef<string | undefined>(undefined);
+
   // Get account details using centralized hook
   const toAccount = getAccountById(watchedToAccountId || "");
 
@@ -143,20 +146,32 @@ export function TransactionForm({
     }
   }, [mode, defaultValues, form]);
 
-  // Reset form fields when transaction type changes (only in create mode)
+  // Reset form fields when transaction type changes (but not on initial mount)
   useEffect(() => {
-    // Skip field reset in edit mode to preserve prepopulated values
-    if (mode === "edit") return;
-    
-    if (watchedType === "transfer") {
-      form.setValue("account_id", undefined);
-      form.setValue("category_id", undefined);
-    } else {
-      form.setValue("from_account_id", undefined);
-      form.setValue("to_account_id", undefined);
-      form.setValue("investment_category_id", undefined);
+    // Skip reset on initial mount - preserve existing values from defaultValues
+    if (prevTypeRef.current === undefined) {
+      prevTypeRef.current = watchedType;
+      return;
     }
-  }, [watchedType, form, mode]);
+    
+    // Only reset when type actually changes from previous value
+    if (prevTypeRef.current !== watchedType) {
+      // Reset incompatible fields when transaction type changes
+      if (watchedType === "transfer") {
+        form.setValue("account_id", undefined);
+        form.setValue("category_id", "");
+      } else {
+        form.setValue("from_account_id", undefined);
+        form.setValue("to_account_id", undefined);
+        form.setValue("investment_category_id", undefined);
+        // Always clear category when switching between income and expense
+        form.setValue("category_id", "");
+      }
+    }
+    
+    // Update previous type for next comparison
+    prevTypeRef.current = watchedType;
+  }, [watchedType, form]);
 
   const onSubmit = async (data: TransactionFormSchema) => {
     clearErrors();
@@ -206,27 +221,14 @@ export function TransactionForm({
             <FormItem>
               <FormLabel>Transaction Type</FormLabel>
               <FormControl>
-                {mode === "edit" ? (
-                  // In edit mode, show transaction type as read-only
-                  <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm capitalize">
-                    {field.value}
-                  </div>
-                ) : (
-                  // In create mode, allow type selection
-                  <Tabs value={field.value} onValueChange={field.onChange}>
-                    <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="income">Income</TabsTrigger>
-                      <TabsTrigger value="expense">Expense</TabsTrigger>
-                      <TabsTrigger value="transfer">Transfer</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                )}
+                <Tabs value={field.value} onValueChange={field.onChange}>
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="income">Income</TabsTrigger>
+                    <TabsTrigger value="expense">Expense</TabsTrigger>
+                    <TabsTrigger value="transfer">Transfer</TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </FormControl>
-              {mode === "edit" && (
-                <FormDescription>
-                  Transaction type cannot be changed when editing
-                </FormDescription>
-              )}
               <FormMessage />
             </FormItem>
           )}
@@ -408,6 +410,7 @@ export function TransactionForm({
                   <FormLabel>Category</FormLabel>
                   <FormControl>
                     <CategorySelector
+                      key={`category-${watchedType}`}
                       value={field.value}
                       onValueChange={field.onChange}
                       placeholder="Select category..."
