@@ -310,3 +310,92 @@ export function getLocaleForCurrency(currency: string): string {
 
   return locales[currency] || 'id-ID';
 }
+
+/**
+ * Get decimal precision for a given currency
+ * @param currency - Currency code
+ * @returns Number of decimal places for the currency
+ */
+export function getCurrencyDecimalPrecision(currency: string): number {
+  const noCentsCurrencies = ['IDR', 'JPY', 'KRW', 'VND', 'CLP', 'PYG'];
+  return noCentsCurrencies.includes(currency) ? 0 : 2;
+}
+
+/**
+ * Format number with thousand separators for input display (with decimal support)
+ * @param value - Number or string to format
+ * @param currency - Currency code to determine decimal precision
+ * @returns Formatted string with thousand separators
+ */
+export function formatInputWithThousandSeparators(value: string | number, currency: string = 'IDR'): string {
+  const str = value.toString();
+  const decimalPrecision = getCurrencyDecimalPrecision(currency);
+  
+  if (decimalPrecision === 0) {
+    // For currencies without decimals, only allow digits
+    const digits = str.replace(/\D/g, '');
+    if (!digits) return '';
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  } else {
+    // For currencies with decimals, allow digits and one decimal point
+    const parts = str.split('.');
+    const integerPart = parts[0].replace(/\D/g, '');
+    let decimalPart = parts[1] ? parts[1].replace(/\D/g, '') : '';
+    
+    if (!integerPart && !decimalPart) return '';
+    
+    // Format integer part with thousand separators
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    
+    // Limit decimal part to currency precision
+    if (decimalPart.length > decimalPrecision) {
+      decimalPart = decimalPart.slice(0, decimalPrecision);
+    }
+    
+    // Return formatted value
+    if (decimalPart) {
+      return `${formattedInteger}.${decimalPart}`;
+    } else if (str.includes('.')) {
+      return `${formattedInteger}.`;
+    } else {
+      return formattedInteger;
+    }
+  }
+}
+
+/**
+ * Parse input value to number (removing thousand separators, supporting decimals)
+ * @param input - Input string with potential thousand separators and decimals
+ * @param currency - Currency code to determine decimal precision
+ * @returns Parsed number
+ */
+export function parseInputToNumber(input: string, currency: string = 'IDR'): number {
+  const decimalPrecision = getCurrencyDecimalPrecision(currency);
+  
+  if (decimalPrecision === 0) {
+    // For currencies without decimals, only parse digits
+    const digits = input.replace(/\D/g, '');
+    return digits ? parseInt(digits, 10) : 0;
+  } else {
+    // For currencies with decimals, parse as float
+    const cleaned = input.replace(/,/g, ''); // Remove thousand separators
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+}
+
+/**
+ * Format currency for input fields with currency symbol prepend
+ * @param value - Numeric value
+ * @param currency - Currency code
+ * @returns Object with formatted display value and currency symbol
+ */
+export function formatCurrencyForInput(value: number, currency: string = 'IDR'): {
+  displayValue: string;
+  symbol: string;
+} {
+  const symbol = getCurrencySymbol(currency);
+  const displayValue = value > 0 ? formatInputWithThousandSeparators(value.toString(), currency) : '';
+  
+  return { displayValue, symbol };
+}

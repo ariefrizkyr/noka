@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
+import { useCurrencySettings } from "@/hooks/use-currency-settings";
 import {
   Category as BaseCategory,
   CategoryType,
@@ -9,6 +10,7 @@ import {
 } from "@/types/common";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -108,24 +110,15 @@ export default function CategorySetupStep({
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState("");
-  const [userCurrency, setUserCurrency] = useState("IDR");
   const { user } = useAuth();
+  const { currency: userCurrency } = useCurrencySettings();
 
-  // Load user's currency setting and existing categories
+  // Load existing categories
   useEffect(() => {
     async function loadUserData() {
       if (!user) return;
 
       try {
-        // Load currency settings
-        const settingsResponse = await fetch("/api/settings");
-        if (settingsResponse.ok) {
-          const settingsResult = await settingsResponse.json();
-          if (settingsResult.data?.currency_code) {
-            setUserCurrency(settingsResult.data.currency_code);
-          }
-        }
-
         // Load existing categories
         const categoriesResponse = await fetch("/api/categories");
         if (categoriesResponse.ok) {
@@ -162,20 +155,6 @@ export default function CategorySetupStep({
     return `${currencyInfo.symbol}${amount.toLocaleString()}`;
   };
 
-  // Helper function to get currency symbol
-  const getCurrencySymbol = (currency: string) => {
-    const symbols: Record<string, string> = {
-      USD: "$",
-      IDR: "Rp",
-      EUR: "€",
-      GBP: "£",
-      JPY: "¥",
-      AUD: "A$",
-      CAD: "C$",
-      SGD: "S$",
-    };
-    return symbols[currency] || "$";
-  };
 
   // Helper function to get valid budget frequencies for category type
   const getBudgetFrequenciesForCategory = (categoryType: CategoryType) => {
@@ -487,24 +466,18 @@ export default function CategorySetupStep({
                           ? "Budget Amount"
                           : "Investment Target"}
                       </Label>
-                      <div className="relative">
-                        <Input
-                          id="budget-amount"
-                          type="number"
-                          placeholder={`Enter amount in ${userCurrency}`}
-                          value={newCategory.budget_amount}
-                          onChange={(e) =>
-                            setNewCategory((prev) => ({
-                              ...prev,
-                              budget_amount: e.target.value,
-                            }))
-                          }
-                          className="pl-8"
-                        />
-                        <span className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-500">
-                          {getCurrencySymbol(userCurrency)}
-                        </span>
-                      </div>
+                      <CurrencyInput
+                        id="budget-amount"
+                        currency={userCurrency}
+                        value={newCategory.budget_amount}
+                        onChange={(displayValue, numericValue) => {
+                          setNewCategory((prev) => ({
+                            ...prev,
+                            budget_amount: numericValue.toString(),
+                          }));
+                        }}
+                        placeholder={`Enter amount in ${userCurrency}`}
+                      />
                     </div>
 
                     {getBudgetFrequencyOptions(activeTab).length > 0 && (

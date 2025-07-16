@@ -18,7 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Popover,
   PopoverContent,
@@ -242,15 +242,13 @@ export function TransactionForm({
             <FormItem>
               <FormLabel>Amount</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  {...field}
-                  onChange={(e) =>
-                    field.onChange(parseFloat(e.target.value) || 0)
-                  }
+                <CurrencyInput
+                  currency={currency}
+                  value={field.value}
+                  onChange={(displayValue, numericValue) => {
+                    field.onChange(numericValue);
+                  }}
+                  placeholder="0"
                 />
               </FormControl>
               <FormDescription>

@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
+import { useCurrencySettings } from "@/hooks/use-currency-settings";
 import { Account as BaseAccount } from "@/types/common";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Select,
   SelectContent,
@@ -85,24 +87,15 @@ export default function AccountSetupStep({
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState("");
-  const [userCurrency, setUserCurrency] = useState("IDR");
   const { user } = useAuth();
+  const { currency: userCurrency } = useCurrencySettings();
 
-  // Load user's currency setting and existing accounts
+  // Load existing accounts
   useEffect(() => {
     async function loadUserData() {
       if (!user) return;
 
       try {
-        // Load currency settings
-        const settingsResponse = await fetch("/api/settings");
-        if (settingsResponse.ok) {
-          const settingsResult = await settingsResponse.json();
-          if (settingsResult.data?.currency_code) {
-            setUserCurrency(settingsResult.data.currency_code);
-          }
-        }
-
         // Load existing accounts
         const response = await fetch("/api/accounts");
         if (response.ok) {
@@ -385,17 +378,16 @@ export default function AccountSetupStep({
                 <span className="mb-2 block text-sm font-medium text-gray-700">
                   Current Balance
                 </span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
+                <CurrencyInput
+                  currency={userCurrency}
                   value={newAccount.initial_balance}
-                  onChange={(e) =>
+                  onChange={(displayValue, numericValue) => {
                     setNewAccount((prev) => ({
                       ...prev,
-                      initial_balance: e.target.value,
+                      initial_balance: numericValue.toString(),
                     }))
-                  }
+                  }}
+                  placeholder="0"
                   className="w-full"
                 />
               </label>

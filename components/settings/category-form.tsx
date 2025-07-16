@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -37,19 +38,6 @@ export function CategoryForm({
     onSubmit(formData);
   };
 
-  const getCurrencySymbol = (currency: string) => {
-    const symbols: Record<string, string> = {
-      USD: "$",
-      IDR: "Rp",
-      EUR: "€",
-      GBP: "£",
-      JPY: "¥",
-      AUD: "A$",
-      CAD: "C$",
-      SGD: "S$",
-    };
-    return symbols[currency] || "$";
-  };
 
   const getBudgetFrequencyOptions = (type: string) => {
     switch (type) {
@@ -126,21 +114,15 @@ export function CategoryForm({
                 ? "Budget Amount"
                 : "Investment Target"}
             </Label>
-            <div className="relative">
-              <Input
-                id="budget_amount"
-                type="number"
-                value={formData.budget_amount}
-                onChange={(e) =>
-                  handleInputChange("budget_amount", e.target.value)
-                }
-                placeholder={`Enter amount in ${userCurrency}`}
-                className="pl-8"
-              />
-              <span className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-500">
-                {getCurrencySymbol(userCurrency)}
-              </span>
-            </div>
+            <CurrencyInput
+              id="budget_amount"
+              currency={userCurrency}
+              value={formData.budget_amount}
+              onChange={(displayValue, numericValue) => {
+                handleInputChange("budget_amount", numericValue.toString());
+              }}
+              placeholder={`Enter amount in ${userCurrency}`}
+            />
           </div>
 
           {budgetOptions.length > 0 && (

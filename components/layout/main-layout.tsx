@@ -2,7 +2,7 @@
 
 import { ReactNode, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import {
@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TransactionForm } from "@/components/transactions/transaction-form";
+import { useCurrencySettings } from "@/hooks/use-currency-settings";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -20,6 +21,7 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const pathname = usePathname();
   const [showAddForm, setShowAddForm] = useState(false);
+  const { currency, loading: currencyLoading } = useCurrencySettings();
 
   // Define pages where FAB should be shown
   const fabPages = ["/dashboard", "/accounts", "/transactions"];
@@ -61,11 +63,19 @@ export function MainLayout({ children }: MainLayoutProps) {
           <DialogHeader>
             <DialogTitle>Add New Transaction</DialogTitle>
           </DialogHeader>
-          <TransactionForm
-            mode="create"
-            onSuccess={handleTransactionSuccess}
-            onCancel={() => setShowAddForm(false)}
-          />
+          {currencyLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2 text-sm text-gray-600">Loading currency settings...</span>
+            </div>
+          ) : (
+            <TransactionForm
+              mode="create"
+              currency={currency}
+              onSuccess={handleTransactionSuccess}
+              onCancel={() => setShowAddForm(false)}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
