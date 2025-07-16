@@ -119,6 +119,11 @@ export function TransactionForm({
 
   const watchedType = form.watch("type");
   const watchedToAccountId = form.watch("to_account_id");
+  const watchedAmount = form.watch("amount");
+  const watchedAccountId = form.watch("account_id");
+  const watchedCategoryId = form.watch("category_id");
+  const watchedFromAccountId = form.watch("from_account_id");
+  const watchedInvestmentCategoryId = form.watch("investment_category_id");
 
   // Track previous transaction type to detect actual changes
   const prevTypeRef = useRef<string | undefined>(undefined);
@@ -209,6 +214,25 @@ export function TransactionForm({
 
   const showInvestmentCategory =
     watchedType === "transfer" && toAccount?.type === "investment_account";
+
+  // Check if all required fields are filled
+  const isFormValid = () => {
+    // Amount must be greater than 0
+    if (!watchedAmount || watchedAmount <= 0) return false;
+    
+    if (watchedType === "transfer") {
+      // Transfer requires from and to accounts
+      if (!watchedFromAccountId || !watchedToAccountId) return false;
+      
+      // If transferring to investment account, investment category is required
+      if (showInvestmentCategory && !watchedInvestmentCategoryId) return false;
+    } else {
+      // Income/expense requires account and category
+      if (!watchedAccountId || !watchedCategoryId) return false;
+    }
+    
+    return true;
+  };
 
   return (
     <Form {...form}>
@@ -459,7 +483,7 @@ export function TransactionForm({
               Cancel
             </Button>
           )}
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading || !isFormValid()}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {mode === "edit" ? "Update Transaction" : "Add Transaction"}
           </Button>
