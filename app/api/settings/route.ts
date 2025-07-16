@@ -88,6 +88,7 @@ export async function PUT(request: NextRequest) {
         currency_code: updateData.currency_code || "USD",
         financial_month_start_day: updateData.financial_month_start_day || 1,
         financial_week_start_day: updateData.financial_week_start_day || 1,
+        weekend_end_handling: updateData.weekend_end_handling || "no_adjustment",
         onboarding_completed: updateData.onboarding_completed || false,
       };
 

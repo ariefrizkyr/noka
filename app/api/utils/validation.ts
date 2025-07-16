@@ -16,6 +16,7 @@ export const updateUserSettingsSchema = z.object({
   currency_code: z.string().length(3).optional(), // ISO 4217 currency codes
   financial_month_start_day: z.number().int().min(1).max(31).optional(),
   financial_week_start_day: z.number().int().min(0).max(6).optional(), // 0 = Sunday
+  weekend_end_handling: z.enum(['no_adjustment', 'move_to_friday', 'move_to_monday']).optional(),
   onboarding_completed: z.boolean().optional(),
   onboarding_step_1_completed: z.boolean().optional(),
   onboarding_step_2_completed: z.boolean().optional(),

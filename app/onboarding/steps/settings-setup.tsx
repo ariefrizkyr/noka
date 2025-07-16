@@ -46,6 +46,24 @@ const weekStartDays = [
   { value: 6, label: "Saturday" },
 ];
 
+const weekendHandlingOptions = [
+  {
+    value: "no_adjustment",
+    label: "No changes",
+    description: "Keep the original date even if it falls on a weekend",
+  },
+  {
+    value: "move_to_friday",
+    label: "Previous Friday",
+    description: "Move weekend dates to the previous Friday",
+  },
+  {
+    value: "move_to_monday",
+    label: "Following Monday",
+    description: "Move weekend dates to the following Monday",
+  },
+];
+
 export default function SettingsSetupStep({
   onNext,
   onPrevious,
@@ -55,6 +73,8 @@ export default function SettingsSetupStep({
   const [selectedCurrency, setSelectedCurrency] = useState("IDR");
   const [monthStartDay, setMonthStartDay] = useState<number>(1);
   const [weekStartDay, setWeekStartDay] = useState<number>(1);
+  const [weekendHandling, setWeekendHandling] =
+    useState<string>("no_adjustment");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const { user } = useAuth();
@@ -72,6 +92,9 @@ export default function SettingsSetupStep({
             setSelectedCurrency(result.data.currency_code || "IDR");
             setMonthStartDay(result.data.financial_month_start_day || 1);
             setWeekStartDay(result.data.financial_week_start_day || 1);
+            setWeekendHandling(
+              result.data.weekend_end_handling || "no_adjustment",
+            );
           }
         }
       } catch (error) {
@@ -100,6 +123,7 @@ export default function SettingsSetupStep({
           currency_code: selectedCurrency,
           financial_month_start_day: monthStartDay,
           financial_week_start_day: weekStartDay,
+          weekend_end_handling: weekendHandling,
           onboarding_completed: false,
         }),
       });
@@ -334,6 +358,50 @@ export default function SettingsSetupStep({
                   <strong>
                     {monthRange.start} - {monthRange.end}
                   </strong>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Weekend End Period Handling */}
+        <div>
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-gray-700">
+              Weekend End Period Handling
+            </span>
+            <Select value={weekendHandling} onValueChange={setWeekendHandling}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select weekend handling" />
+              </SelectTrigger>
+              <SelectContent>
+                {weekendHandlingOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <span className="font-medium">{option.label}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+
+          <Card className="mt-2 border-purple-200 bg-purple-50">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-purple-600" />
+                <p className="text-sm text-purple-700">
+                  <strong>
+                    {
+                      weekendHandlingOptions.find(
+                        (o) => o.value === weekendHandling,
+                      )?.label
+                    }
+                    :
+                  </strong>{" "}
+                  {
+                    weekendHandlingOptions.find(
+                      (o) => o.value === weekendHandling,
+                    )?.description
+                  }
                 </p>
               </div>
             </CardContent>

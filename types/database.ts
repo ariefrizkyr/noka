@@ -250,6 +250,7 @@ export type Database = {
           currency_code: string;
           financial_month_start_day: number;
           financial_week_start_day: number;
+          weekend_end_handling: Database["public"]["Enums"]["weekend_handling"];
           id: string;
           onboarding_completed: boolean;
           onboarding_step_1_completed: boolean;
@@ -264,6 +265,7 @@ export type Database = {
           currency_code?: string;
           financial_month_start_day?: number;
           financial_week_start_day?: number;
+          weekend_end_handling?: Database["public"]["Enums"]["weekend_handling"];
           id?: string;
           onboarding_completed?: boolean;
           onboarding_step_1_completed?: boolean;
@@ -278,6 +280,7 @@ export type Database = {
           currency_code?: string;
           financial_month_start_day?: number;
           financial_week_start_day?: number;
+          weekend_end_handling?: Database["public"]["Enums"]["weekend_handling"];
           id?: string;
           onboarding_completed?: boolean;
           onboarding_step_1_completed?: boolean;
@@ -341,6 +344,7 @@ export type Database = {
       budget_frequency: "weekly" | "monthly" | "one_time";
       category_type: "expense" | "income" | "investment";
       transaction_type: "income" | "expense" | "transfer";
+      weekend_handling: "no_adjustment" | "move_to_friday" | "move_to_monday";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -463,6 +467,7 @@ export const Constants = {
       budget_frequency: ["weekly", "monthly", "one_time"],
       category_type: ["expense", "income", "investment"],
       transaction_type: ["income", "expense", "transfer"],
+      weekend_handling: ["no_adjustment", "move_to_friday", "move_to_monday"],
     },
   },
 } as const;

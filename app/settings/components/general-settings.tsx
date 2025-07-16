@@ -42,6 +42,21 @@ const WEEKDAYS = [
   { value: 6, name: "Saturday" },
 ];
 
+const WEEKEND_HANDLING_OPTIONS = [
+  {
+    value: "no_adjustment",
+    name: "No changes",
+  },
+  {
+    value: "move_to_friday",
+    name: "Previous Friday",
+  },
+  {
+    value: "move_to_monday",
+    name: "Following Monday",
+  },
+];
+
 export default function GeneralSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -49,6 +64,7 @@ export default function GeneralSettings() {
     currency_code: "IDR",
     financial_month_start_day: 1,
     financial_week_start_day: 1,
+    weekend_end_handling: "no_adjustment" as const,
   });
 
   useEffect(() => {
@@ -65,6 +81,7 @@ export default function GeneralSettings() {
         currency_code: data.data.currency_code,
         financial_month_start_day: data.data.financial_month_start_day,
         financial_week_start_day: data.data.financial_week_start_day,
+        weekend_end_handling: data.data.weekend_end_handling || "no_adjustment",
       });
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -158,6 +175,32 @@ export default function GeneralSettings() {
         </Select>
         <p className="text-sm text-gray-500">
           Your financial month will start on this day each month.
+        </p>
+      </div>
+
+      {/* Weekend End Period Handling */}
+      <div className="space-y-2">
+        <Label htmlFor="weekend-handling">Weekend End Period Handling</Label>
+        <Select
+          value={formData.weekend_end_handling}
+          onValueChange={(value) =>
+            handleInputChange("weekend_end_handling", value)
+          }
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select weekend handling" />
+          </SelectTrigger>
+          <SelectContent>
+            {WEEKEND_HANDLING_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                <span className="font-medium">{option.name}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-sm text-gray-500">
+          Choose how to handle financial period end dates that fall on weekends
+          (Saturday or Sunday).
         </p>
       </div>
 
