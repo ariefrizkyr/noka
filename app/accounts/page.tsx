@@ -114,10 +114,14 @@ export default function AccountsPage() {
                 {/* Accounts Grid */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {accountsOfType.map((account) => (
-                    <Card
+                    <Link
                       key={account.id}
-                      className="transition-shadow hover:shadow-md"
+                      href={`/accounts/${account.id}`}
+                      className="block"
                     >
+                      <Card
+                        className="cursor-pointer transition-shadow hover:shadow-md"
+                      >
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
@@ -166,6 +170,7 @@ export default function AccountsPage() {
                         </div>
                       </CardContent>
                     </Card>
+                    </Link>
                   ))}
                 </div>
               </div>

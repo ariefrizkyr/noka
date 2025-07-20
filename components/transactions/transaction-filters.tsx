@@ -35,6 +35,8 @@ interface TransactionFiltersProps {
   onFiltersChange: (filters: TransactionFilters) => void;
   className?: string;
   currency?: string;
+  hiddenFilters?: Array<keyof TransactionFilters>;
+  lockedFilters?: TransactionFilters;
 }
 
 export function TransactionFilters({
@@ -42,6 +44,8 @@ export function TransactionFilters({
   onFiltersChange,
   className,
   currency,
+  hiddenFilters = [],
+  lockedFilters = {},
 }: TransactionFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState<TransactionFilters>(filters);
@@ -68,7 +72,7 @@ export function TransactionFilters({
   };
 
   const clearAllLocalFilters = () => {
-    setLocalFilters({});
+    setLocalFilters(lockedFilters);
   };
 
   const resetLocalFilters = () => {
@@ -82,7 +86,13 @@ export function TransactionFilters({
 
   const getActiveFiltersCount = (filtersToCount: TransactionFilters) => {
     return Object.keys(filtersToCount).filter(
-      (key) => filtersToCount[key as keyof TransactionFilters] !== undefined,
+      (key) => {
+        const filterKey = key as keyof TransactionFilters;
+        return (
+          filtersToCount[filterKey] !== undefined &&
+          !hiddenFilters.includes(filterKey)
+        );
+      },
     ).length;
   };
 
@@ -120,8 +130,8 @@ export function TransactionFilters({
               variant="ghost"
               size="sm"
               onClick={() => {
-                onFiltersChange({});
-                setLocalFilters({});
+                onFiltersChange(lockedFilters);
+                setLocalFilters(lockedFilters);
               }}
               className="text-muted-foreground"
             >
@@ -170,7 +180,6 @@ export function TransactionFilters({
                           updateLocalFilter("end_date", range?.to ?? null);
                         }}
                         disabled={(date) => date > new Date()}
-                        initialFocus
                         numberOfMonths={2}
                       />
                     </PopoverContent>
@@ -226,28 +235,30 @@ export function TransactionFilters({
                 </div>
 
                 {/* Account Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Account</label>
-                  <AccountSelector
-                    value={localFilters.account_id}
-                    onValueChange={(value) =>
-                      updateLocalFilter("account_id", value || null)
-                    }
-                    placeholder={SELECTOR_PLACEHOLDERS.ACCOUNT_FILTER}
-                    currency={currency}
-                  />
-                  {localFilters.account_id && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => clearLocalFilter("account_id")}
-                      className="h-6 px-2 text-xs"
-                    >
-                      <X className="mr-1 h-3 w-3" />
-                      Clear
-                    </Button>
-                  )}
-                </div>
+                {!hiddenFilters.includes('account_id') && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Account</label>
+                    <AccountSelector
+                      value={localFilters.account_id}
+                      onValueChange={(value) =>
+                        updateLocalFilter("account_id", value || null)
+                      }
+                      placeholder={SELECTOR_PLACEHOLDERS.ACCOUNT_FILTER}
+                      currency={currency}
+                    />
+                    {localFilters.account_id && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => clearLocalFilter("account_id")}
+                        className="h-6 px-2 text-xs"
+                      >
+                        <X className="mr-1 h-3 w-3" />
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                )}
 
                 {/* Category Filter */}
                 <div className="space-y-2">

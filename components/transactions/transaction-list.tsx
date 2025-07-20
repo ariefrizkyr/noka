@@ -25,6 +25,8 @@ interface TransactionListProps {
   defaultFilters?: TransactionFiltersType;
   className?: string;
   currency?: string;
+  hiddenFilters?: Array<keyof TransactionFiltersType>;
+  lockedFilters?: TransactionFiltersType;
 }
 
 export function TransactionList({
@@ -34,6 +36,8 @@ export function TransactionList({
   defaultFilters = {},
   className,
   currency,
+  hiddenFilters = [],
+  lockedFilters = {},
 }: TransactionListProps) {
   // Use our centralized transactions hook
   const {
@@ -90,7 +94,12 @@ export function TransactionList({
       {/* Header */}
       <div className="mb-6">
         {/* Filters */}
-        <TransactionFilters filters={filters} onFiltersChange={setFilters} />
+        <TransactionFilters 
+          filters={filters} 
+          onFiltersChange={setFilters}
+          hiddenFilters={hiddenFilters}
+          lockedFilters={lockedFilters}
+        />
       </div>
 
       {/* Content */}
