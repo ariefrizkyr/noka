@@ -4,12 +4,13 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Plus, Edit, Trash2, Loader2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Account, AccountFormData } from "@/types/common";
 import { useApiData } from "@/hooks/use-api-data";
 import { useCrudDialog } from "@/hooks/use-crud-dialog";
@@ -23,6 +24,7 @@ interface AccountManagementProps {
 }
 
 export function AccountManagement({ userCurrency }: AccountManagementProps) {
+  const isMobile = useIsMobile();
   const {
     data: accounts,
     loading,
@@ -207,38 +209,56 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
         );
       })}
 
-      {/* Add Account Dialog */}
-      <Dialog open={isAddOpen} onOpenChange={closeAddDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Account</DialogTitle>
-          </DialogHeader>
-          <AccountForm
-            data={getInitialFormData()}
-            loading={isCreating}
-            onSubmit={handleFormSubmit}
-            onCancel={closeAddDialog}
-            userCurrency={userCurrency}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Add Account Sheet */}
+      <Sheet open={isAddOpen} onOpenChange={closeAddDialog}>
+        <SheetContent 
+          side={isMobile ? "bottom" : "right"}
+          className={`${
+            isMobile
+              ? "h-[90vh] w-full rounded-t-lg"
+              : "h-full w-[600px] max-w-[90vw]"
+          } flex flex-col p-0`}
+        >
+          <SheetHeader className="border-b px-6 py-4">
+            <SheetTitle>Add New Account</SheetTitle>
+          </SheetHeader>
+          <div className={`flex-1 ${isMobile ? "overflow-y-auto p-3" : "p-6"}`}>
+            <AccountForm
+              data={getInitialFormData()}
+              loading={isCreating}
+              onSubmit={handleFormSubmit}
+              onCancel={closeAddDialog}
+              userCurrency={userCurrency}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
-      {/* Edit Account Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={closeEditDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Account</DialogTitle>
-          </DialogHeader>
-          <AccountForm
-            data={getInitialFormData()}
-            loading={isUpdating}
-            onSubmit={handleFormSubmit}
-            onCancel={closeEditDialog}
-            isEdit={true}
-            userCurrency={userCurrency}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Edit Account Sheet */}
+      <Sheet open={isEditOpen} onOpenChange={closeEditDialog}>
+        <SheetContent 
+          side={isMobile ? "bottom" : "right"}
+          className={`${
+            isMobile
+              ? "h-[90vh] w-full rounded-t-lg"
+              : "h-full w-[600px] max-w-[90vw]"
+          } flex flex-col p-0`}
+        >
+          <SheetHeader className="border-b px-6 py-4">
+            <SheetTitle>Edit Account</SheetTitle>
+          </SheetHeader>
+          <div className={`flex-1 ${isMobile ? "overflow-y-auto p-3" : "p-6"}`}>
+            <AccountForm
+              data={getInitialFormData()}
+              loading={isUpdating}
+              onSubmit={handleFormSubmit}
+              onCancel={closeEditDialog}
+              isEdit={true}
+              userCurrency={userCurrency}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Delete Confirmation Dialog */}
       <AccountDeleteDialog

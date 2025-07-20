@@ -4,11 +4,11 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Plus,
   Edit,
@@ -18,6 +18,7 @@ import {
   TrendingUp,
   Target,
 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Category, GroupedCategories, CategoryFormData } from "@/types/common";
 import { useApiData } from "@/hooks/use-api-data";
 import { useCrudDialog } from "@/hooks/use-crud-dialog";
@@ -30,6 +31,7 @@ interface CategoryManagementProps {
 }
 
 export function CategoryManagement({ userCurrency }: CategoryManagementProps) {
+  const isMobile = useIsMobile();
   const {
     data: categoriesData,
     loading,
@@ -260,38 +262,56 @@ export function CategoryManagement({ userCurrency }: CategoryManagementProps) {
         );
       })}
 
-      {/* Add Category Dialog */}
-      <Dialog open={isAddOpen} onOpenChange={closeAddDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Category</DialogTitle>
-          </DialogHeader>
-          <CategoryForm
-            data={getInitialFormData()}
-            loading={isCreating}
-            onSubmit={handleFormSubmit}
-            onCancel={closeAddDialog}
-            userCurrency={userCurrency}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Add Category Sheet */}
+      <Sheet open={isAddOpen} onOpenChange={closeAddDialog}>
+        <SheetContent 
+          side={isMobile ? "bottom" : "right"}
+          className={`${
+            isMobile
+              ? "h-[90vh] w-full rounded-t-lg"
+              : "h-full w-[600px] max-w-[90vw]"
+          } flex flex-col p-0`}
+        >
+          <SheetHeader className="border-b px-6 py-4">
+            <SheetTitle>Add New Category</SheetTitle>
+          </SheetHeader>
+          <div className={`flex-1 ${isMobile ? "overflow-y-auto p-3" : "p-6"}`}>
+            <CategoryForm
+              data={getInitialFormData()}
+              loading={isCreating}
+              onSubmit={handleFormSubmit}
+              onCancel={closeAddDialog}
+              userCurrency={userCurrency}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
-      {/* Edit Category Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={closeEditDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
-          </DialogHeader>
-          <CategoryForm
-            data={getInitialFormData()}
-            loading={isUpdating}
-            onSubmit={handleFormSubmit}
-            onCancel={closeEditDialog}
-            isEdit={true}
-            userCurrency={userCurrency}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Edit Category Sheet */}
+      <Sheet open={isEditOpen} onOpenChange={closeEditDialog}>
+        <SheetContent 
+          side={isMobile ? "bottom" : "right"}
+          className={`${
+            isMobile
+              ? "h-[90vh] w-full rounded-t-lg"
+              : "h-full w-[600px] max-w-[90vw]"
+          } flex flex-col p-0`}
+        >
+          <SheetHeader className="border-b px-6 py-4">
+            <SheetTitle>Edit Category</SheetTitle>
+          </SheetHeader>
+          <div className={`flex-1 ${isMobile ? "overflow-y-auto p-3" : "p-6"}`}>
+            <CategoryForm
+              data={getInitialFormData()}
+              loading={isUpdating}
+              onSubmit={handleFormSubmit}
+              onCancel={closeEditDialog}
+              isEdit={true}
+              userCurrency={userCurrency}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Delete Confirmation Dialog */}
       <CategoryDeleteDialog
