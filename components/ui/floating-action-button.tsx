@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const floatingActionButtonVariants = cva(
-  "fixed z-[60] rounded-full shadow-lg transition-all duration-200 ease-in-out hover:shadow-xl active:scale-95",
+  "fixed z-40 rounded-full shadow-lg transition-all duration-200 ease-in-out hover:shadow-xl active:scale-95",
   {
     variants: {
       variant: {

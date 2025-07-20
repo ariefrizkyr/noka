@@ -2,16 +2,10 @@
 
 import { useState, useMemo } from "react";
 import { Receipt } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TransactionList } from "@/components/transactions/transaction-list";
-import { TransactionForm } from "@/components/transactions/transaction-form";
+import { TransactionSheet } from "@/components/transactions/transaction-sheet";
 import { DeleteTransactionDialog } from "@/components/transactions/delete-transaction-dialog";
 import { MainLayout } from "@/components/layout/main-layout";
 import { useTransactions } from "@/hooks/use-transactions";
@@ -191,25 +185,17 @@ export default function TransactionsPage() {
         />
       </div>
 
-      {/* Edit Transaction Dialog */}
-      <Dialog open={showEditForm} onOpenChange={setShowEditForm}>
-        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Transaction</DialogTitle>
-          </DialogHeader>
-          <TransactionForm
-            mode="edit"
-            transactionId={editingTransaction?.id}
-            defaultValues={editFormDefaultValues}
-            onSuccess={handleTransactionSuccess}
-            onCancel={() => {
-              setShowEditForm(false);
-              setEditingTransaction(null);
-            }}
-            currency={currency}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Edit Transaction Sheet */}
+      <TransactionSheet
+        open={showEditForm}
+        onOpenChange={setShowEditForm}
+        mode="edit"
+        transactionId={editingTransaction?.id}
+        defaultValues={editFormDefaultValues}
+        onSuccess={handleTransactionSuccess}
+        currency={currency}
+        title="Edit Transaction"
+      />
 
       {/* Delete Transaction Dialog */}
       <DeleteTransactionDialog

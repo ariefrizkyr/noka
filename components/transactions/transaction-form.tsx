@@ -82,6 +82,7 @@ interface TransactionFormProps {
   mode?: "create" | "edit";
   transactionId?: string;
   currency?: string;
+  prefilledAmount?: number;
 }
 
 export function TransactionForm({
@@ -91,6 +92,7 @@ export function TransactionForm({
   mode = "create",
   transactionId,
   currency = CURRENCY_DEFAULTS.DEFAULT_CURRENCY,
+  prefilledAmount,
 }: TransactionFormProps) {
   // Use centralized transaction mutations hook
   const {
@@ -110,10 +112,12 @@ export function TransactionForm({
     defaultValues: {
       type: "expense",
       transaction_date: new Date(),
-      amount: 0,
+      amount: prefilledAmount || 0,
       description: "",
       // Merge defaultValues appropriately based on mode
       ...defaultValues,
+      // Ensure prefilledAmount takes precedence over defaultValues.amount
+      ...(prefilledAmount && { amount: prefilledAmount }),
     },
   });
 
@@ -150,6 +154,13 @@ export function TransactionForm({
     } else {
     }
   }, [mode, defaultValues, form]);
+
+  // Handle prefilledAmount changes (for mobile flow)
+  useEffect(() => {
+    if (prefilledAmount && prefilledAmount > 0) {
+      form.setValue("amount", prefilledAmount);
+    }
+  }, [prefilledAmount, form]);
 
   // Reset form fields when transaction type changes (but not on initial mount)
   useEffect(() => {
@@ -269,7 +280,7 @@ export function TransactionForm({
                 <CurrencyInput
                   currency={currency}
                   value={field.value}
-                  onChange={(displayValue, numericValue) => {
+                  onChange={(_, numericValue) => {
                     field.onChange(numericValue);
                   }}
                   placeholder="0"
