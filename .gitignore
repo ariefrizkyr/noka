@@ -61,9 +61,3 @@ node_modules/
 # Cursor
 .cursor/mcp.json
 .claude/settings.local.json
-
-# OS specific
-
-# Task files
-# tasks.json
-# tasks/ 
