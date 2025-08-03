@@ -20,8 +20,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Supabase CLI
 
-- `npx supabase db push` - Push the migration file to production
-- `npx supabase db reset` - Run migration locally
+- `supabase db reset` - Run migration locally
+- _NEVER_ run `supabase db push` - keep the changes local first
 
 ## Project Architecture
 
@@ -86,13 +86,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Use lowercase with dashes for directory names (`auth-wizard`)
 - **NEVER** create a file longer than 500 lines of code. If a file approaches this limit, refactor by splitting it into modules or helper files.
 
-### Testing
-
-- Jest configuration in `jest.config.js`
-- Test utilities in `__tests__/utils/`
-- Database testing setup with global setup/teardown
-- Coverage reports generated in `coverage/`
-
 ### UI Components
 
 - When working with UI, **YOU MUST** check the existing shadcn/ui components in `components/ui/` before creating new ones
@@ -102,19 +95,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Agent OS Documentation
 
 ### Product Context
+
 - **Mission & Vision:** @.agent-os/product/mission.md
 - **Technical Architecture:** @.agent-os/product/tech-stack.md
 - **Development Roadmap:** @.agent-os/product/roadmap.md
 - **Decision History:** @.agent-os/product/decisions.md
 
 ### Development Standards
+
 - **Code Style:** @~/.agent-os/standards/code-style.md
 - **Best Practices:** @~/.agent-os/standards/best-practices.md
 
 ### Project Management
+
 - **Active Specs:** @.agent-os/specs/
-- **Spec Planning:** Use `@~/.agent-os/instructions/create-spec.md`
-- **Tasks Execution:** Use `@~/.agent-os/instructions/execute-tasks.md`
+- **Spec Planning:** Use `@~/.agent-os/instructions/core/create-spec.md`
+- **Tasks Execution:** Use `@~/.agent-os/instructions/core/execute-tasks.md`
 
 ## Workflow Instructions
 
@@ -122,8 +118,8 @@ When asked to work on this codebase:
 
 1. **First**, check @.agent-os/product/roadmap.md for current priorities
 2. **Then**, follow the appropriate instruction file:
-   - For new features: @.agent-os/instructions/create-spec.md
-   - For tasks execution: @.agent-os/instructions/execute-tasks.md
+   - For new features: @.agent-os/instructions/core/create-spec.md
+   - For tasks execution: @.agent-os/instructions/core/execute-tasks.md
 3. **Always**, adhere to the standards in the files listed above
 
 ## Important Notes
