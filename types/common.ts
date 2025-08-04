@@ -13,6 +13,7 @@ export type UserSettings = Tables<"user_settings">;
 export type Family = Tables<"families">;
 export type FamilyMember = Tables<"family_members">;
 export type FamilyInvitation = Tables<"family_invitations">;
+export type BalanceLedger = Tables<"balance_ledger">;
 
 // Re-export enums
 export type AccountType = Enums<"account_type">;
@@ -22,6 +23,7 @@ export type TransactionType = Enums<"transaction_type">;
 export type BudgetFrequency = Enums<"budget_frequency">;
 export type FamilyRole = Enums<"family_role">;
 export type InvitationStatus = Enums<"invitation_status">;
+export type WeekendHandling = Enums<"weekend_handling">;
 
 // Application-specific form data interfaces
 export interface AccountFormData {
@@ -340,6 +342,22 @@ export interface InvestmentProgress {
     contribution_amount: number;
     percentage: number;
   }>;
+}
+
+export interface FinancialSummary {
+  total_income: number;
+  total_expenses: number;
+  net_savings: number;
+  period_start: string;
+  period_end: string;
+}
+
+export interface MemberContribution {
+  user_id: string;
+  user_email: string;
+  contribution_amount: number;
+  transaction_count: number;
+  percentage_of_total: number;
 }
 
 // Entity types for generic components
