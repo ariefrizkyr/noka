@@ -36,8 +36,10 @@ export type Database = {
     Tables: {
       accounts: {
         Row: {
+          account_scope: Database["public"]["Enums"]["account_scope"];
           created_at: string;
           current_balance: number;
+          family_id: string | null;
           id: string;
           initial_balance: number;
           is_active: boolean;
@@ -47,8 +49,10 @@ export type Database = {
           user_id: string | null;
         };
         Insert: {
+          account_scope?: Database["public"]["Enums"]["account_scope"];
           created_at?: string;
           current_balance?: number;
+          family_id?: string | null;
           id?: string;
           initial_balance?: number;
           is_active?: boolean;
@@ -58,8 +62,10 @@ export type Database = {
           user_id?: string | null;
         };
         Update: {
+          account_scope?: Database["public"]["Enums"]["account_scope"];
           created_at?: string;
           current_balance?: number;
+          family_id?: string | null;
           id?: string;
           initial_balance?: number;
           is_active?: boolean;
@@ -68,7 +74,15 @@ export type Database = {
           updated_at?: string;
           user_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "accounts_family_id_fkey";
+            columns: ["family_id"];
+            isOneToOne: false;
+            referencedRelation: "families";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       balance_ledger: {
         Row: {
@@ -122,9 +136,11 @@ export type Database = {
             | Database["public"]["Enums"]["budget_frequency"]
             | null;
           created_at: string;
+          family_id: string | null;
           icon: string | null;
           id: string;
           is_active: boolean;
+          is_shared: boolean;
           name: string;
           type: Database["public"]["Enums"]["category_type"];
           updated_at: string;
@@ -136,9 +152,11 @@ export type Database = {
             | Database["public"]["Enums"]["budget_frequency"]
             | null;
           created_at?: string;
+          family_id?: string | null;
           icon?: string | null;
           id?: string;
           is_active?: boolean;
+          is_shared?: boolean;
           name: string;
           type: Database["public"]["Enums"]["category_type"];
           updated_at?: string;
@@ -150,15 +168,25 @@ export type Database = {
             | Database["public"]["Enums"]["budget_frequency"]
             | null;
           created_at?: string;
+          family_id?: string | null;
           icon?: string | null;
           id?: string;
           is_active?: boolean;
+          is_shared?: boolean;
           name?: string;
           type?: Database["public"]["Enums"]["category_type"];
           updated_at?: string;
           user_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "categories_family_id_fkey";
+            columns: ["family_id"];
+            isOneToOne: false;
+            referencedRelation: "families";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       transactions: {
         Row: {
@@ -170,6 +198,7 @@ export type Database = {
           from_account_id: string | null;
           id: string;
           investment_category_id: string | null;
+          logged_by_user_id: string;
           to_account_id: string | null;
           transaction_date: string;
           type: Database["public"]["Enums"]["transaction_type"];
@@ -185,6 +214,7 @@ export type Database = {
           from_account_id?: string | null;
           id?: string;
           investment_category_id?: string | null;
+          logged_by_user_id: string;
           to_account_id?: string | null;
           transaction_date: string;
           type: Database["public"]["Enums"]["transaction_type"];
@@ -200,6 +230,7 @@ export type Database = {
           from_account_id?: string | null;
           id?: string;
           investment_category_id?: string | null;
+          logged_by_user_id?: string;
           to_account_id?: string | null;
           transaction_date?: string;
           type?: Database["public"]["Enums"]["transaction_type"];
@@ -292,6 +323,131 @@ export type Database = {
         };
         Relationships: [];
       };
+      families: {
+        Row: {
+          created_at: string;
+          created_by: string;
+          id: string;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by: string;
+          id?: string;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "families_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      family_invitations: {
+        Row: {
+          created_at: string;
+          email: string;
+          expires_at: string;
+          family_id: string;
+          id: string;
+          invited_by: string;
+          role: Database["public"]["Enums"]["family_role"];
+          status: Database["public"]["Enums"]["invitation_status"];
+          token: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          email: string;
+          expires_at: string;
+          family_id: string;
+          id?: string;
+          invited_by: string;
+          role?: Database["public"]["Enums"]["family_role"];
+          status?: Database["public"]["Enums"]["invitation_status"];
+          token: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          email?: string;
+          expires_at?: string;
+          family_id?: string;
+          id?: string;
+          invited_by?: string;
+          role?: Database["public"]["Enums"]["family_role"];
+          status?: Database["public"]["Enums"]["invitation_status"];
+          token?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "family_invitations_family_id_fkey";
+            columns: ["family_id"];
+            isOneToOne: false;
+            referencedRelation: "families";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "family_invitations_invited_by_fkey";
+            columns: ["invited_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      family_members: {
+        Row: {
+          family_id: string;
+          id: string;
+          joined_at: string;
+          role: Database["public"]["Enums"]["family_role"];
+          user_id: string;
+        };
+        Insert: {
+          family_id: string;
+          id?: string;
+          joined_at?: string;
+          role?: Database["public"]["Enums"]["family_role"];
+          user_id: string;
+        };
+        Update: {
+          family_id?: string;
+          id?: string;
+          joined_at?: string;
+          role?: Database["public"]["Enums"]["family_role"];
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "family_members_family_id_fkey";
+            columns: ["family_id"];
+            isOneToOne: false;
+            referencedRelation: "families";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "family_members_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -311,6 +467,10 @@ export type Database = {
           progress_percentage: number;
           period_start: string;
           period_end: string;
+          is_shared: boolean;
+          family_id: string | null;
+          family_name: string | null;
+          member_contributions: Json;
         }[];
       };
       get_financial_summary: {
@@ -336,13 +496,35 @@ export type Database = {
           progress_percentage: number;
           period_start: string;
           period_end: string;
+          is_shared: boolean;
+          family_id: string | null;
+          family_name: string | null;
+          member_contributions: Json;
+        }[];
+      };
+      get_member_contributions: {
+        Args: {
+          p_family_id: string;
+          p_category_id: string;
+          p_start_date?: string | null;
+          p_end_date?: string | null;
+        };
+        Returns: {
+          user_id: string;
+          user_email: string;
+          contribution_amount: number;
+          transaction_count: number;
+          percentage_of_total: number;
         }[];
       };
     };
     Enums: {
+      account_scope: "personal" | "joint";
       account_type: "bank_account" | "credit_card" | "investment_account";
       budget_frequency: "weekly" | "monthly" | "one_time";
       category_type: "expense" | "income" | "investment";
+      family_role: "admin" | "member";
+      invitation_status: "pending" | "accepted" | "declined" | "expired";
       transaction_type: "income" | "expense" | "transfer";
       weekend_handling: "no_adjustment" | "move_to_friday" | "move_to_monday";
     };
@@ -463,9 +645,12 @@ export const Constants = {
   },
   public: {
     Enums: {
+      account_scope: ["personal", "joint"],
       account_type: ["bank_account", "credit_card", "investment_account"],
       budget_frequency: ["weekly", "monthly", "one_time"],
       category_type: ["expense", "income", "investment"],
+      family_role: ["admin", "member"],
+      invitation_status: ["pending", "accepted", "declined", "expired"],
       transaction_type: ["income", "expense", "transfer"],
       weekend_handling: ["no_adjustment", "move_to_friday", "move_to_monday"],
     },

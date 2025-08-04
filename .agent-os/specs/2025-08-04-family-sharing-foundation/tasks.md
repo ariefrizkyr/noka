@@ -3,8 +3,8 @@
 ## Tasks
 
 - [ ] 1. Database Infrastructure & API Foundation
-  - [ ] 1.1 Implement zero-downtime database migrations with family tables, enhanced RLS policies, and multiple family support
-  - [ ] 1.2 Create security definer functions for optimal RLS performance and family access checks
+  - [x] 1.1 Implement zero-downtime database migrations with family tables, enhanced RLS policies, and multiple family support
+  - [x] 1.2 Create security definer functions for optimal RLS performance and family access checks
   - [ ] 1.3 Implement comprehensive family management API endpoints with role-based permissions
   - [ ] 1.4 Enhance existing resource APIs (accounts, categories, transactions) to support family context
   - [ ] 1.5 Update database functions (get_budget_progress, get_investment_progress) with member contribution calculations
