@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,8 +23,60 @@ export default function FamilySetupStep({
   const [familyName, setFamilyName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [existingFamily, setExistingFamily] = useState<{ id: string; name: string } | null>(null);
+  const [checkingExisting, setCheckingExisting] = useState(true);
+
+  // Check if user already has a family on component mount
+  useEffect(() => {
+    const checkExistingFamily = async () => {
+      try {
+        setCheckingExisting(true);
+        
+        // First check sessionStorage for family created in this onboarding session
+        const sessionFamilyId = sessionStorage.getItem("onboardingFamilyId");
+        
+        if (sessionFamilyId) {
+          // Fetch family details from API to get the name
+          const response = await fetch("/api/families");
+          if (response.ok) {
+            const data = await response.json();
+            const family = data.data.find((f: { id: string; name: string }) => f.id === sessionFamilyId);
+            if (family) {
+              setExistingFamily({ id: family.id, name: family.name });
+              return;
+            }
+          }
+        }
+        
+        // If no session family, check if user already has any families
+        const response = await fetch("/api/families");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.data && data.data.length > 0) {
+            // For onboarding, we expect only 1 family, so take the first one
+            const family = data.data[0];
+            setExistingFamily({ id: family.id, name: family.name });
+            // Store in session for consistency
+            sessionStorage.setItem("onboardingFamilyId", family.id);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking existing family:", error);
+        // Don't show error toast during onboarding check
+      } finally {
+        setCheckingExisting(false);
+      }
+    };
+
+    checkExistingFamily();
+  }, []);
 
   const handleNext = async () => {
+    // If family already exists, just proceed to next step
+    if (existingFamily) {
+      onNext();
+      return;
+    }
     if (!familyName.trim()) return;
 
     try {
@@ -88,6 +140,23 @@ export default function FamilySetupStep({
     if (error) setError(""); // Clear error when user starts typing
   };
 
+  // Show loading state while checking for existing family
+  if (checkingExisting) {
+    return (
+      <div className="space-y-8">
+        <div className="space-y-4 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+            <Users className="h-8 w-8 text-gray-400 animate-pulse" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900">Checking Family Status...</h2>
+          <p className="mx-auto max-w-md text-gray-600">
+            Please wait while we check your family setup.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -95,49 +164,76 @@ export default function FamilySetupStep({
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
           <Users className="h-8 w-8 text-green-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Create Your Family</h2>
+        <h2 className="text-2xl font-bold text-gray-900">
+          {existingFamily ? "Your Family is Ready!" : "Create Your Family"}
+        </h2>
         <p className="mx-auto max-w-md text-gray-600">
-          Give your family a name to start collaborating on your financial goals together.
+          {existingFamily 
+            ? "Your family has been created successfully. You can proceed to set up your accounts and categories."
+            : "Give your family a name to start collaborating on your financial goals together."
+          }
         </p>
       </div>
 
-      {/* Family Name Input */}
+      {/* Family Name Input or Existing Family Display */}
       <div className="space-y-4">
-        <div>
-          <Label htmlFor="familyName" className="text-sm font-medium text-gray-700">
-            Family Name
-          </Label>
-          <Input
-            id="familyName"
-            type="text"
-            placeholder="Enter your family name (e.g., The Smith Family)"
-            value={familyName}
-            onChange={handleInputChange}
-            className={`mt-2 ${error ? "border-red-500 focus:border-red-500" : ""}`}
-            disabled={isLoading}
-          />
-          {error && (
-            <p className="mt-2 text-sm text-red-600">{error}</p>
-          )}
-        </div>
-
-        {/* Preview Card */}
-        {familyName.trim() && (
+        {existingFamily ? (
+          // Show existing family
           <Card className="border-green-200 bg-green-50">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <Home className="h-5 w-5 text-green-600" />
                 <div>
                   <p className="font-medium text-green-900">
-                    {familyName.trim()}
+                    {existingFamily.name}
                   </p>
                   <p className="text-sm text-green-700">
-                    You'll be the family administrator with full access
+                    You are the family administrator with full access
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
+        ) : (
+          // Show family creation form
+          <>
+            <div>
+              <Label htmlFor="familyName" className="text-sm font-medium text-gray-700">
+                Family Name
+              </Label>
+              <Input
+                id="familyName"
+                type="text"
+                placeholder="Enter your family name (e.g., The Smith Family)"
+                value={familyName}
+                onChange={handleInputChange}
+                className={`mt-2 ${error ? "border-red-500 focus:border-red-500" : ""}`}
+                disabled={isLoading}
+              />
+              {error && (
+                <p className="mt-2 text-sm text-red-600">{error}</p>
+              )}
+            </div>
+
+            {/* Preview Card */}
+            {familyName.trim() && (
+              <Card className="border-green-200 bg-green-50">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Home className="h-5 w-5 text-green-600" />
+                    <div>
+                      <p className="font-medium text-green-900">
+                        {familyName.trim()}
+                      </p>
+                      <p className="text-sm text-green-700">
+                        You'll be the family administrator with full access
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
         )}
       </div>
 
@@ -232,9 +328,14 @@ export default function FamilySetupStep({
         </Button>
         <Button 
           onClick={handleNext} 
-          disabled={!familyName.trim() || isLoading}
+          disabled={existingFamily ? false : (!familyName.trim() || isLoading)}
         >
-          {isLoading ? "Creating Family..." : "Create Family"}
+          {isLoading 
+            ? "Creating Family..." 
+            : existingFamily 
+              ? "Continue" 
+              : "Create Family"
+          }
         </Button>
       </div>
     </div>

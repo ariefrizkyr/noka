@@ -4,10 +4,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Settings, Palette, Wallet, Tags, LogOut } from "lucide-react";
+import { Settings, Palette, Wallet, Tags, Users, LogOut } from "lucide-react";
 import GeneralSettings from "./components/general-settings";
 import CategoriesSettings from "./components/categories-settings";
 import AccountsSettings from "./components/accounts-settings";
+import FamilyManagement from "./components/family-management";
 import { MainLayout } from "@/components/layout/main-layout";
 import { useAuth } from "@/contexts/auth-context";
 import { useCurrencySettings } from "@/hooks/use-currency-settings";
@@ -46,7 +47,8 @@ export default function SettingsPage() {
 
           {/* Tabs Skeleton */}
           <div className="space-y-4">
-            <div className="grid w-full grid-cols-3 gap-2">
+            <div className="grid w-full grid-cols-4 gap-2">
+              <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
@@ -101,7 +103,7 @@ export default function SettingsPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="general" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="general" className="flex items-center gap-2">
               <Palette className="h-4 w-4" />
               <span className="hidden sm:inline">General</span>
@@ -113,6 +115,10 @@ export default function SettingsPage() {
             <TabsTrigger value="accounts" className="flex items-center gap-2">
               <Wallet className="h-4 w-4" />
               <span className="hidden sm:inline">Accounts</span>
+            </TabsTrigger>
+            <TabsTrigger value="family" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Family</span>
             </TabsTrigger>
           </TabsList>
 
@@ -154,6 +160,20 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent>
                 <AccountsSettings />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="family" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Family Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FamilyManagement />
               </CardContent>
             </Card>
           </TabsContent>

@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
         role: 'admin',
       }
 
-      const { data: manualMember, error: memberError } = await supabase
+      const { error: memberError } = await supabase
         .from('family_members')
         .insert(newMember)
         .select()

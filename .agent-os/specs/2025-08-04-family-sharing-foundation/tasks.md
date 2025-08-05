@@ -13,7 +13,7 @@
 
 - [ ] 2. Minimal UI Integration
   - [x] 2.1 Implement enhanced onboarding journey with Personal vs Family choice and conditional family setup
-  - [ ] 2.2 Add family management tab to settings page with complete family interface
+  - [x] 2.2 Add family management tab to settings page with complete family interface
   - [ ] 2.3 Enhance account and category forms with scope selection (Personal/Joint, Personal/Shared) in both settings and onboarding
   - [ ] 2.4 Implement comprehensive family invitation system with email workflow and acceptance/decline flows
   - [ ] 2.5 Add transaction attribution display showing "Logged by" indicators in transaction cards
