@@ -139,6 +139,7 @@ export async function POST(request: NextRequest) {
       .insert({
         ...transactionData,
         user_id: user.id,
+        logged_by_user_id: user.id, // Track who logged this transaction
       })
       .select()
       .single()
@@ -327,6 +328,7 @@ async function handleTransactionTypeChange(
       .insert({
         ...validatedNewTransaction,
         user_id: user.id,
+        logged_by_user_id: user.id, // Track who logged this transaction
         created_at: originalTransaction.created_at, // Preserve original creation time
         updated_at: new Date().toISOString(),
       })

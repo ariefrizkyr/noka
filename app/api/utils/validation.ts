@@ -173,3 +173,87 @@ export function validateQueryParams<T>(url: URL, schema: z.ZodSchema<T>): T {
   const params = Object.fromEntries(url.searchParams);
   return schema.parse(params);
 }
+
+// Family validation schemas
+export const createFamilySchema = z.object({
+  name: z.string()
+    .min(3, 'Family name must be at least 3 characters')
+    .max(50, 'Family name must be less than 50 characters')
+    .trim()
+});
+
+export const updateFamilySchema = z.object({
+  name: z.string()
+    .min(3, 'Family name must be at least 3 characters')
+    .max(50, 'Family name must be less than 50 characters')
+    .trim()
+    .optional()
+});
+
+export const inviteMemberSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  role: z.enum(['admin', 'member']).default('member')
+});
+
+// Enhanced account schema with family support
+export const createAccountSchemaEnhanced = createAccountSchema.extend({
+  account_scope: z.enum(['personal', 'joint']).default('personal'),
+  family_id: z.string().uuid().optional()
+}).refine(
+  (data) => {
+    if (data.account_scope === 'joint') {
+      return !!data.family_id
+    }
+    return true
+  },
+  {
+    message: 'family_id is required for joint accounts',
+    path: ['family_id']
+  }
+);
+
+// Enhanced category schema with family support
+export const createCategorySchemaEnhanced = z
+  .object({
+    name: z.string().min(1).max(100),
+    type: z.enum(["expense", "income", "investment"] as const),
+    icon: z.string().max(50).optional(),
+    budget_amount: z.number().positive().nullable().optional(),
+    budget_frequency: z
+      .enum(["weekly", "monthly", "one_time"] as const)
+      .nullable()
+      .optional(),
+    is_shared: z.boolean().default(false),
+    family_id: z.string().uuid().optional()
+  })
+  .refine(
+    (data) => {
+      // Income categories should not have budget/frequency
+      if (data.type === "income") {
+        return data.budget_amount === null && data.budget_frequency === null;
+      }
+
+      // For expense/investment categories: if one budget field is provided, both must be provided
+      if (data.budget_amount !== null || data.budget_frequency !== null) {
+        return data.budget_amount !== null && data.budget_frequency !== null;
+      }
+
+      return true;
+    },
+    {
+      message:
+        "Income categories cannot have budgets. Expense/Investment categories must have both budget amount and frequency if either is provided.",
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.is_shared) {
+        return !!data.family_id
+      }
+      return true
+    },
+    {
+      message: 'family_id is required for shared categories',
+      path: ['family_id']
+    }
+  );
