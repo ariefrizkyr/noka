@@ -2,14 +2,14 @@
 
 ## Tasks
 
-- [ ] 1. Database Infrastructure & API Foundation
+- [x] 1. Database Infrastructure & API Foundation
   - [x] 1.1 Implement zero-downtime database migrations with family tables, enhanced RLS policies, and multiple family support
   - [x] 1.2 Create security definer functions for optimal RLS performance and family access checks
   - [x] 1.3 Implement comprehensive family management API endpoints with role-based permissions
   - [x] 1.4 Enhance existing resource APIs (accounts, categories, transactions) to support family context
-  - [ ] 1.5 Update database functions (get_budget_progress, get_investment_progress) with member contribution calculations
-  - [ ] 1.6 Implement transaction attribution system and database triggers for automatic family creator assignment
-  - [ ] 1.7 Manual verification of database schema, API functionality, and performance optimizations
+  - [x] 1.5 Update database functions (get_budget_progress, get_investment_progress) with member contribution calculations
+  - [x] 1.6 Implement transaction attribution system and database triggers for automatic family creator assignment
+  - [x] 1.7 Manual verification of database schema, API functionality, and performance optimizations
 
 - [ ] 2. Minimal UI Integration
   - [ ] 2.1 Implement enhanced onboarding journey with Personal vs Family choice and conditional family setup
