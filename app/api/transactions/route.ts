@@ -15,6 +15,10 @@ import {
   updateTransactionSchema,
   transactionQuerySchema
 } from '../utils/validation'
+import { 
+  verifyAccountAccess, 
+  verifyCategoryAccess 
+} from '../utils/family-auth'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { User } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
@@ -25,7 +29,7 @@ type TransactionUpdate = Database['public']['Tables']['transactions']['Update']
 
 /**
  * GET /api/transactions
- * Fetch user transactions with optional filtering and infinite scroll support
+ * Fetch user transactions (both personal and family) with optional filtering and infinite scroll support
  */
 export async function GET(request: NextRequest) {
   try {
@@ -34,15 +38,19 @@ export async function GET(request: NextRequest) {
     const queryParams = validateQueryParams(url, transactionQuerySchema)
     const supabase = await createClient()
 
+    // RLS policies will handle family access automatically
+
     // Apply pagination
     const limit = queryParams.limit || 50
     const offset = queryParams.offset || 0
 
-    // Build count query for pagination
+    // Build count query for pagination (include both personal and family transactions)
     let countQuery = supabase
       .from('transactions')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
+
+    // RLS policies will handle access control, but we can optimize by filtering for user transactions or transactions they have access to
+    // For simplicity, we'll rely on RLS and just ensure we have the right joins
       
     if (queryParams.account_id) {
       countQuery = countQuery.eq('account_id', queryParams.account_id)
@@ -64,18 +72,19 @@ export async function GET(request: NextRequest) {
 
     if (countError) throw countError
 
-    // Build data query with relationships
+    // Build data query with relationships including family information
     let dataQuery = supabase
       .from('transactions')
       .select(`
         *,
-        accounts!transactions_account_id_fkey(name, type),
-        categories!transactions_category_id_fkey(name, type, icon),
-        from_accounts:accounts!transactions_from_account_id_fkey(name, type),
-        to_accounts:accounts!transactions_to_account_id_fkey(name, type),
-        investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon)
+        accounts!transactions_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        categories!transactions_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name)),
+        from_accounts:accounts!transactions_from_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        to_accounts:accounts!transactions_to_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name))
       `)
-      .eq('user_id', user.id)
+
+    // RLS policies will handle access control automatically
       
     if (queryParams.account_id) {
       dataQuery = dataQuery.eq('account_id', queryParams.account_id)
@@ -100,23 +109,37 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error
 
+    // Enhance transactions with family information and logged by details
+    const enhancedTransactions = transactions.map(transaction => ({
+      ...transaction,
+      // Add family information for accounts
+      account_family_name: transaction.accounts?.families?.name || null,
+      from_account_family_name: transaction.from_accounts?.families?.name || null,
+      to_account_family_name: transaction.to_accounts?.families?.name || null,
+      // Add family information for categories
+      category_family_name: transaction.categories?.families?.name || null,
+      investment_category_family_name: transaction.investment_categories?.families?.name || null,
+      // Add logged by information
+      is_logged_by_current_user: transaction.logged_by_user_id === user.id,
+    }))
+
     // Calculate infinite scroll metadata
-    const hasMore = (offset + transactions.length) < (totalCount || 0)
+    const hasMore = (offset + enhancedTransactions.length) < (totalCount || 0)
     const nextOffset = hasMore ? offset + limit : null
 
     return createSuccessResponse(
       {
-        transactions,
+        transactions: enhancedTransactions,
         pagination: {
           limit,
           offset,
-          count: transactions.length,
+          count: enhancedTransactions.length,
           total_count: totalCount || 0,
           has_more: hasMore,
           next_offset: nextOffset,
         },
       },
-      `Retrieved ${transactions.length} of ${totalCount || 0} transactions successfully`
+      `Retrieved ${enhancedTransactions.length} of ${totalCount || 0} transactions successfully`
     )
   } catch (error) {
     return handleApiError(error)
@@ -132,6 +155,23 @@ export async function POST(request: NextRequest) {
     const user = await requireAuth()
     const transactionData = await validateRequestBody(request, createTransactionSchema)
     const supabase = await createClient()
+
+    // Verify user has access to the accounts and categories being used
+    if (transactionData.account_id) {
+      await verifyAccountAccess(user.id, transactionData.account_id)
+    }
+    if (transactionData.from_account_id) {
+      await verifyAccountAccess(user.id, transactionData.from_account_id)
+    }
+    if (transactionData.to_account_id) {
+      await verifyAccountAccess(user.id, transactionData.to_account_id)
+    }
+    if (transactionData.category_id) {
+      await verifyCategoryAccess(user.id, transactionData.category_id)
+    }
+    if (transactionData.investment_category_id) {
+      await verifyCategoryAccess(user.id, transactionData.investment_category_id)
+    }
 
     // Start a transaction
     const { data: newTransaction, error: transactionError } = await supabase
@@ -149,24 +189,36 @@ export async function POST(request: NextRequest) {
     // Balance updates are handled automatically by the database trigger
     // No manual balance updates needed here
 
-    // Fetch the complete transaction with related data
+    // Fetch the complete transaction with related data including family information
     const { data: completeTransaction, error: fetchError } = await supabase
       .from('transactions')
       .select(`
         *,
-        accounts!transactions_account_id_fkey(name, type),
-        categories!transactions_category_id_fkey(name, type, icon),
-        from_accounts:accounts!transactions_from_account_id_fkey(name, type),
-        to_accounts:accounts!transactions_to_account_id_fkey(name, type),
-        investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon)
+        accounts!transactions_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        categories!transactions_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name)),
+        from_accounts:accounts!transactions_from_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        to_accounts:accounts!transactions_to_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name))
       `)
       .eq('id', newTransaction.id)
       .single()
 
     if (fetchError) throw fetchError
+    if (!completeTransaction) throw new Error('Transaction not found')
+
+    // Enhance transaction with family information
+    const enhancedTransaction = {
+      ...completeTransaction,
+      account_family_name: completeTransaction.accounts?.families?.name || null,
+      from_account_family_name: completeTransaction.from_accounts?.families?.name || null,
+      to_account_family_name: completeTransaction.to_accounts?.families?.name || null,
+      category_family_name: completeTransaction.categories?.families?.name || null,
+      investment_category_family_name: completeTransaction.investment_categories?.families?.name || null,
+      is_logged_by_current_user: true, // Always true for newly created transactions
+    }
 
     return createCreatedResponse(
-      completeTransaction,
+      enhancedTransaction,
       'Transaction created successfully'
     )
   } catch (error) {
@@ -193,16 +245,32 @@ export async function PUT(request: NextRequest) {
     const validatedData = updateTransactionSchema.parse(updateData)
     const supabase = await createClient()
 
-    // Get the original transaction
+    // Get the original transaction (RLS will handle access control)
     const { data: originalTransaction, error: fetchError } = await supabase
       .from('transactions')
       .select('*')
       .eq('id', transaction_id)
-      .eq('user_id', user.id)
       .single()
 
     if (fetchError || !originalTransaction) {
       throw new Error('Transaction not found or access denied')
+    }
+
+    // Verify user has access to the new accounts and categories if they're being changed
+    if (validatedData.account_id) {
+      await verifyAccountAccess(user.id, validatedData.account_id)
+    }
+    if (validatedData.from_account_id) {
+      await verifyAccountAccess(user.id, validatedData.from_account_id)
+    }
+    if (validatedData.to_account_id) {
+      await verifyAccountAccess(user.id, validatedData.to_account_id)
+    }
+    if (validatedData.category_id) {
+      await verifyCategoryAccess(user.id, validatedData.category_id)
+    }
+    if (validatedData.investment_category_id) {
+      await verifyCategoryAccess(user.id, validatedData.investment_category_id)
     }
 
     // Check if transaction type is being changed
@@ -224,24 +292,36 @@ export async function PUT(request: NextRequest) {
 
       if (updateError) throw updateError
 
-      // Fetch the complete transaction with related data
+      // Fetch the complete transaction with related data including family information
       const { data: completeTransaction, error: completeError } = await supabase
         .from('transactions')
         .select(`
           *,
-          accounts!transactions_account_id_fkey(name, type),
-          categories!transactions_category_id_fkey(name, type, icon),
-          from_accounts:accounts!transactions_from_account_id_fkey(name, type),
-          to_accounts:accounts!transactions_to_account_id_fkey(name, type),
-          investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon)
+          accounts!transactions_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+          categories!transactions_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name)),
+          from_accounts:accounts!transactions_from_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+          to_accounts:accounts!transactions_to_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+          investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name))
         `)
         .eq('id', transaction_id)
         .single()
 
       if (completeError) throw completeError
+      if (!completeTransaction) throw new Error('Transaction not found after update')
+
+      // Enhance transaction with family information
+      const enhancedTransaction = {
+        ...completeTransaction,
+        account_family_name: completeTransaction.accounts?.families?.name || null,
+        from_account_family_name: completeTransaction.from_accounts?.families?.name || null,
+        to_account_family_name: completeTransaction.to_accounts?.families?.name || null,
+        category_family_name: completeTransaction.categories?.families?.name || null,
+        investment_category_family_name: completeTransaction.investment_categories?.families?.name || null,
+          is_logged_by_current_user: completeTransaction.logged_by_user_id === user.id,
+      }
 
       return createUpdatedResponse(
-        completeTransaction,
+        enhancedTransaction,
         'Transaction updated successfully'
       )
     }
@@ -256,7 +336,7 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await requireAuth()
+    await requireAuth() // Ensure user is authenticated, RLS handles access control
     const { transaction_id } = await request.json()
     
     if (!transaction_id) {
@@ -265,12 +345,11 @@ export async function DELETE(request: NextRequest) {
 
     const supabase = await createClient()
 
-    // Get the transaction before deleting
+    // Get the transaction before deleting (RLS will handle access control)
     const { data: transaction, error: fetchError } = await supabase
       .from('transactions')
       .select('*')
       .eq('id', transaction_id)
-      .eq('user_id', user.id)
       .single()
 
     if (fetchError || !transaction) {
@@ -280,12 +359,11 @@ export async function DELETE(request: NextRequest) {
     // Balance updates for transaction deletion are handled by the database trigger
     // Application-level balance reversal is not needed
 
-    // Delete the transaction
+    // Delete the transaction (RLS will handle access control)
     const { error: deleteError } = await supabase
       .from('transactions')
       .delete()
       .eq('id', transaction_id)
-      .eq('user_id', user.id)
 
     if (deleteError) throw deleteError
 
@@ -337,24 +415,36 @@ async function handleTransactionTypeChange(
 
     if (createError) throw createError
 
-    // Fetch the complete transaction with related data
+    // Fetch the complete transaction with related data including family information
     const { data: completeTransaction, error: fetchError } = await supabase
       .from('transactions')
       .select(`
         *,
-        accounts!transactions_account_id_fkey(name, type),
-        categories!transactions_category_id_fkey(name, type, icon),
-        from_accounts:accounts!transactions_from_account_id_fkey(name, type),
-        to_accounts:accounts!transactions_to_account_id_fkey(name, type),
-        investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon)
+        accounts!transactions_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        categories!transactions_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name)),
+        from_accounts:accounts!transactions_from_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        to_accounts:accounts!transactions_to_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name))
       `)
       .eq('id', newTransaction.id)
       .single()
 
     if (fetchError) throw fetchError
+    if (!completeTransaction) throw new Error('Transaction not found')
+
+    // Enhance transaction with family information
+    const enhancedTransaction = {
+      ...completeTransaction,
+      account_family_name: completeTransaction.accounts?.families?.name || null,
+      from_account_family_name: completeTransaction.from_accounts?.families?.name || null,
+      to_account_family_name: completeTransaction.to_accounts?.families?.name || null,
+      category_family_name: completeTransaction.categories?.families?.name || null,
+      investment_category_family_name: completeTransaction.investment_categories?.families?.name || null,
+      is_logged_by_current_user: completeTransaction.logged_by_user_id === user.id,
+    }
 
     return createUpdatedResponse(
-      completeTransaction,
+      enhancedTransaction,
       'Transaction updated successfully'
     )
   } catch (validationError) {
