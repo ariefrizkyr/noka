@@ -8,20 +8,38 @@ interface OnboardingLayoutProps {
   children: React.ReactNode
   currentStep: number
   totalSteps: number
+  onboardingType?: string | null
 }
 
 export default function OnboardingLayout({
   children,
   currentStep,
   totalSteps,
+  onboardingType,
 }: OnboardingLayoutProps) {
   const progressPercentage = (currentStep / totalSteps) * 100
 
-  const stepTitles = [
-    'Settings Setup',
-    'Account Setup',
-    'Categories & Goals'
-  ]
+  // Dynamic step titles based on onboarding type
+  const getStepTitles = () => {
+    if (onboardingType === "family") {
+      return [
+        'Usage Type',
+        'Family Setup',
+        'Settings Setup', 
+        'Account Setup',
+        'Categories & Goals'
+      ];
+    } else {
+      return [
+        'Usage Type',
+        'Settings Setup',
+        'Account Setup', 
+        'Categories & Goals'
+      ];
+    }
+  };
+
+  const stepTitles = getStepTitles();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">

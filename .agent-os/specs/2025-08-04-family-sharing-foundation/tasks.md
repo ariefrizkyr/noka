@@ -12,7 +12,7 @@
   - [x] 1.7 Manual verification of database schema, API functionality, and performance optimizations
 
 - [ ] 2. Minimal UI Integration
-  - [ ] 2.1 Implement enhanced onboarding journey with Personal vs Family choice and conditional family setup
+  - [x] 2.1 Implement enhanced onboarding journey with Personal vs Family choice and conditional family setup
   - [ ] 2.2 Add family management tab to settings page with complete family interface
   - [ ] 2.3 Enhance account and category forms with scope selection (Personal/Joint, Personal/Shared) in both settings and onboarding
   - [ ] 2.4 Implement comprehensive family invitation system with email workflow and acceptance/decline flows

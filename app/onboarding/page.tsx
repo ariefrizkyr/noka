@@ -4,16 +4,22 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import OnboardingLayout from "./components/onboarding-layout";
+import UsageTypeSetupStep from "./steps/usage-type-setup";
+import FamilySetupStep from "./steps/family-setup";
 import SettingsSetupStep from "./steps/settings-setup";
 import AccountSetupStep from "./steps/account-setup";
 import CategorySetupStep from "./steps/category-setup";
 
-const TOTAL_STEPS = 3;
+// Helper function to get total steps based on onboarding type
+const getTotalSteps = (onboardingType: string | null): number => {
+  return onboardingType === "family" ? 5 : 4;
+};
 
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingStepDetection, setIsLoadingStepDetection] = useState(true);
+  const [onboardingType, setOnboardingType] = useState<string | null>(null);
   const { user, isInitialized } = useAuth();
   const router = useRouter();
 
@@ -28,6 +34,10 @@ export default function OnboardingPage() {
       }
 
       try {
+        // Get onboarding type from sessionStorage
+        const storedOnboardingType = sessionStorage.getItem("onboardingType");
+        setOnboardingType(storedOnboardingType);
+
         // Get onboarding progress from new API
         const onboardingResponse = await fetch("/api/onboarding");
         if (onboardingResponse.ok) {
@@ -61,8 +71,21 @@ export default function OnboardingPage() {
   }, [user, isInitialized, router]);
 
   const handleNext = () => {
-    if (currentStep < TOTAL_STEPS) {
-      setCurrentStep(currentStep + 1);
+    // Update onboarding type from sessionStorage when moving from step 1
+    if (currentStep === 1) {
+      const storedType = sessionStorage.getItem("onboardingType");
+      setOnboardingType(storedType);
+      
+      // Use the fresh stored type for total steps calculation
+      const totalSteps = getTotalSteps(storedType);
+      if (currentStep < totalSteps) {
+        setCurrentStep(currentStep + 1);
+      }
+    } else {
+      const totalSteps = getTotalSteps(onboardingType);
+      if (currentStep < totalSteps) {
+        setCurrentStep(currentStep + 1);
+      }
     }
   };
 
@@ -113,41 +136,106 @@ export default function OnboardingPage() {
   }
 
   const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <SettingsSetupStep
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-            isFirstStep={true}
-            isLastStep={false}
-          />
-        );
-      case 2:
-        return (
-          <AccountSetupStep
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-            isFirstStep={false}
-            isLastStep={false}
-          />
-        );
-      case 3:
-        return (
-          <CategorySetupStep
-            onNext={handleComplete}
-            onPrevious={handlePrevious}
-            isFirstStep={false}
-            isLastStep={true}
-          />
-        );
-      default:
-        return null;
+
+    // Personal flow: Usage (1) → Settings (2) → Account (3) → Category (4)
+    // Family flow:   Usage (1) → Family (2) → Settings (3) → Account (4) → Category (5)
+
+    if (currentStep === 1) {
+      // Step 1: Usage Type Selection (always first)
+      return (
+        <UsageTypeSetupStep
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+          isFirstStep={true}
+          isLastStep={false}
+        />
+      );
+    }
+
+    if (onboardingType === "family") {
+      // Family flow
+      switch (currentStep) {
+        case 2:
+          return (
+            <FamilySetupStep
+              onNext={handleNext}
+              onPrevious={handlePrevious}
+              isFirstStep={false}
+              isLastStep={false}
+            />
+          );
+        case 3:
+          return (
+            <SettingsSetupStep
+              onNext={handleNext}
+              onPrevious={handlePrevious}
+              isFirstStep={false}
+              isLastStep={false}
+            />
+          );
+        case 4:
+          return (
+            <AccountSetupStep
+              onNext={handleNext}
+              onPrevious={handlePrevious}
+              isFirstStep={false}
+              isLastStep={false}
+            />
+          );
+        case 5:
+          return (
+            <CategorySetupStep
+              onNext={handleComplete}
+              onPrevious={handlePrevious}
+              isFirstStep={false}
+              isLastStep={true}
+            />
+          );
+        default:
+          return null;
+      }
+    } else {
+      // Personal flow (or fallback)
+      switch (currentStep) {
+        case 2:
+          return (
+            <SettingsSetupStep
+              onNext={handleNext}
+              onPrevious={handlePrevious}
+              isFirstStep={false}
+              isLastStep={false}
+            />
+          );
+        case 3:
+          return (
+            <AccountSetupStep
+              onNext={handleNext}
+              onPrevious={handlePrevious}
+              isFirstStep={false}
+              isLastStep={false}
+            />
+          );
+        case 4:
+          return (
+            <CategorySetupStep
+              onNext={handleComplete}
+              onPrevious={handlePrevious}
+              isFirstStep={false}
+              isLastStep={true}
+            />
+          );
+        default:
+          return null;
+      }
     }
   };
 
   return (
-    <OnboardingLayout currentStep={currentStep} totalSteps={TOTAL_STEPS}>
+    <OnboardingLayout 
+      currentStep={currentStep} 
+      totalSteps={getTotalSteps(onboardingType)}
+      onboardingType={onboardingType}
+    >
       {renderStep()}
     </OnboardingLayout>
   );

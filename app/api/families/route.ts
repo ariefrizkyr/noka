@@ -73,9 +73,15 @@ export async function GET() {
  */
 export async function POST(request: NextRequest) {
   try {
-    const user = await requireAuth()
     const familyData = await validateRequestBody(request, createFamilySchema)
     const supabase = await createClient()
+
+    // Get user from the same client instance to ensure auth context is maintained
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      throw new Error('Authentication failed')
+    }
 
     // Create family record
     const newFamily: FamilyInsert = {
@@ -89,27 +95,43 @@ export async function POST(request: NextRequest) {
       .select()
       .single()
 
-    if (familyError) throw familyError
-
-    // Add creator as admin member
-    const newMember: FamilyMemberInsert = {
-      family_id: family.id,
-      user_id: user.id,
-      role: 'admin',
+    if (familyError) {
+      throw familyError
     }
 
-    const { error: memberError } = await supabase
+    // Check if the trigger successfully added the creator as admin
+    const { data: triggerMember, error: triggerMemberError } = await supabase
       .from('family_members')
-      .insert(newMember)
+      .select('id, family_id, user_id, role, joined_at')
+      .eq('family_id', family.id)
+      .eq('user_id', user.id)
+      .maybeSingle()
 
-    if (memberError) {
-      // If member creation fails, cleanup the family record
-      await supabase
-        .from('families')
-        .delete()
-        .eq('id', family.id)
-      
-      throw memberError
+    // If trigger didn't create the member record, add it manually
+    if (!triggerMember && !triggerMemberError) {
+      const newMember: FamilyMemberInsert = {
+        family_id: family.id,
+        user_id: user.id,
+        role: 'admin',
+      }
+
+      const { data: manualMember, error: memberError } = await supabase
+        .from('family_members')
+        .insert(newMember)
+        .select()
+        .single()
+
+      if (memberError) {
+        // Cleanup the family record
+        await supabase
+          .from('families')
+          .delete()
+          .eq('id', family.id)
+        
+        throw memberError
+      }
+    } else if (triggerMemberError) {
+      throw triggerMemberError
     }
 
     return createCreatedResponse(
