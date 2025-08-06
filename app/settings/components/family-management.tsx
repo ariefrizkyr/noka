@@ -72,7 +72,11 @@ interface FamilyInvitation {
   status: 'pending' | 'accepted' | 'declined';
   expires_at: string;
   created_at: string;
-  family_name: string;
+  invited_by: string;
+  profiles?: {
+    email: string;
+    full_name: string | null;
+  };
 }
 
 export default function FamilyManagement() {
@@ -138,12 +142,15 @@ export default function FamilyManagement() {
     
     setLoadingInvitations(true);
     try {
-      // TODO: Create endpoint /api/families/${selectedFamily.id}/invitations
-      // For now, we'll skip fetching pending invitations
-      setPendingInvitations([]);
+      const response = await fetch(`/api/families/${selectedFamily.id}/invitations`);
+      if (!response.ok) throw new Error("Failed to fetch pending invitations");
+
+      const data = await response.json();
+      setPendingInvitations(data.data);
     } catch (error) {
       console.error("Error fetching pending invitations:", error);
       // Don't show error toast for this as it's not critical
+      setPendingInvitations([]);
     } finally {
       setLoadingInvitations(false);
     }
@@ -233,23 +240,45 @@ export default function FamilyManagement() {
     }
   };
 
-  const handleCancelInvitation = () => {
+  const handleCancelInvitation = async (invitationId: string) => {
     try {
-      // TODO: Create endpoint /api/invitations/${invitationId}/cancel
-      toast.info("Cancel invitation feature coming soon");
+      const response = await fetch(`/api/invitations/by-id/${invitationId}/cancel`, {
+        method: "PUT",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to cancel invitation");
+      }
+
+      toast.success("Invitation cancelled successfully");
+      
+      // Refresh pending invitations
+      fetchPendingInvitations();
     } catch (error) {
       console.error("Error cancelling invitation:", error);
-      toast.error("Failed to cancel invitation");
+      toast.error(error instanceof Error ? error.message : "Failed to cancel invitation");
     }
   };
 
-  const handleResendInvitation = () => {
+  const handleResendInvitation = async (invitationId: string) => {
     try {
-      // TODO: Create endpoint /api/invitations/${invitationId}/resend
-      toast.info("Resend invitation feature coming soon");
+      const response = await fetch(`/api/invitations/by-id/${invitationId}/resend`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to resend invitation");
+      }
+
+      toast.success("Invitation resent successfully");
+      
+      // Refresh pending invitations
+      fetchPendingInvitations();
     } catch (error) {
       console.error("Error resending invitation:", error);
-      toast.error("Failed to resend invitation");
+      toast.error(error instanceof Error ? error.message : "Failed to resend invitation");
     }
   };
 
@@ -552,13 +581,14 @@ export default function FamilyManagement() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={handleResendInvitation}
+                          onClick={() => handleResendInvitation(invitation.id)}
+                          title="Resend invitation"
                         >
                           <RefreshCw className="h-3 w-3" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="outline">
+                            <Button size="sm" variant="outline" title="Cancel invitation">
                               <X className="h-3 w-3" />
                             </Button>
                           </AlertDialogTrigger>
@@ -571,7 +601,7 @@ export default function FamilyManagement() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleCancelInvitation}>
+                              <AlertDialogAction onClick={() => handleCancelInvitation(invitation.id)}>
                                 Cancel Invitation
                               </AlertDialogAction>
                             </AlertDialogFooter>

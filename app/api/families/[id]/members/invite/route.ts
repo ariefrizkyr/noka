@@ -11,6 +11,7 @@ import {
 } from '../../../../utils/validation'
 import { requireFamilyAdmin } from '../../../../utils/family-auth'
 import { TablesInsert } from '@/types/database'
+import { sendInvitationEmail } from '@/lib/email/invitation-service'
 
 type FamilyInvitationInsert = TablesInsert<'family_invitations'>
 
@@ -81,15 +82,32 @@ export async function POST(
 
     if (error) throw error
 
-    // Get family name separately
+    // Get family name and inviter info
     const { data: family } = await supabase
       .from('families')
       .select('name')
       .eq('id', familyId)
       .single()
 
-    // TODO: Send invitation email
-    // await sendInvitationEmail(invitation)
+    // Get inviter information from current user session
+    const inviterProfile = {
+      email: user.email || 'unknown@example.com',
+      full_name: user.user_metadata?.full_name || null
+    }
+
+    // Send invitation email
+    try {
+      await sendInvitationEmail(
+        {
+          ...invitation,
+          families: { name: family?.name || 'Unknown Family' }
+        },
+        inviterProfile || undefined
+      );
+    } catch (emailError) {
+      console.error('Failed to send invitation email:', emailError);
+      // Don't fail the entire request if email fails
+    }
 
     return createCreatedResponse(
       {
