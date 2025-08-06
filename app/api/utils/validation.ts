@@ -40,6 +40,23 @@ export const updateAccountSchema = z.object({
   is_active: z.boolean().optional(),
 });
 
+// Enhanced account update schema with family support
+export const updateAccountSchemaEnhanced = updateAccountSchema.extend({
+  account_scope: z.enum(['personal', 'joint']).optional(),
+  family_id: z.string().uuid().nullable().optional()
+}).refine(
+  (data) => {
+    if (data.account_scope === 'joint') {
+      return !!data.family_id
+    }
+    return true
+  },
+  {
+    message: 'family_id is required for joint accounts',
+    path: ['family_id']
+  }
+);
+
 // Category validation schemas
 export const createCategorySchema = z
   .object({
@@ -83,6 +100,23 @@ export const updateCategorySchema = z.object({
     .optional(),
   is_active: z.boolean().optional(),
 });
+
+// Enhanced category update schema with family support
+export const updateCategorySchemaEnhanced = updateCategorySchema.extend({
+  is_shared: z.boolean().optional(),
+  family_id: z.string().uuid().nullable().optional()
+}).refine(
+  (data) => {
+    if (data.is_shared) {
+      return !!data.family_id
+    }
+    return true
+  },
+  {
+    message: 'family_id is required for shared categories',
+    path: ['family_id']
+  }
+);
 
 // Transaction validation schemas
 export const createTransactionSchema = z
@@ -198,7 +232,7 @@ export const inviteMemberSchema = z.object({
 // Enhanced account schema with family support
 export const createAccountSchemaEnhanced = createAccountSchema.extend({
   account_scope: z.enum(['personal', 'joint']).default('personal'),
-  family_id: z.string().uuid().optional()
+  family_id: z.string().uuid().nullable().optional()
 }).refine(
   (data) => {
     if (data.account_scope === 'joint') {
@@ -224,7 +258,7 @@ export const createCategorySchemaEnhanced = z
       .nullable()
       .optional(),
     is_shared: z.boolean().default(false),
-    family_id: z.string().uuid().optional()
+    family_id: z.string().uuid().nullable().optional()
   })
   .refine(
     (data) => {

@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmojiPicker from "@/components/ui/emoji-picker";
 import { Tags, Target, Plus, X } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface CategorySetupStepProps {
   onNext: () => void;
@@ -39,6 +40,14 @@ interface Category {
   icon: string;
   budget_amount?: number;
   budget_frequency?: BudgetFrequency;
+  is_shared?: boolean;
+  family_id?: string;
+}
+
+interface UserFamily {
+  id: string;
+  name: string;
+  user_role: 'admin' | 'member';
 }
 
 const categoryTypes = [
@@ -106,21 +115,31 @@ export default function CategorySetupStep({
     icon: "",
     budget_amount: "",
     budget_frequency: "" as BudgetFrequency | "",
+    is_shared: false,
+    family_id: "",
   });
+  const [families, setFamilies] = useState<UserFamily[]>([]);
+  const [loadingFamilies, setLoadingFamilies] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState("");
   const { user } = useAuth();
   const { currency: userCurrency } = useCurrencySettings();
 
-  // Load existing categories
+  // Load existing categories and families
   useEffect(() => {
     async function loadUserData() {
       if (!user) return;
 
       try {
-        // Load existing categories
-        const categoriesResponse = await fetch("/api/categories");
+        setLoadingFamilies(true);
+        // Load existing categories and families in parallel
+        const [categoriesResponse, familiesResponse] = await Promise.all([
+          fetch("/api/categories"),
+          fetch("/api/families")
+        ]);
+        
+        // Handle categories
         if (categoriesResponse.ok) {
           const categoriesResult = await categoriesResponse.json();
           if (categoriesResult.data?.categories) {
@@ -133,15 +152,24 @@ export default function CategorySetupStep({
                 icon: cat.icon || "📂",
                 budget_amount: cat.budget_amount,
                 budget_frequency: cat.budget_frequency,
+                is_shared: cat.is_shared || false,
+                family_id: cat.family_id,
               }),
             );
             setCategories(existingCategories);
           }
         }
+
+        // Handle families
+        if (familiesResponse.ok) {
+          const familiesResult = await familiesResponse.json();
+          setFamilies(familiesResult.data || []);
+        }
       } catch (error) {
         console.error("Error loading user data:", error);
       } finally {
         setIsLoadingData(false);
+        setLoadingFamilies(false);
       }
     }
 
@@ -192,6 +220,8 @@ export default function CategorySetupStep({
       name: cat.name,
       type,
       icon: cat.icon,
+      is_shared: false, // Default categories are personal
+      family_id: undefined,
     }));
     setCategories((prev) => [...prev, ...defaults]);
   };
@@ -207,6 +237,8 @@ export default function CategorySetupStep({
       name: newCategory.name.trim(),
       type: newCategory.type,
       icon: newCategory.icon,
+      is_shared: newCategory.is_shared,
+      family_id: newCategory.is_shared ? newCategory.family_id : undefined,
     };
 
     // Add budget/target if specified
@@ -225,6 +257,8 @@ export default function CategorySetupStep({
       icon: "",
       budget_amount: "",
       budget_frequency: "",
+      is_shared: false,
+      family_id: "",
     });
     setError("");
   };
@@ -290,6 +324,8 @@ export default function CategorySetupStep({
             icon: category.icon,
             budget_amount: category.budget_amount || null,
             budget_frequency: category.budget_frequency || null,
+            is_shared: category.is_shared || false,
+            family_id: category.family_id || null,
           }),
         });
 
@@ -457,6 +493,68 @@ export default function CategorySetupStep({
                   </div>
                 </div>
 
+                {/* Category Scope */}
+                <div className="space-y-2">
+                  <Label htmlFor="category-scope">Category Scope</Label>
+                  <RadioGroup
+                    value={newCategory.is_shared ? 'true' : 'false'}
+                    onValueChange={(value) => {
+                      const isShared = value === 'true';
+                      setNewCategory((prev) => ({
+                        ...prev,
+                        is_shared: isShared,
+                        family_id: isShared ? prev.family_id : ''
+                      }));
+                    }}
+                    className="flex flex-col space-y-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="false" id="personal-cat-onboard" />
+                      <Label htmlFor="personal-cat-onboard" className="font-normal cursor-pointer text-sm">
+                        Personal Category
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="true" id="shared-cat-onboard" />
+                      <Label htmlFor="shared-cat-onboard" className="font-normal cursor-pointer text-sm">
+                        Shared Category (Family)
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                {/* Family Selection for Shared Categories */}
+                {newCategory.is_shared && (
+                  <div className="space-y-2">
+                    <Label htmlFor="family-cat-onboard">Family</Label>
+                    <Select
+                      value={newCategory.family_id}
+                      onValueChange={(value) => 
+                        setNewCategory(prev => ({ ...prev, family_id: value }))
+                      }
+                      disabled={loadingFamilies || families.length === 0}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue 
+                          placeholder={loadingFamilies ? "Loading families..." : "Select family"} 
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {families.map((family) => (
+                          <SelectItem key={family.id} value={family.id}>
+                            {family.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {families.length === 0 && !loadingFamilies && (
+                      <p className="text-sm text-amber-600">
+                        You must be part of a family to create shared categories
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* Budget/Target Settings for Expense & Investment */}
                 {(activeTab === "expense" || activeTab === "investment") && (
                   <>
@@ -537,9 +635,19 @@ export default function CategorySetupStep({
                         <div className="flex items-center gap-3">
                           <span className="text-lg">{category.icon}</span>
                           <div>
-                            <p className="font-medium text-gray-900">
-                              {category.name}
-                            </p>
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <p className="font-medium text-gray-900">
+                                {category.name}
+                              </p>
+                              {category.is_shared && (
+                                <Badge
+                                  variant="outline"
+                                  className="border-purple-300 bg-purple-100 text-xs text-purple-700"
+                                >
+                                  Shared
+                                </Badge>
+                              )}
+                            </div>
                             {category.budget_amount && (
                               <div className="flex items-center gap-2">
                                 <Badge variant="secondary" className="text-xs">
@@ -549,6 +657,11 @@ export default function CategorySetupStep({
                                   {formatCurrency(category.budget_amount)}
                                 </span>
                               </div>
+                            )}
+                            {category.is_shared && category.family_id && (
+                              <p className="text-xs text-purple-600 mt-1">
+                                Family: {families.find(f => f.id === category.family_id)?.name || 'Unknown'}
+                              </p>
                             )}
                           </div>
                         </div>

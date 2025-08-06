@@ -79,6 +79,12 @@ export interface GroupedCategories {
   investment: Category[];
 }
 
+export interface GroupedCategoriesWithFamily {
+  expense: CategoryWithFamily[];
+  income: CategoryWithFamily[];
+  investment: CategoryWithFamily[];
+}
+
 // CRUD dialog state interfaces
 export interface DeleteDialogState<T> {
   item: T | null;

@@ -25,6 +25,8 @@ import {
   X,
   Target,
 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface AccountSetupStepProps {
   onNext: () => void;
@@ -40,6 +42,14 @@ interface Account {
   initial_balance: number;
   current_balance?: number;
   isNew?: boolean;
+  account_scope?: 'personal' | 'joint';
+  family_id?: string;
+}
+
+interface UserFamily {
+  id: string;
+  name: string;
+  user_role: 'admin' | 'member';
 }
 
 const accountTypes = [
@@ -83,23 +93,33 @@ export default function AccountSetupStep({
     name: "",
     type: "",
     initial_balance: "",
+    account_scope: "personal" as 'personal' | 'joint',
+    family_id: "",
   });
+  const [families, setFamilies] = useState<UserFamily[]>([]);
+  const [loadingFamilies, setLoadingFamilies] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState("");
   const { user } = useAuth();
   const { currency: userCurrency } = useCurrencySettings();
 
-  // Load existing accounts
+  // Load existing accounts and families
   useEffect(() => {
     async function loadUserData() {
       if (!user) return;
 
       try {
-        // Load existing accounts
-        const response = await fetch("/api/accounts");
-        if (response.ok) {
-          const result = await response.json();
+        setLoadingFamilies(true);
+        // Load existing accounts and families in parallel
+        const [accountsResponse, familiesResponse] = await Promise.all([
+          fetch("/api/accounts"),
+          fetch("/api/families")
+        ]);
+        
+        // Handle accounts
+        if (accountsResponse.ok) {
+          const result = await accountsResponse.json();
           if (result.data) {
             // Transform API accounts to match local interface
             const existingAccounts = result.data.map((acc: BaseAccount) => ({
@@ -109,14 +129,23 @@ export default function AccountSetupStep({
               initial_balance: acc.initial_balance || 0,
               current_balance: acc.current_balance,
               isNew: false,
+              account_scope: acc.account_scope || 'personal',
+              family_id: acc.family_id
             }));
             setAccounts(existingAccounts);
           }
+        }
+
+        // Handle families
+        if (familiesResponse.ok) {
+          const familiesResult = await familiesResponse.json();
+          setFamilies(familiesResult.data || []);
         }
       } catch (error) {
         console.error("Error loading user data:", error);
       } finally {
         setIsLoadingData(false);
+        setLoadingFamilies(false);
       }
     }
 
@@ -138,6 +167,19 @@ export default function AccountSetupStep({
     ) {
       setError("Please fill in all fields");
       return;
+    }
+
+    // Validate joint account requirements
+    if (newAccount.account_scope === 'joint') {
+      const adminFamilies = families.filter(f => f.user_role === 'admin');
+      if (adminFamilies.length === 0) {
+        setError("You must be an admin of a family to create joint accounts");
+        return;
+      }
+      if (!newAccount.family_id) {
+        setError("Please select a family for the joint account");
+        return;
+      }
     }
 
     const balance = parseFloat(newAccount.initial_balance);
@@ -166,6 +208,8 @@ export default function AccountSetupStep({
         | "investment_account",
       initial_balance: balance,
       isNew: true,
+      account_scope: newAccount.account_scope,
+      family_id: newAccount.account_scope === 'joint' ? newAccount.family_id : undefined,
     };
 
     setAccounts((prev) => [...prev, account]);
@@ -173,6 +217,8 @@ export default function AccountSetupStep({
       name: "",
       type: "",
       initial_balance: "",
+      account_scope: "personal",
+      family_id: "",
     });
     setError("");
   };
@@ -237,6 +283,8 @@ export default function AccountSetupStep({
             name: account.name,
             type: account.type,
             initial_balance: account.initial_balance,
+            account_scope: account.account_scope,
+            family_id: account.family_id,
           }),
         });
 
@@ -397,6 +445,74 @@ export default function AccountSetupStep({
               </p>
             </div>
 
+            {/* Account Scope */}
+            <div>
+              <Label className="block mb-2 text-sm font-medium text-gray-700">
+                Account Scope
+              </Label>
+              <RadioGroup
+                value={newAccount.account_scope}
+                onValueChange={(value) => {
+                  const scope = value as 'personal' | 'joint';
+                  setNewAccount(prev => ({
+                    ...prev,
+                    account_scope: scope,
+                    family_id: scope === 'personal' ? '' : prev.family_id
+                  }));
+                }}
+                className="flex flex-col space-y-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="personal" id="personal-onboard" />
+                  <Label htmlFor="personal-onboard" className="font-normal cursor-pointer text-sm">
+                    Personal Account
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="joint" id="joint-onboard" />
+                  <Label htmlFor="joint-onboard" className="font-normal cursor-pointer text-sm">
+                    Joint Account (Family)
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Family Selection for Joint Accounts */}
+            {newAccount.account_scope === 'joint' && (
+              <div>
+                <Label className="block mb-2 text-sm font-medium text-gray-700">
+                  Family
+                </Label>
+                <Select
+                  value={newAccount.family_id}
+                  onValueChange={(value) => 
+                    setNewAccount(prev => ({ ...prev, family_id: value }))
+                  }
+                  disabled={loadingFamilies}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue 
+                      placeholder={loadingFamilies ? "Loading families..." : "Select family"} 
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {families
+                      .filter(f => f.user_role === 'admin')
+                      .map((family) => (
+                        <SelectItem key={family.id} value={family.id}>
+                          {family.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                {families.filter(f => f.user_role === 'admin').length === 0 && (
+                  <p className="mt-1 text-sm text-amber-600">
+                    You must be an admin of a family to create joint accounts
+                  </p>
+                )}
+              </div>
+            )}
+
             <Button onClick={addCustomAccount} className="w-full">
               <Plus className="mr-2 h-4 w-4" />
               Add Account
@@ -432,7 +548,7 @@ export default function AccountSetupStep({
                         }`}
                       />
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-medium text-gray-900">
                             {account.name}
                           </p>
@@ -444,10 +560,25 @@ export default function AccountSetupStep({
                               Existing
                             </Badge>
                           )}
+                          {account.account_scope === 'joint' && (
+                            <Badge
+                              variant="outline"
+                              className="border-purple-300 bg-purple-100 text-xs text-purple-700"
+                            >
+                              Joint
+                            </Badge>
+                          )}
                         </div>
-                        <p className="text-sm text-gray-500 capitalize">
-                          {account.type.replace("_", " ")}
-                        </p>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <span className="capitalize">
+                            {account.type.replace("_", " ")}
+                          </span>
+                          {account.account_scope === 'joint' && account.family_id && (
+                            <span className="text-purple-600">
+                              • {families.find(f => f.id === account.family_id)?.name || 'Family'}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

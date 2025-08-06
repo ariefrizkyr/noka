@@ -11,7 +11,7 @@ import {
 import { 
   validateRequestBody, 
   createAccountSchemaEnhanced, 
-  updateAccountSchema,
+  updateAccountSchemaEnhanced,
   deleteAccountSchema
 } from '../utils/validation'
 import { 
@@ -19,11 +19,11 @@ import {
   verifyFamilyAccess, 
   getUserFamilyIds 
 } from '../utils/family-auth'
-import { TablesInsert } from '@/types/database'
+import { TablesInsert, TablesUpdate } from '@/types/database'
 
 // type Account = Tables<'accounts'>
 type AccountInsert = TablesInsert<'accounts'>
-// type AccountUpdate = TablesUpdate<'accounts'>
+type AccountUpdate = TablesUpdate<'accounts'>
 
 /**
  * GET /api/accounts
@@ -140,18 +140,38 @@ export async function PUT(request: NextRequest) {
     }
 
     // Validate the update data
-    const validatedData = updateAccountSchema.parse(updateData)
+    const validatedData = updateAccountSchemaEnhanced.parse(updateData)
     const supabase = await createClient()
 
     // Verify user has access to this account (personal or family)
     await verifyAccountAccess(user.id, account_id)
 
+    // For scope changes to joint, verify user has admin access to the family
+    if (validatedData.account_scope === 'joint' && validatedData.family_id) {
+      const { isAdmin } = await verifyFamilyAccess(user.id, validatedData.family_id)
+      if (!isAdmin) {
+        throw new Error('Only family admins can change accounts to joint scope')
+      }
+    }
+
+    // Prepare update data with proper ownership assignment
+    const updatePayload: AccountUpdate = {
+      ...validatedData,
+      updated_at: new Date().toISOString(),
+    }
+
+    // Handle ownership changes based on scope
+    if (validatedData.account_scope === 'joint') {
+      updatePayload.user_id = null
+      updatePayload.family_id = validatedData.family_id
+    } else if (validatedData.account_scope === 'personal') {
+      updatePayload.user_id = user.id
+      updatePayload.family_id = null
+    }
+
     const { data: updatedAccount, error } = await supabase
       .from('accounts')
-      .update({
-        ...validatedData,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq('id', account_id)
       .select(`
         *,

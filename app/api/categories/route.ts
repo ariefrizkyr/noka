@@ -11,7 +11,7 @@ import {
 import { 
   validateRequestBody, 
   createCategorySchemaEnhanced, 
-  updateCategorySchema,
+  updateCategorySchemaEnhanced,
   deleteCategorySchema 
 } from '../utils/validation'
 import { 
@@ -19,11 +19,11 @@ import {
   verifyFamilyAccess, 
   getUserFamilyIds 
 } from '../utils/family-auth'
-import { TablesInsert } from '@/types/database'
+import { TablesInsert, TablesUpdate } from '@/types/database'
 
 // type Category = Tables<'categories'>
 type CategoryInsert = TablesInsert<'categories'>
-// type CategoryUpdate = TablesUpdate<'categories'>
+type CategoryUpdate = TablesUpdate<'categories'>
 
 /**
  * GET /api/categories
@@ -152,18 +152,38 @@ export async function PUT(request: NextRequest) {
     }
 
     // Validate the update data
-    const validatedData = updateCategorySchema.parse(updateData)
+    const validatedData = updateCategorySchemaEnhanced.parse(updateData)
     const supabase = await createClient()
 
     // Verify user has access to this category (personal or shared)
     await verifyCategoryAccess(user.id, category_id)
 
+    // For scope changes to shared, verify user has admin access to the family
+    if (validatedData.is_shared && validatedData.family_id) {
+      const { isAdmin } = await verifyFamilyAccess(user.id, validatedData.family_id)
+      if (!isAdmin) {
+        throw new Error('Only family admins can change categories to shared scope')
+      }
+    }
+
+    // Prepare update data with proper ownership assignment
+    const updatePayload: CategoryUpdate = {
+      ...validatedData,
+      updated_at: new Date().toISOString(),
+    }
+
+    // Handle ownership changes based on sharing status
+    if (validatedData.is_shared) {
+      updatePayload.user_id = null
+      updatePayload.family_id = validatedData.family_id
+    } else if (validatedData.is_shared === false) {
+      updatePayload.user_id = user.id
+      updatePayload.family_id = null
+    }
+
     const { data: updatedCategory, error } = await supabase
       .from('categories')
-      .update({
-        ...validatedData,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq('id', category_id)
       .select(`
         *,
