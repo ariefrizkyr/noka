@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -23,6 +23,8 @@ type RegisterValues = z.infer<typeof registerSchema>
 
 export default function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectUrl = searchParams.get('redirect')
   const [isLoading, setIsLoading] = useState(false)
   const [securityWarning, setSecurityWarning] = useState<string | null>(null)
   const form = useForm<RegisterValues>({
@@ -40,11 +42,16 @@ export default function RegisterForm() {
     setIsLoading(true)
     setSecurityWarning(null)
     const supabase = createClient()
+    // Include redirect parameter in email verification link
+    const callbackUrl = redirectUrl && redirectUrl.startsWith('/') && !redirectUrl.startsWith('//')
+      ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(redirectUrl)}`
+      : `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
+
     const { error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+        emailRedirectTo: callbackUrl,
       },
     })
     setIsLoading(false)
@@ -114,7 +121,7 @@ export default function RegisterForm() {
           <span className="mx-4 text-gray-400 text-xs">or</span>
           <div className="flex-grow border-t border-gray-200" />
         </div>
-        <GoogleSignInButton className="mb-2" />
+        <GoogleSignInButton className="mb-2" redirectUrl={redirectUrl} />
         <div className="flex justify-between mt-4 text-sm">
           <a href="/auth/login" className="text-primary hover:underline">Login</a>
         </div>

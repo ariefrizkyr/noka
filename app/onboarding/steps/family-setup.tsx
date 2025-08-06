@@ -23,7 +23,7 @@ export default function FamilySetupStep({
   const [familyName, setFamilyName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [existingFamily, setExistingFamily] = useState<{ id: string; name: string } | null>(null);
+  const [existingFamily, setExistingFamily] = useState<{ id: string; name: string; user_role: string } | null>(null);
   const [checkingExisting, setCheckingExisting] = useState(true);
 
   // Check if user already has a family on component mount
@@ -40,9 +40,9 @@ export default function FamilySetupStep({
           const response = await fetch("/api/families");
           if (response.ok) {
             const data = await response.json();
-            const family = data.data.find((f: { id: string; name: string }) => f.id === sessionFamilyId);
+            const family = data.data.find((f: { id: string; name: string; user_role: string }) => f.id === sessionFamilyId);
             if (family) {
-              setExistingFamily({ id: family.id, name: family.name });
+              setExistingFamily({ id: family.id, name: family.name, user_role: family.user_role });
               return;
             }
           }
@@ -55,7 +55,7 @@ export default function FamilySetupStep({
           if (data.data && data.data.length > 0) {
             // For onboarding, we expect only 1 family, so take the first one
             const family = data.data[0];
-            setExistingFamily({ id: family.id, name: family.name });
+            setExistingFamily({ id: family.id, name: family.name, user_role: family.user_role });
             // Store in session for consistency
             sessionStorage.setItem("onboardingFamilyId", family.id);
           }
@@ -188,7 +188,7 @@ export default function FamilySetupStep({
                     {existingFamily.name}
                   </p>
                   <p className="text-sm text-green-700">
-                    You are the family administrator with full access
+                    You are a family {existingFamily.user_role} {existingFamily.user_role === 'admin' ? 'with full access' : 'with shared access'}
                   </p>
                 </div>
               </div>
@@ -306,13 +306,27 @@ export default function FamilySetupStep({
       <Card className="border-dashed bg-gray-50">
         <CardContent className="p-4">
           <h4 className="mb-2 font-medium text-gray-900">
-            Your Role as Family Administrator
+            {existingFamily 
+              ? `Your Role as Family ${existingFamily.user_role === 'admin' ? 'Administrator' : 'Member'}`
+              : 'Your Role as Family Administrator'
+            }
           </h4>
           <ul className="space-y-1 text-sm text-gray-600">
-            <li>• You'll have full control over family settings and member management</li>
-            <li>• You can create joint accounts and shared categories</li>
-            <li>• You can invite family members and manage their roles</li>
-            <li>• Your personal finances remain private and separate</li>
+            {existingFamily && existingFamily.user_role === 'member' ? (
+              <>
+                <li>• You can view and manage shared family finances</li>
+                <li>• You can add transactions to shared accounts and categories</li>
+                <li>• You can view family budget progress and investment performance</li>
+                <li>• Your personal finances remain private and separate</li>
+              </>
+            ) : (
+              <>
+                <li>• You'll have full control over family settings and member management</li>
+                <li>• You can create joint accounts and shared categories</li>
+                <li>• You can invite family members and manage their roles</li>
+                <li>• Your personal finances remain private and separate</li>
+              </>
+            )}
           </ul>
         </CardContent>
       </Card>

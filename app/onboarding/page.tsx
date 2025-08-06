@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import OnboardingLayout from "./components/onboarding-layout";
 import UsageTypeSetupStep from "./steps/usage-type-setup";
@@ -22,6 +22,8 @@ export default function OnboardingPage() {
   const [onboardingType, setOnboardingType] = useState<string | null>(null);
   const { user, isInitialized } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect');
 
   // Check if user should be in onboarding and determine starting step
   useEffect(() => {
@@ -43,9 +45,12 @@ export default function OnboardingPage() {
         if (onboardingResponse.ok) {
           const onboardingResult = await onboardingResponse.json();
 
-          // If onboarding is completed, redirect to dashboard
+          // If onboarding is completed, redirect to target URL or dashboard
           if (onboardingResult.data?.onboarding_completed) {
-            router.push("/dashboard");
+            const targetUrl = redirectUrl && redirectUrl.startsWith('/') && !redirectUrl.startsWith('//') 
+              ? redirectUrl 
+              : "/dashboard";
+            router.push(targetUrl);
             return;
           }
 
@@ -68,7 +73,7 @@ export default function OnboardingPage() {
     }
 
     checkOnboardingStatusAndStep();
-  }, [user, isInitialized, router]);
+  }, [user, isInitialized, router, redirectUrl]);
 
   const handleNext = () => {
     // Update onboarding type from sessionStorage when moving from step 1
@@ -115,8 +120,11 @@ export default function OnboardingPage() {
         throw new Error(errorData.message || "Failed to complete onboarding");
       }
 
-      // Redirect to dashboard
-      router.push("/dashboard");
+      // Redirect to target URL or dashboard
+      const targetUrl = redirectUrl && redirectUrl.startsWith('/') && !redirectUrl.startsWith('//') 
+        ? redirectUrl 
+        : "/dashboard";
+      router.push(targetUrl);
     } catch (error) {
       console.error("Error completing onboarding:", error);
       setIsLoading(false);

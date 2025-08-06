@@ -140,6 +140,13 @@ export default function FamilyManagement() {
   const fetchPendingInvitations = useCallback(async () => {
     if (!selectedFamily) return;
     
+    // Only admins can fetch invitations
+    if (selectedFamily.user_role !== 'admin') {
+      setPendingInvitations([]);
+      setLoadingInvitations(false);
+      return;
+    }
+    
     setLoadingInvitations(true);
     try {
       const response = await fetch(`/api/families/${selectedFamily.id}/invitations`);

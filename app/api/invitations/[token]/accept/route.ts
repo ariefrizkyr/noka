@@ -23,7 +23,7 @@ export async function PUT(
     const token = resolvedParams.token
     const supabase = await createClient()
 
-    // Find and validate the invitation
+    // Find and validate the invitation (include email check in query for security)
     const { data: invitation, error: invitationError } = await supabase
       .from('family_invitations')
       .select(`

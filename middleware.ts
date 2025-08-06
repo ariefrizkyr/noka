@@ -131,6 +131,7 @@ export async function middleware(request: NextRequest) {
       !pathname.startsWith('/auth') &&
       !pathname.startsWith('/_next') &&
       !pathname.startsWith('/api') &&
+      !pathname.startsWith('/invitations') && // Allow invitation pages for token validation
       pathname !== '/' &&
       pathname !== '/legal/privacy-policy' &&
       pathname !== '/legal/terms-of-service'

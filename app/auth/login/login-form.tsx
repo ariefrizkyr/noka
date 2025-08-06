@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -23,6 +23,8 @@ type LoginValues = z.infer<typeof loginSchema>
 
 export default function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectUrl = searchParams.get('redirect')
   const [isLoading, setIsLoading] = useState(false)
   const [securityWarning, setSecurityWarning] = useState<string | null>(null)
   const form = useForm<LoginValues>({
@@ -50,7 +52,11 @@ export default function LoginForm() {
       return
     }
     toast.success("Logged in successfully!")
-    router.replace("/dashboard")
+    // Use redirect parameter or default to dashboard
+    const targetUrl = redirectUrl && redirectUrl.startsWith('/') && !redirectUrl.startsWith('//') 
+      ? redirectUrl 
+      : "/dashboard"
+    router.replace(targetUrl)
   }
 
   return (
@@ -111,9 +117,14 @@ export default function LoginForm() {
           <span className="mx-4 text-gray-400 text-xs">or</span>
           <div className="flex-grow border-t border-gray-200" />
         </div>
-        <GoogleSignInButton className="mb-2" />
+        <GoogleSignInButton className="mb-2" redirectUrl={redirectUrl} />
         <div className="flex justify-between mt-4 text-sm">
-          <a href="/auth/register" className="text-primary hover:underline">Sign Up</a>
+          <a 
+            href={redirectUrl ? `/auth/register?redirect=${encodeURIComponent(redirectUrl)}` : "/auth/register"} 
+            className="text-primary hover:underline"
+          >
+            Sign Up
+          </a>
           <a href="/auth/reset-password" className="text-primary hover:underline">Forgot Password?</a>
         </div>
       </div>
