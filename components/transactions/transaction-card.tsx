@@ -1,10 +1,11 @@
 "use client";
 
 import { format } from "date-fns";
-import { MoreVertical, Edit, Trash2 } from "lucide-react";
+import { MoreVertical, Edit, Trash2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/contexts/auth-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,6 +36,7 @@ export function TransactionCard({
   className,
   currency = CURRENCY_DEFAULTS.DEFAULT_CURRENCY,
 }: TransactionCardProps) {
+  const { user } = useAuth();
   const config = TRANSACTION_TYPE_CONFIG[transaction.type];
   const Icon = config.icon;
 
@@ -67,6 +69,24 @@ export function TransactionCard({
 
   const display = getTransactionDisplay();
   const showActions = onEdit || onDelete;
+
+  // Show attribution only for family transactions where someone else logged the transaction
+  const showAttribution = 
+    transaction.logged_by_user && 
+    user && 
+    transaction.logged_by_user.id !== user.id &&
+    (
+      // Check for joint accounts (income/expense)
+      transaction.accounts?.account_scope === 'joint' ||
+      // Check for shared categories (income/expense) 
+      transaction.categories?.is_shared ||
+      // Check for joint accounts in transfers (from_account)
+      transaction.from_accounts?.account_scope === 'joint' ||
+      // Check for joint accounts in transfers (to_account)  
+      transaction.to_accounts?.account_scope === 'joint' ||
+      // Check for shared investment categories
+      transaction.investment_categories?.is_shared
+    );
 
   return (
     <Card className={cn("transition-colors hover:bg-gray-50", className)}>
@@ -114,6 +134,14 @@ export function TransactionCard({
                   DATE_FORMATS.DISPLAY,
                 )}
               </p>
+
+              {/* Transaction attribution */}
+              {showAttribution && (
+                <div className="mt-1 flex items-center gap-1 text-xs text-gray-400">
+                  <User className="h-3 w-3" />
+                  <span>Logged by {transaction.logged_by_user?.email}</span>
+                </div>
+              )}
             </div>
           </div>
 

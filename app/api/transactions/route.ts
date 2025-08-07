@@ -119,8 +119,12 @@ export async function GET(request: NextRequest) {
       // Add family information for categories
       category_family_name: transaction.categories?.families?.name || null,
       investment_category_family_name: transaction.investment_categories?.families?.name || null,
-      // Add logged by information
+      // Add logged by information (simplified approach)
       is_logged_by_current_user: transaction.logged_by_user_id === user.id,
+      logged_by_user: transaction.logged_by_user_id ? {
+        id: transaction.logged_by_user_id,
+        email: transaction.logged_by_user_id === user.id ? user.email : 'Another family member'
+      } : null,
     }))
 
     // Calculate infinite scroll metadata
@@ -179,7 +183,7 @@ export async function POST(request: NextRequest) {
       .insert({
         ...transactionData,
         user_id: user.id,
-        logged_by_user_id: user.id, // Track who logged this transaction
+        logged_by_user_id: user.id, // Explicitly set even though trigger would handle it
       })
       .select()
       .single()
@@ -215,6 +219,10 @@ export async function POST(request: NextRequest) {
       category_family_name: completeTransaction.categories?.families?.name || null,
       investment_category_family_name: completeTransaction.investment_categories?.families?.name || null,
       is_logged_by_current_user: true, // Always true for newly created transactions
+      logged_by_user: {
+        id: user.id,
+        email: user.email || 'Current user'
+      },
     }
 
     return createCreatedResponse(
@@ -317,7 +325,11 @@ export async function PUT(request: NextRequest) {
         to_account_family_name: completeTransaction.to_accounts?.families?.name || null,
         category_family_name: completeTransaction.categories?.families?.name || null,
         investment_category_family_name: completeTransaction.investment_categories?.families?.name || null,
-          is_logged_by_current_user: completeTransaction.logged_by_user_id === user.id,
+        is_logged_by_current_user: completeTransaction.logged_by_user_id === user.id,
+        logged_by_user: completeTransaction.logged_by_user_id ? {
+          id: completeTransaction.logged_by_user_id,
+          email: completeTransaction.logged_by_user_id === user.id ? user.email || 'Current user' : 'Another family member'
+        } : null,
       }
 
       return createUpdatedResponse(
@@ -406,7 +418,7 @@ async function handleTransactionTypeChange(
       .insert({
         ...validatedNewTransaction,
         user_id: user.id,
-        logged_by_user_id: user.id, // Track who logged this transaction
+        logged_by_user_id: user.id, // Explicitly set even though trigger would handle it
         created_at: originalTransaction.created_at, // Preserve original creation time
         updated_at: new Date().toISOString(),
       })
@@ -441,6 +453,10 @@ async function handleTransactionTypeChange(
       category_family_name: completeTransaction.categories?.families?.name || null,
       investment_category_family_name: completeTransaction.investment_categories?.families?.name || null,
       is_logged_by_current_user: completeTransaction.logged_by_user_id === user.id,
+      logged_by_user: completeTransaction.logged_by_user_id ? {
+        id: completeTransaction.logged_by_user_id,
+        email: completeTransaction.logged_by_user_id === user.id ? user.email || 'Current user' : 'Another family member'
+      } : null,
     }
 
     return createUpdatedResponse(

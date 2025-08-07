@@ -24,7 +24,7 @@
     - [x] 2.5.5 Update middleware to allow public access to invitation validation endpoints
     - [x] 2.5.6 Implement proper post-invitation acceptance flow for new users to onboarding
     - [x] 2.5.7 Manual verification of complete invitation flow for all user scenarios
-  - [ ] 2.6 Add transaction attribution display showing "Logged by" indicators in transaction cards
+  - [x] 2.6 Add transaction attribution display showing "Logged by" indicators in transaction cards
   - [ ] 2.7 Create visual indicators (badges, icons) for joint/shared resources without major UI changes
   - [ ] 2.8 Manual verification of minimal UI integration and seamless user experience
 
