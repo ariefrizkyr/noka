@@ -13,12 +13,12 @@ These are the tasks to be completed for the spec detailed in @.agent-os/specs/20
   - [x] 1.3 Auto-set onboardingType to "family" when invitation context is detected
   - [x] 1.4 Manual verification: Accept invitation and verify onboarding skips to step 2
 
-- [ ] 2. Add member invitation capability to family setup
-  - [ ] 2.1 Enhance family-setup component with invitation form section
-  - [ ] 2.2 Integrate with existing invitation API endpoints
-  - [ ] 2.3 Add email validation and role selection for invitations
-  - [ ] 2.4 Implement invitation status feedback (sent, failed, pending)
-  - [ ] 2.5 Manual verification: Create family and send member invitations during onboarding
+- [x] 2. Add member invitation capability to family setup
+  - [x] 2.1 Enhance family-setup component with invitation form section
+  - [x] 2.2 Integrate with existing invitation API endpoints
+  - [x] 2.3 Add email validation and role selection for invitations
+  - [x] 2.4 Implement invitation status feedback (sent, failed, pending)
+  - [x] 2.5 Manual verification: Create family and send member invitations during onboarding
 
 - [ ] 3. Implement auto-scoping for joint/shared resources
   - [ ] 3.1 Remove family dropdown from account setup when family context exists
