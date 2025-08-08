@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
       // Get the actual user email using SECURITY DEFINER function
       if (transaction.logged_by_user_id) {
         const { data: emailResult, error: emailError } = await supabase
-          .rpc('get_transaction_user_email' as any, {
+          .rpc('get_transaction_user_email', {
             p_user_id: transaction.logged_by_user_id
           });
         
@@ -337,7 +337,7 @@ export async function PUT(request: NextRequest) {
       let userEmail = null;
       if (completeTransaction.logged_by_user_id) {
         const { data: emailResult, error: emailError } = await supabase
-          .rpc('get_transaction_user_email' as any, {
+          .rpc('get_transaction_user_email', {
             p_user_id: completeTransaction.logged_by_user_id
           });
         
@@ -477,7 +477,7 @@ async function handleTransactionTypeChange(
     let userEmail = null;
     if (completeTransaction.logged_by_user_id) {
       const { data: emailResult, error: emailError } = await supabase
-        .rpc('get_transaction_user_email' as any, {
+        .rpc('get_transaction_user_email', {
           p_user_id: completeTransaction.logged_by_user_id
         });
       

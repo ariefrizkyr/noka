@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          extensions?: Json
           operationName?: string
           query?: string
           variables?: Json
+          extensions?: Json
         }
         Returns: Json
       }
@@ -439,19 +439,14 @@ export type Database = {
     Functions: {
       adjust_weekend_date: {
         Args: {
-          p_date: string
           p_weekend_handling: Database["public"]["Enums"]["weekend_handling"]
+          p_date: string
         }
         Returns: string
       }
       get_budget_progress: {
         Args: { p_user_id: string }
         Returns: {
-          category_id: string
-          category_name: string
-          category_type: Database["public"]["Enums"]["category_type"]
-          category_icon: string
-          budget_amount: number
           budget_frequency: Database["public"]["Enums"]["budget_frequency"]
           spent_amount: number
           remaining_amount: number
@@ -460,53 +455,80 @@ export type Database = {
           period_end: string
           is_shared: boolean
           family_id: string
-          family_name: string
+          budget_amount: number
           member_contributions: Json
+          family_name: string
+          category_id: string
+          category_name: string
+          category_type: Database["public"]["Enums"]["category_type"]
+          category_icon: string
+        }[]
+      }
+      get_current_user_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_family_members_with_emails: {
+        Args: { p_family_id: string }
+        Returns: {
+          role: Database["public"]["Enums"]["family_role"]
+          id: string
+          user_id: string
+          email: string
+          joined_at: string
         }[]
       }
       get_financial_summary: {
         Args: { p_user_id: string }
         Returns: {
-          period_start: string
           period_end: string
-          total_income: number
-          total_expenses: number
+          period_start: string
           net_savings: number
+          total_expenses: number
+          total_income: number
         }[]
       }
       get_investment_progress: {
         Args: { p_user_id: string }
         Returns: {
-          category_id: string
+          invested_amount: number
+          progress_percentage: number
+          period_start: string
+          period_end: string
+          is_shared: boolean
+          family_id: string
           family_name: string
           member_contributions: Json
-          family_id: string
-          is_shared: boolean
-          period_end: string
-          period_start: string
-          progress_percentage: number
-          remaining_amount: number
-          invested_amount: number
-          target_frequency: Database["public"]["Enums"]["budget_frequency"]
-          target_amount: number
-          category_icon: string
+          category_id: string
           category_name: string
+          category_icon: string
+          target_amount: number
+          target_frequency: Database["public"]["Enums"]["budget_frequency"]
+          remaining_amount: number
         }[]
       }
       get_member_contributions: {
         Args: {
-          p_category_id: string
           p_end_date?: string
-          p_family_id: string
           p_start_date?: string
+          p_category_id: string
+          p_family_id: string
         }
         Returns: {
-          user_id: string
           user_email: string
-          contribution_amount: number
-          transaction_count: number
           percentage_of_total: number
+          user_id: string
+          transaction_count: number
+          contribution_amount: number
         }[]
+      }
+      get_transaction_user_email: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
+      test_family_insert_policy: {
+        Args: { test_user_id: string }
+        Returns: boolean
       }
     }
     Enums: {

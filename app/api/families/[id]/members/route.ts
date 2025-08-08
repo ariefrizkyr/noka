@@ -6,6 +6,9 @@ import {
   createSuccessResponse 
 } from '../../../utils/response'
 import { verifyFamilyAccess } from '../../../utils/family-auth'
+import { Database } from '@/types/database'
+
+type FamilyMemberWithEmail = Database['public']['Functions']['get_family_members_with_emails']['Returns'][0]
 
 /**
  * GET /api/families/[id]/members
@@ -37,7 +40,7 @@ export async function GET(
     if (error) throw error
 
     // Format members data (the function already returns the correct structure)
-    const formattedMembers = members.map((member: any) => ({
+    const formattedMembers = members.map((member: FamilyMemberWithEmail) => ({
       id: member.id,
       user_id: member.user_id,
       email: member.email,

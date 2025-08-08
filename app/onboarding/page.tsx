@@ -39,11 +39,12 @@ export default function OnboardingPage() {
         return;
       }
 
+      // Check for invitation context
+      const acceptedFamilyId = sessionStorage.getItem("acceptedFamilyId");
+      const hasInvitation = !!acceptedFamilyId;
+      setHasInvitationContext(hasInvitation);
+
       try {
-        // Check for invitation context
-        const acceptedFamilyId = sessionStorage.getItem("acceptedFamilyId");
-        const hasInvitation = !!acceptedFamilyId;
-        setHasInvitationContext(hasInvitation);
 
         // Get onboarding type from sessionStorage or set to family if invitation context
         const storedOnboardingType = sessionStorage.getItem("onboardingType");
