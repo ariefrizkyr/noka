@@ -37,7 +37,7 @@ export default function FamilySetupStep({
     id: string;
     email: string;
     role: string;
-    status: 'sending' | 'sent' | 'failed';
+    status: 'sending' | 'pending' | 'failed';
     error?: string;
   }>>([]);
   const [isInviting, setIsInviting] = useState(false);
@@ -217,11 +217,11 @@ export default function FamilySetupStep({
         throw new Error(errorData.message || "Failed to send invitation");
       }
 
-      // Update invitation status to 'sent'
+      // Update invitation status to 'pending'
       setInvitations(prev => 
         prev.map(inv => 
           inv.id === invitationId 
-            ? { ...inv, status: 'sent' as const }
+            ? { ...inv, status: 'pending' as const }
             : inv
         )
       );
@@ -491,7 +491,7 @@ export default function FamilySetupStep({
                           {invitation.status === 'sending' && (
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
                           )}
-                          {invitation.status === 'sent' && (
+                          {invitation.status === 'pending' && (
                             <Check className="h-4 w-4 text-green-600" />
                           )}
                           {invitation.status === 'failed' && (
@@ -506,7 +506,7 @@ export default function FamilySetupStep({
                             </Badge>
                             <Badge 
                               variant={
-                                invitation.status === 'sent' ? 'default' :
+                                invitation.status === 'pending' ? 'default' :
                                 invitation.status === 'failed' ? 'destructive' : 'secondary'
                               }
                             >
