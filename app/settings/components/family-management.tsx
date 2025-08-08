@@ -60,6 +60,7 @@ interface Family {
 interface FamilyMember {
   id: string;
   user_id: string;
+  email: string;
   role: 'admin' | 'member';
   joined_at: string;
 }
@@ -539,7 +540,7 @@ export default function FamilyManagement() {
                         <User className="h-4 w-4 text-gray-500" />
                       )}
                       <div>
-                        <div className="font-medium">User {member.user_id.slice(0, 8)}...</div>
+                        <div className="font-medium">{member.email}</div>
                         <div className="text-sm text-gray-500">
                           {member.role} • Joined {formatDistanceToNow(new Date(member.joined_at))} ago
                         </div>

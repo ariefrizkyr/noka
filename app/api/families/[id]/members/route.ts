@@ -28,25 +28,19 @@ export async function GET(
     
     const supabase = await createClient()
 
-    // Get family members with user information
+    // Get family members with emails using SECURITY DEFINER function
     const { data: members, error } = await supabase
-      .from('family_members')
-      .select(`
-        id,
-        role,
-        joined_at,
-        user_id
-      `)
-      .eq('family_id', familyId)
-      .order('joined_at', { ascending: true })
+      .rpc('get_family_members_with_emails', {
+        p_family_id: familyId
+      })
 
     if (error) throw error
 
-    // Note: In production, you might want to store user emails in a user_profiles table
-    // For now, we'll return without email and let the frontend handle it
+    // Format members data (the function already returns the correct structure)
     const formattedMembers = members.map(member => ({
       id: member.id,
       user_id: member.user_id,
+      email: member.email,
       role: member.role,
       joined_at: member.joined_at
     }))
