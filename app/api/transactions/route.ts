@@ -110,21 +110,37 @@ export async function GET(request: NextRequest) {
     if (error) throw error
 
     // Enhance transactions with family information and logged by details
-    const enhancedTransactions = transactions.map(transaction => ({
-      ...transaction,
-      // Add family information for accounts
-      account_family_name: transaction.accounts?.families?.name || null,
-      from_account_family_name: transaction.from_accounts?.families?.name || null,
-      to_account_family_name: transaction.to_accounts?.families?.name || null,
-      // Add family information for categories
-      category_family_name: transaction.categories?.families?.name || null,
-      investment_category_family_name: transaction.investment_categories?.families?.name || null,
-      // Add logged by information (simplified approach)
-      is_logged_by_current_user: transaction.logged_by_user_id === user.id,
-      logged_by_user: transaction.logged_by_user_id ? {
-        id: transaction.logged_by_user_id,
-        email: transaction.logged_by_user_id === user.id ? user.email : 'Another family member'
-      } : null,
+    const enhancedTransactions = await Promise.all(transactions.map(async transaction => {
+      let userEmail = null;
+      
+      // Get the actual user email using SECURITY DEFINER function
+      if (transaction.logged_by_user_id) {
+        const { data: emailResult, error: emailError } = await supabase
+          .rpc('get_transaction_user_email' as any, {
+            p_user_id: transaction.logged_by_user_id
+          });
+        
+        if (!emailError && emailResult) {
+          userEmail = emailResult;
+        }
+      }
+      
+      return {
+        ...transaction,
+        // Add family information for accounts
+        account_family_name: transaction.accounts?.families?.name || null,
+        from_account_family_name: transaction.from_accounts?.families?.name || null,
+        to_account_family_name: transaction.to_accounts?.families?.name || null,
+        // Add family information for categories
+        category_family_name: transaction.categories?.families?.name || null,
+        investment_category_family_name: transaction.investment_categories?.families?.name || null,
+        // Add logged by information with actual user emails
+        is_logged_by_current_user: transaction.logged_by_user_id === user.id,
+        logged_by_user: transaction.logged_by_user_id ? {
+          id: transaction.logged_by_user_id,
+          email: userEmail || 'Unknown user'
+        } : null,
+      };
     }))
 
     // Calculate infinite scroll metadata
@@ -317,6 +333,19 @@ export async function PUT(request: NextRequest) {
       if (completeError) throw completeError
       if (!completeTransaction) throw new Error('Transaction not found after update')
 
+      // Get the actual user email using SECURITY DEFINER function
+      let userEmail = null;
+      if (completeTransaction.logged_by_user_id) {
+        const { data: emailResult, error: emailError } = await supabase
+          .rpc('get_transaction_user_email' as any, {
+            p_user_id: completeTransaction.logged_by_user_id
+          });
+        
+        if (!emailError && emailResult) {
+          userEmail = emailResult;
+        }
+      }
+
       // Enhance transaction with family information
       const enhancedTransaction = {
         ...completeTransaction,
@@ -328,7 +357,7 @@ export async function PUT(request: NextRequest) {
         is_logged_by_current_user: completeTransaction.logged_by_user_id === user.id,
         logged_by_user: completeTransaction.logged_by_user_id ? {
           id: completeTransaction.logged_by_user_id,
-          email: completeTransaction.logged_by_user_id === user.id ? user.email || 'Current user' : 'Another family member'
+          email: userEmail || 'Unknown user'
         } : null,
       }
 
@@ -444,6 +473,19 @@ async function handleTransactionTypeChange(
     if (fetchError) throw fetchError
     if (!completeTransaction) throw new Error('Transaction not found')
 
+    // Get the actual user email using SECURITY DEFINER function
+    let userEmail = null;
+    if (completeTransaction.logged_by_user_id) {
+      const { data: emailResult, error: emailError } = await supabase
+        .rpc('get_transaction_user_email' as any, {
+          p_user_id: completeTransaction.logged_by_user_id
+        });
+      
+      if (!emailError && emailResult) {
+        userEmail = emailResult;
+      }
+    }
+
     // Enhance transaction with family information
     const enhancedTransaction = {
       ...completeTransaction,
@@ -455,7 +497,7 @@ async function handleTransactionTypeChange(
       is_logged_by_current_user: completeTransaction.logged_by_user_id === user.id,
       logged_by_user: completeTransaction.logged_by_user_id ? {
         id: completeTransaction.logged_by_user_id,
-        email: completeTransaction.logged_by_user_id === user.id ? user.email || 'Current user' : 'Another family member'
+        email: userEmail || 'Unknown user'
       } : null,
     }
 

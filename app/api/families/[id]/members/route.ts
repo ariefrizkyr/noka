@@ -37,7 +37,7 @@ export async function GET(
     if (error) throw error
 
     // Format members data (the function already returns the correct structure)
-    const formattedMembers = members.map(member => ({
+    const formattedMembers = members.map((member: any) => ({
       id: member.id,
       user_id: member.user_id,
       email: member.email,
