@@ -20,12 +20,12 @@ These are the tasks to be completed for the spec detailed in @.agent-os/specs/20
   - [x] 2.4 Implement invitation status feedback (sent, failed, pending)
   - [x] 2.5 Manual verification: Create family and send member invitations during onboarding
 
-- [ ] 3. Implement auto-scoping for joint/shared resources
-  - [ ] 3.1 Remove family dropdown from account setup when family context exists
-  - [ ] 3.2 Remove family dropdown from category setup when family context exists
-  - [ ] 3.3 Auto-assign joint accounts to created family using onboardingFamilyId
-  - [ ] 3.4 Auto-assign shared categories to created family using onboardingFamilyId
-  - [ ] 3.5 Manual verification: Create joint accounts/categories and verify auto-assignment to family
+- [x] 3. Implement auto-scoping for joint/shared resources
+  - [x] 3.1 Remove family dropdown from account setup when family context exists
+  - [x] 3.2 Remove family dropdown from category setup when family context exists
+  - [x] 3.3 Auto-assign joint accounts to created family using onboardingFamilyId
+  - [x] 3.4 Auto-assign shared categories to created family using onboardingFamilyId
+  - [x] 3.5 Manual verification: Create joint accounts/categories and verify auto-assignment to family
 
 - [ ] 4. Implement inline editing for accounts and categories
   - [ ] 4.1 Add edit mode state management to account list items

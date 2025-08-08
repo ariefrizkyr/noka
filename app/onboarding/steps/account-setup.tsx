@@ -104,6 +104,11 @@ export default function AccountSetupStep({
   const { user } = useAuth();
   const { currency: userCurrency } = useCurrencySettings();
 
+  // Check for onboarding family context
+  const onboardingFamilyId = typeof window !== 'undefined' 
+    ? sessionStorage.getItem("onboardingFamilyId") 
+    : null;
+
   // Load existing accounts and families
   useEffect(() => {
     async function loadUserData() {
@@ -172,11 +177,11 @@ export default function AccountSetupStep({
     // Validate joint account requirements
     if (newAccount.account_scope === 'joint') {
       const adminFamilies = families.filter(f => f.user_role === 'admin');
-      if (adminFamilies.length === 0) {
+      if (adminFamilies.length === 0 && !onboardingFamilyId) {
         setError("You must be an admin of a family to create joint accounts");
         return;
       }
-      if (!newAccount.family_id) {
+      if (!newAccount.family_id && !onboardingFamilyId) {
         setError("Please select a family for the joint account");
         return;
       }
@@ -209,7 +214,9 @@ export default function AccountSetupStep({
       initial_balance: balance,
       isNew: true,
       account_scope: newAccount.account_scope,
-      family_id: newAccount.account_scope === 'joint' ? newAccount.family_id : undefined,
+      family_id: newAccount.account_scope === 'joint' 
+        ? (onboardingFamilyId || newAccount.family_id) 
+        : undefined,
     };
 
     setAccounts((prev) => [...prev, account]);
@@ -284,7 +291,9 @@ export default function AccountSetupStep({
             type: account.type,
             initial_balance: account.initial_balance,
             account_scope: account.account_scope,
-            family_id: account.family_id,
+            family_id: account.account_scope === 'joint' 
+              ? (onboardingFamilyId || account.family_id)
+              : account.family_id,
           }),
         });
 
@@ -478,7 +487,7 @@ export default function AccountSetupStep({
             </div>
 
             {/* Family Selection for Joint Accounts */}
-            {newAccount.account_scope === 'joint' && (
+            {newAccount.account_scope === 'joint' && !onboardingFamilyId && (
               <div>
                 <Label className="block mb-2 text-sm font-medium text-gray-700">
                   Family
@@ -510,6 +519,20 @@ export default function AccountSetupStep({
                     You must be an admin of a family to create joint accounts
                   </p>
                 )}
+              </div>
+            )}
+
+            {/* Family Auto-Assignment Info */}
+            {newAccount.account_scope === 'joint' && onboardingFamilyId && (
+              <div>
+                <Label className="block mb-2 text-sm font-medium text-gray-700">
+                  Family
+                </Label>
+                <div className="rounded-md border border-green-200 bg-green-50 p-3">
+                  <p className="text-sm text-green-700">
+                    ✓ Joint account will be assigned to your new family
+                  </p>
+                </div>
               </div>
             )}
 

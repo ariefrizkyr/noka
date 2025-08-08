@@ -126,6 +126,11 @@ export default function CategorySetupStep({
   const { user } = useAuth();
   const { currency: userCurrency } = useCurrencySettings();
 
+  // Check for onboarding family context
+  const onboardingFamilyId = typeof window !== 'undefined' 
+    ? sessionStorage.getItem("onboardingFamilyId") 
+    : null;
+
   // Load existing categories and families
   useEffect(() => {
     async function loadUserData() {
@@ -238,7 +243,7 @@ export default function CategorySetupStep({
       type: newCategory.type,
       icon: newCategory.icon,
       is_shared: newCategory.is_shared,
-      family_id: newCategory.is_shared ? newCategory.family_id : undefined,
+      family_id: newCategory.is_shared ? (onboardingFamilyId || newCategory.family_id) : undefined,
     };
 
     // Add budget/target if specified
@@ -325,7 +330,7 @@ export default function CategorySetupStep({
             budget_amount: category.budget_amount || null,
             budget_frequency: category.budget_frequency || null,
             is_shared: category.is_shared || false,
-            family_id: category.family_id || null,
+            family_id: category.is_shared ? (onboardingFamilyId || category.family_id) : null,
           }),
         });
 
@@ -524,7 +529,7 @@ export default function CategorySetupStep({
                 </div>
 
                 {/* Family Selection for Shared Categories */}
-                {newCategory.is_shared && (
+                {newCategory.is_shared && !onboardingFamilyId && (
                   <div className="space-y-2">
                     <Label htmlFor="family-cat-onboard">Family</Label>
                     <Select
@@ -552,6 +557,18 @@ export default function CategorySetupStep({
                         You must be part of a family to create shared categories
                       </p>
                     )}
+                  </div>
+                )}
+
+                {/* Family Auto-Assignment Info */}
+                {newCategory.is_shared && onboardingFamilyId && (
+                  <div className="space-y-2">
+                    <Label htmlFor="family-cat-onboard">Family</Label>
+                    <div className="rounded-md border border-green-200 bg-green-50 p-3">
+                      <p className="text-sm text-green-700">
+                        ✓ Shared category will be assigned to your new family
+                      </p>
+                    </div>
                   </div>
                 )}
 
