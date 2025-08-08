@@ -219,6 +219,7 @@ export function BudgetOverview({
                 type="budget"
                 isShared={budget.is_shared}
                 familyName={budget.family_name}
+                memberContributions={budget.member_contributions || []}
               />
             ))}
           {!showAllCategories && weeklyBudgets.length > 6 && (
@@ -288,6 +289,7 @@ export function BudgetOverview({
                 type="budget"
                 isShared={budget.is_shared}
                 familyName={budget.family_name}
+                memberContributions={budget.member_contributions || []}
               />
             ))}
           {!showAllCategories && monthlyBudgets.length > 6 && (
@@ -357,6 +359,7 @@ export function BudgetOverview({
                 type="budget"
                 isShared={budget.is_shared}
                 familyName={budget.family_name}
+                memberContributions={budget.member_contributions || []}
               />
             ))}
           {!showAllCategories && oneTimeBudgets.length > 6 && (

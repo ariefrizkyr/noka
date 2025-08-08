@@ -195,6 +195,7 @@ export function InvestmentOverview({
                 type="investment"
                 isShared={investment.is_shared}
                 familyName={investment.family_name}
+                memberContributions={investment.member_contributions || []}
               />
             ))}
           {!showAllCategories && monthlyGoals.length > 6 && (
@@ -264,6 +265,7 @@ export function InvestmentOverview({
                 type="investment"
                 isShared={investment.is_shared}
                 familyName={investment.family_name}
+                memberContributions={investment.member_contributions || []}
               />
             ))}
           {!showAllCategories && oneTimeGoals.length > 6 && (
