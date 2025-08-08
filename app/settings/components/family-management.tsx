@@ -570,50 +570,52 @@ export default function FamilyManagement() {
               ) : (
                 <div className="space-y-2">
                   {pendingInvitations.map((invitation) => (
-                    <div key={invitation.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Mail className="h-4 w-4 text-orange-500" />
-                        <div>
-                          <div className="font-medium">{invitation.email}</div>
+                    <div key={invitation.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border rounded-lg gap-3">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <Mail className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium truncate">{invitation.email}</div>
                           <div className="text-sm text-gray-500">
                             {invitation.role} • Sent {formatDistanceToNow(new Date(invitation.created_at))} ago
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-orange-600">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2">
+                        <Badge variant="outline" className="text-orange-600 self-start">
                           <Clock className="mr-1 h-3 w-3" />
                           Pending
                         </Badge>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleResendInvitation(invitation.id)}
-                          title="Resend invitation"
-                        >
-                          <RefreshCw className="h-3 w-3" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="outline" title="Cancel invitation">
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Cancel Invitation?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This will cancel the invitation sent to {invitation.email}. This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleCancelInvitation(invitation.id)}>
-                                Cancel Invitation
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleResendInvitation(invitation.id)}
+                            title="Resend invitation"
+                          >
+                            <RefreshCw className="h-3 w-3" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="sm" variant="outline" title="Cancel invitation">
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Cancel Invitation?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will cancel the invitation sent to {invitation.email}. This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleCancelInvitation(invitation.id)}>
+                                  Cancel Invitation
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </div>
                     </div>
                   ))}
