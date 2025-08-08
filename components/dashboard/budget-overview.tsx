@@ -217,6 +217,8 @@ export function BudgetOverview({
                 percentage={budget.progress_percentage}
                 currency={currency}
                 type="budget"
+                isShared={budget.is_shared}
+                familyName={budget.family_name}
               />
             ))}
           {!showAllCategories && weeklyBudgets.length > 6 && (
@@ -284,6 +286,8 @@ export function BudgetOverview({
                 percentage={budget.progress_percentage}
                 currency={currency}
                 type="budget"
+                isShared={budget.is_shared}
+                familyName={budget.family_name}
               />
             ))}
           {!showAllCategories && monthlyBudgets.length > 6 && (
@@ -351,6 +355,8 @@ export function BudgetOverview({
                 percentage={budget.progress_percentage}
                 currency={currency}
                 type="budget"
+                isShared={budget.is_shared}
+                familyName={budget.family_name}
               />
             ))}
           {!showAllCategories && oneTimeBudgets.length > 6 && (

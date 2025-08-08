@@ -13,6 +13,8 @@ interface ProgressCardProps {
   currency?: string;
   className?: string;
   type?: "budget" | "investment";
+  isShared?: boolean;
+  familyName?: string;
 }
 
 export function ProgressCard({
@@ -24,6 +26,8 @@ export function ProgressCard({
   currency = "IDR",
   className,
   type = "budget",
+  isShared = false,
+  familyName,
 }: ProgressCardProps) {
   // Get status badge
   const getStatusBadge = () => {
@@ -60,10 +64,25 @@ export function ProgressCard({
       <div className="flex flex-row p-2">
         <div className="flex w-2/6 items-start justify-start">
           <div className="text-left">
-            <span className="text-md mr-1">{icon}</span>
-            <span className="text-xs font-medium text-gray-800 sm:text-sm">
-              {title}
-            </span>
+            <div className="flex items-center gap-1 mb-1">
+              <span className="text-md mr-1">{icon}</span>
+              <span className="text-xs font-medium text-gray-800 sm:text-sm">
+                {title}
+              </span>
+              {isShared && (
+                <Badge
+                  variant="outline"
+                  className="border-blue-300 bg-blue-50 text-xs text-blue-700 px-1 py-0"
+                >
+                  Shared
+                </Badge>
+              )}
+            </div>
+            {isShared && familyName && (
+              <div className="text-xs text-blue-600">
+                Family: {familyName}
+              </div>
+            )}
           </div>
         </div>
 

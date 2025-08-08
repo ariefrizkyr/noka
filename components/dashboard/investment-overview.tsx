@@ -193,6 +193,8 @@ export function InvestmentOverview({
                 percentage={investment.progress_percentage}
                 currency={currency}
                 type="investment"
+                isShared={investment.is_shared}
+                familyName={investment.family_name}
               />
             ))}
           {!showAllCategories && monthlyGoals.length > 6 && (
@@ -260,6 +262,8 @@ export function InvestmentOverview({
                 percentage={investment.progress_percentage}
                 currency={currency}
                 type="investment"
+                isShared={investment.is_shared}
+                familyName={investment.family_name}
               />
             ))}
           {!showAllCategories && oneTimeGoals.length > 6 && (

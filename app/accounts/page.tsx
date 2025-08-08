@@ -10,12 +10,13 @@ import { formatCurrency } from "@/lib/currency-utils";
 import { getAccountTypeInfo } from "@/lib/account-utils";
 import { useCurrencySettings } from "@/hooks/use-currency-settings";
 
-import { Account } from "@/types/common";
+import { AccountWithFamily } from "@/types/common";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 export default function AccountsPage() {
   const { currency, loading: currencyLoading } = useCurrencySettings();
-  const { data: accounts, loading: accountsLoading } = useApiData<Account[]>(
+  const { data: accounts, loading: accountsLoading } = useApiData<AccountWithFamily[]>(
     "/api/accounts",
     {
       listenToEvents: ["transactionUpdated"],
@@ -23,7 +24,7 @@ export default function AccountsPage() {
   );
 
   // Group accounts by type
-  const groupAccountsByType = (accounts: Account[]) => {
+  const groupAccountsByType = (accounts: AccountWithFamily[]) => {
     const grouped = accounts.reduce(
       (acc, account) => {
         const type = account.type;
@@ -33,7 +34,7 @@ export default function AccountsPage() {
         acc[type].push(account);
         return acc;
       },
-      {} as Record<string, Account[]>,
+      {} as Record<string, AccountWithFamily[]>,
     );
 
     return grouped;
@@ -135,10 +136,25 @@ export default function AccountsPage() {
                                 return <Icon className="h-4 w-4" />;
                               })()}
                             </div>
-                            <div>
-                              <CardTitle className="text-lg">
-                                {account.name}
-                              </CardTitle>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <CardTitle className="text-lg">
+                                  {account.name}
+                                </CardTitle>
+                                {account.account_scope === 'joint' && (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-purple-300 bg-purple-100 text-xs text-purple-700"
+                                  >
+                                    Joint
+                                  </Badge>
+                                )}
+                              </div>
+                              {account.account_scope === 'joint' && account.family_name && (
+                                <div className="text-xs text-purple-600">
+                                  Family: {account.family_name}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>

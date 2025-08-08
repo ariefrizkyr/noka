@@ -25,7 +25,7 @@
     - [x] 2.5.6 Implement proper post-invitation acceptance flow for new users to onboarding
     - [x] 2.5.7 Manual verification of complete invitation flow for all user scenarios
   - [x] 2.6 Add transaction attribution display showing "Logged by" indicators in transaction cards
-  - [ ] 2.7 Create visual indicators (badges, icons) for joint/shared resources without major UI changes
+  - [x] 2.7 Create visual indicators (badges, icons) for joint/shared resources without major UI changes
   - [ ] 2.8 Manual verification of minimal UI integration and seamless user experience
 
 - [ ] 3. Performance & Polish
