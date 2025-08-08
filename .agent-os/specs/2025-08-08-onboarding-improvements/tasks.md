@@ -7,11 +7,11 @@ These are the tasks to be completed for the spec detailed in @.agent-os/specs/20
 
 ## Tasks
 
-- [ ] 1. Implement invitation context detection and step skipping
-  - [ ] 1.1 Modify onboarding page to detect invitation context from sessionStorage
-  - [ ] 1.2 Update step calculation logic to skip preference step for invited users
-  - [ ] 1.3 Auto-set onboardingType to "family" when invitation context is detected
-  - [ ] 1.4 Manual verification: Accept invitation and verify onboarding skips to step 2
+- [x] 1. Implement invitation context detection and step skipping
+  - [x] 1.1 Modify onboarding page to detect invitation context from sessionStorage
+  - [x] 1.2 Update step calculation logic to skip preference step for invited users
+  - [x] 1.3 Auto-set onboardingType to "family" when invitation context is detected
+  - [x] 1.4 Manual verification: Accept invitation and verify onboarding skips to step 2
 
 - [ ] 2. Add member invitation capability to family setup
   - [ ] 2.1 Enhance family-setup component with invitation form section

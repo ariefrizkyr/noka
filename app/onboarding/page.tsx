@@ -10,8 +10,11 @@ import SettingsSetupStep from "./steps/settings-setup";
 import AccountSetupStep from "./steps/account-setup";
 import CategorySetupStep from "./steps/category-setup";
 
-// Helper function to get total steps based on onboarding type
-const getTotalSteps = (onboardingType: string | null): number => {
+// Helper function to get total steps based on onboarding type and invitation context
+const getTotalSteps = (onboardingType: string | null, hasInvitationContext: boolean = false): number => {
+  if (hasInvitationContext) {
+    return 4; // Skip preference step: Family confirmation + Settings + Account + Category
+  }
   return onboardingType === "family" ? 5 : 4;
 };
 
@@ -20,6 +23,7 @@ export default function OnboardingPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingStepDetection, setIsLoadingStepDetection] = useState(true);
   const [onboardingType, setOnboardingType] = useState<string | null>(null);
+  const [hasInvitationContext, setHasInvitationContext] = useState(false);
   const { user, isInitialized } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -36,9 +40,19 @@ export default function OnboardingPage() {
       }
 
       try {
-        // Get onboarding type from sessionStorage
+        // Check for invitation context
+        const acceptedFamilyId = sessionStorage.getItem("acceptedFamilyId");
+        const hasInvitation = !!acceptedFamilyId;
+        setHasInvitationContext(hasInvitation);
+
+        // Get onboarding type from sessionStorage or set to family if invitation context
         const storedOnboardingType = sessionStorage.getItem("onboardingType");
-        setOnboardingType(storedOnboardingType);
+        if (hasInvitation && !storedOnboardingType) {
+          sessionStorage.setItem("onboardingType", "family");
+          setOnboardingType("family");
+        } else {
+          setOnboardingType(storedOnboardingType);
+        }
 
         // Get onboarding progress from new API
         const onboardingResponse = await fetch("/api/onboarding");
@@ -54,18 +68,19 @@ export default function OnboardingPage() {
             return;
           }
 
-          // Use the next_step from the API response
-          setCurrentStep(onboardingResult.data?.next_step || 1);
+          // Use the next_step from the API response, but skip step 1 for invited users
+          const nextStep = onboardingResult.data?.next_step || 1;
+          setCurrentStep(hasInvitation && nextStep === 1 ? 2 : nextStep);
         } else {
-          // If API fails, default to step 1
-          setCurrentStep(1);
+          // If API fails, default to step 1 or step 2 for invited users
+          setCurrentStep(hasInvitation ? 2 : 1);
         }
 
         setIsLoading(false);
       } catch (error) {
         console.error("Error checking onboarding status:", error);
-        // On error, default to step 1
-        setCurrentStep(1);
+        // On error, default to step 1 or step 2 for invited users
+        setCurrentStep(hasInvitation ? 2 : 1);
         setIsLoading(false);
       } finally {
         setIsLoadingStepDetection(false);
@@ -82,12 +97,12 @@ export default function OnboardingPage() {
       setOnboardingType(storedType);
       
       // Use the fresh stored type for total steps calculation
-      const totalSteps = getTotalSteps(storedType);
+      const totalSteps = getTotalSteps(storedType, hasInvitationContext);
       if (currentStep < totalSteps) {
         setCurrentStep(currentStep + 1);
       }
     } else {
-      const totalSteps = getTotalSteps(onboardingType);
+      const totalSteps = getTotalSteps(onboardingType, hasInvitationContext);
       if (currentStep < totalSteps) {
         setCurrentStep(currentStep + 1);
       }
@@ -95,7 +110,9 @@ export default function OnboardingPage() {
   };
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
+    // For invited users, don't allow going back to step 1 (preference selection)
+    const minStep = hasInvitationContext ? 2 : 1;
+    if (currentStep > minStep) {
       setCurrentStep(currentStep - 1);
     }
   };
@@ -119,6 +136,10 @@ export default function OnboardingPage() {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to complete onboarding");
       }
+
+      // Clear invitation context after successful onboarding completion
+      sessionStorage.removeItem("acceptedFamilyId");
+      sessionStorage.removeItem("acceptedFamilyName");
 
       // Redirect to target URL or dashboard
       const targetUrl = redirectUrl && redirectUrl.startsWith('/') && !redirectUrl.startsWith('//') 
@@ -147,9 +168,10 @@ export default function OnboardingPage() {
 
     // Personal flow: Usage (1) → Settings (2) → Account (3) → Category (4)
     // Family flow:   Usage (1) → Family (2) → Settings (3) → Account (4) → Category (5)
+    // Invited flow:  Family (2) → Settings (3) → Account (4) → Category (5) - Skip Usage step
 
-    if (currentStep === 1) {
-      // Step 1: Usage Type Selection (always first)
+    if (currentStep === 1 && !hasInvitationContext) {
+      // Step 1: Usage Type Selection (only for non-invited users)
       return (
         <UsageTypeSetupStep
           onNext={handleNext}
@@ -168,7 +190,7 @@ export default function OnboardingPage() {
             <FamilySetupStep
               onNext={handleNext}
               onPrevious={handlePrevious}
-              isFirstStep={false}
+              isFirstStep={hasInvitationContext}
               isLastStep={false}
             />
           );
@@ -241,7 +263,7 @@ export default function OnboardingPage() {
   return (
     <OnboardingLayout 
       currentStep={currentStep} 
-      totalSteps={getTotalSteps(onboardingType)}
+      totalSteps={getTotalSteps(onboardingType, hasInvitationContext)}
       onboardingType={onboardingType}
     >
       {renderStep()}

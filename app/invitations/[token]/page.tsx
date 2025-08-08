@@ -170,6 +170,10 @@ export default function InvitationPage() {
         `Successfully joined ${data.data.family_name || invitation.family.name}!`,
       );
 
+      // Store invitation context for onboarding
+      sessionStorage.setItem("acceptedFamilyId", invitation.family.id);
+      sessionStorage.setItem("acceptedFamilyName", invitation.family.name);
+
       // Check onboarding status to determine redirect
       try {
         const onboardingResponse = await fetch("/api/onboarding");
@@ -272,6 +276,10 @@ export default function InvitationPage() {
       toast.success(
         `Successfully joined ${data.data.family_name || invitation.family.name}!`,
       );
+
+      // Store invitation context for onboarding
+      sessionStorage.setItem("acceptedFamilyId", invitation.family.id);
+      sessionStorage.setItem("acceptedFamilyName", invitation.family.name);
 
       // Check onboarding status to determine redirect
       try {

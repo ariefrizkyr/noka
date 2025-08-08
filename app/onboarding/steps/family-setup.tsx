@@ -32,8 +32,10 @@ export default function FamilySetupStep({
       try {
         setCheckingExisting(true);
         
-        // First check sessionStorage for family created in this onboarding session
+        // First check sessionStorage for family created in this onboarding session or from invitation
         const sessionFamilyId = sessionStorage.getItem("onboardingFamilyId");
+        const acceptedFamilyId = sessionStorage.getItem("acceptedFamilyId");
+        const acceptedFamilyName = sessionStorage.getItem("acceptedFamilyName");
         
         if (sessionFamilyId) {
           // Fetch family details from API to get the name
@@ -45,6 +47,28 @@ export default function FamilySetupStep({
               setExistingFamily({ id: family.id, name: family.name, user_role: family.user_role });
               return;
             }
+          }
+        }
+        
+        // Check if user came from invitation
+        if (acceptedFamilyId) {
+          // Fetch family details to get current user role
+          const response = await fetch("/api/families");
+          if (response.ok) {
+            const data = await response.json();
+            const family = data.data.find((f: { id: string; name: string; user_role: string }) => f.id === acceptedFamilyId);
+            if (family) {
+              setExistingFamily({ id: family.id, name: family.name, user_role: family.user_role });
+              // Store as onboarding family for consistency
+              sessionStorage.setItem("onboardingFamilyId", family.id);
+              return;
+            }
+          }
+          // Fallback to session storage name if API fails but we have the accepted family info
+          if (acceptedFamilyName) {
+            setExistingFamily({ id: acceptedFamilyId, name: acceptedFamilyName, user_role: 'member' }); // Default to member for invited users
+            sessionStorage.setItem("onboardingFamilyId", acceptedFamilyId);
+            return;
           }
         }
         
