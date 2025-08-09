@@ -1,0 +1,3 @@
+# Joint Transaction Category Visibility - Lite Summary
+
+Enable family members to see actual category names for joint account transactions instead of "Unknown category" to improve spending transparency in shared accounts. This feature enhances API queries to load category names for joint accounts regardless of ownership, automatically improving display across all transaction views (/transactions and /accounts/[id] pages) without requiring schema changes or page-level modifications.
