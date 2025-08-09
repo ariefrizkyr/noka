@@ -27,13 +27,13 @@ These are the tasks to be completed for the spec detailed in @.agent-os/specs/20
   - [x] 3.4 Auto-assign shared categories to created family using onboardingFamilyId
   - [x] 3.5 Manual verification: Create joint accounts/categories and verify auto-assignment to family
 
-- [ ] 4. Implement inline editing for accounts and categories
-  - [ ] 4.1 Add edit mode state management to account list items
-  - [ ] 4.2 Add edit mode state management to category list items
-  - [ ] 4.3 Create inline form components for account editing
-  - [ ] 4.4 Create inline form components for category editing
-  - [ ] 4.5 Add click handlers and save/cancel actions with validation
-  - [ ] 4.6 Manual verification: Click existing accounts/categories and verify inline editing works
+- [x] 4. Implement inline editing for accounts and categories
+  - [x] 4.1 Add edit mode state management to account list items
+  - [x] 4.2 Add edit mode state management to category list items
+  - [x] 4.3 Create inline form components for account editing
+  - [x] 4.4 Create inline form components for category editing
+  - [x] 4.5 Add click handlers and save/cancel actions with validation
+  - [x] 4.6 Manual verification: Click existing accounts/categories and verify inline editing works
 
 - [ ] 5. UI consistency and integration testing
   - [ ] 5.1 Ensure all changes maintain existing shadcn/ui styling patterns

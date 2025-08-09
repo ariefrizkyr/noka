@@ -101,6 +101,14 @@ export default function AccountSetupStep({
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState("");
+  const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
+  const [editingAccount, setEditingAccount] = useState<{
+    name: string;
+    type: string;
+    initial_balance: string;
+    account_scope: 'personal' | 'joint';
+    family_id: string;
+  } | null>(null);
   const { user } = useAuth();
   const { currency: userCurrency } = useCurrencySettings();
 
@@ -228,6 +236,145 @@ export default function AccountSetupStep({
       family_id: "",
     });
     setError("");
+  };
+
+  const startEditingAccount = (account: Account) => {
+    setEditingAccountId(account.id);
+    setEditingAccount({
+      name: account.name,
+      type: account.type,
+      initial_balance: account.initial_balance.toString(),
+      account_scope: account.account_scope || 'personal',
+      family_id: account.family_id || "",
+    });
+  };
+
+  const cancelEditingAccount = () => {
+    setEditingAccountId(null);
+    setEditingAccount(null);
+    setError("");
+  };
+
+  const saveAccountEdit = async () => {
+    if (!editingAccountId || !editingAccount) return;
+
+    const account = accounts.find((acc) => acc.id === editingAccountId);
+    if (!account) return;
+
+    // Validate input
+    if (!editingAccount.name.trim() || !editingAccount.type) {
+      setError("Please fill in all required fields");
+      return;
+    }
+
+    const balance = parseFloat(editingAccount.initial_balance);
+    if (isNaN(balance)) {
+      setError("Please enter a valid balance amount");
+      return;
+    }
+
+    // Validate joint account requirements
+    if (editingAccount.account_scope === 'joint') {
+      const adminFamilies = families.filter(f => f.user_role === 'admin');
+      if (adminFamilies.length === 0 && !onboardingFamilyId) {
+        setError("You must be an admin of a family to create joint accounts");
+        return;
+      }
+      if (!editingAccount.family_id && !onboardingFamilyId) {
+        setError("Please select a family for the joint account");
+        return;
+      }
+    }
+
+    // Check for duplicate account names (excluding current account)
+    if (
+      accounts.some(
+        (acc) =>
+          acc.id !== editingAccountId &&
+          acc.name.toLowerCase() === editingAccount.name.trim().toLowerCase(),
+      )
+    ) {
+      setError("Account name already exists");
+      return;
+    }
+
+    try {
+      setError("");
+
+      // If it's a new account, just update state
+      if (account.isNew) {
+        setAccounts((prev) =>
+          prev.map((acc) =>
+            acc.id === editingAccountId
+              ? {
+                  ...acc,
+                  name: editingAccount.name.trim(),
+                  type: editingAccount.type as
+                    | "bank_account"
+                    | "credit_card"
+                    | "investment_account",
+                  initial_balance: balance,
+                  account_scope: editingAccount.account_scope,
+                  family_id: editingAccount.account_scope === 'joint' 
+                    ? (onboardingFamilyId || editingAccount.family_id) 
+                    : undefined,
+                }
+              : acc,
+          ),
+        );
+      } else {
+        // If it's an existing account, update via API
+        const response = await fetch("/api/accounts", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            account_id: editingAccountId,
+            name: editingAccount.name.trim(),
+            type: editingAccount.type,
+            initial_balance: balance,
+            account_scope: editingAccount.account_scope,
+            family_id: editingAccount.account_scope === 'joint' 
+              ? (onboardingFamilyId || editingAccount.family_id)
+              : null,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to update account");
+        }
+
+        // Update state on successful update
+        setAccounts((prev) =>
+          prev.map((acc) =>
+            acc.id === editingAccountId
+              ? {
+                  ...acc,
+                  name: editingAccount.name.trim(),
+                  type: editingAccount.type as
+                    | "bank_account"
+                    | "credit_card"
+                    | "investment_account",
+                  initial_balance: balance,
+                  account_scope: editingAccount.account_scope,
+                  family_id: editingAccount.account_scope === 'joint' 
+                    ? (onboardingFamilyId || editingAccount.family_id) 
+                    : undefined,
+                }
+              : acc,
+          ),
+        );
+      }
+
+      cancelEditingAccount();
+    } catch (error) {
+      console.error("Error updating account:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to update account",
+      );
+    }
   };
 
   const removeAccount = async (id: string) => {
@@ -555,14 +702,174 @@ export default function AccountSetupStep({
               {accounts.map((account) => {
                 const Icon = getAccountTypeIcon(account.type);
                 const isExisting = !account.isNew;
+                const isEditing = editingAccountId === account.id;
+                
+                if (isEditing) {
+                  return (
+                    <div
+                      key={account.id}
+                      className="rounded-lg border border-blue-300 bg-blue-50 p-3"
+                    >
+                      <div className="space-y-3">
+                        {/* Account Name */}
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">
+                            Account Name
+                          </Label>
+                          <Input
+                            value={editingAccount?.name || ""}
+                            onChange={(e) =>
+                              setEditingAccount((prev) => 
+                                prev ? { ...prev, name: e.target.value } : null
+                              )
+                            }
+                            className="mt-1"
+                          />
+                        </div>
+
+                        {/* Account Type */}
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">
+                            Account Type
+                          </Label>
+                          <Select
+                            value={editingAccount?.type || ""}
+                            onValueChange={(value) =>
+                              setEditingAccount((prev) => 
+                                prev ? { ...prev, type: value } : null
+                              )
+                            }
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {accountTypes.map((type) => {
+                                const TypeIcon = type.icon;
+                                return (
+                                  <SelectItem key={type.value} value={type.value}>
+                                    <div className="flex items-center gap-3">
+                                      <TypeIcon className="h-4 w-4" />
+                                      <span>{type.label}</span>
+                                    </div>
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Current Balance */}
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">
+                            Current Balance
+                          </Label>
+                          <CurrencyInput
+                            currency={userCurrency}
+                            value={editingAccount?.initial_balance || ""}
+                            onChange={(displayValue, numericValue) => {
+                              setEditingAccount((prev) => 
+                                prev ? { ...prev, initial_balance: numericValue.toString() } : null
+                              );
+                            }}
+                            className="mt-1"
+                          />
+                        </div>
+
+                        {/* Account Scope */}
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">
+                            Account Scope
+                          </Label>
+                          <RadioGroup
+                            value={editingAccount?.account_scope || "personal"}
+                            onValueChange={(value) => {
+                              const scope = value as 'personal' | 'joint';
+                              setEditingAccount((prev) => 
+                                prev ? {
+                                  ...prev,
+                                  account_scope: scope,
+                                  family_id: scope === 'personal' ? '' : prev.family_id
+                                } : null
+                              );
+                            }}
+                            className="mt-1 flex flex-row space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="personal" id={`personal-edit-${account.id}`} />
+                              <Label htmlFor={`personal-edit-${account.id}`} className="text-sm">
+                                Personal
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="joint" id={`joint-edit-${account.id}`} />
+                              <Label htmlFor={`joint-edit-${account.id}`} className="text-sm">
+                                Joint
+                              </Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+
+                        {/* Family Selection for Joint Accounts */}
+                        {editingAccount?.account_scope === 'joint' && !onboardingFamilyId && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">
+                              Family
+                            </Label>
+                            <Select
+                              value={editingAccount?.family_id || ""}
+                              onValueChange={(value) => 
+                                setEditingAccount((prev) => 
+                                  prev ? { ...prev, family_id: value } : null
+                                )
+                              }
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Select family" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {families
+                                  .filter(f => f.user_role === 'admin')
+                                  .map((family) => (
+                                    <SelectItem key={family.id} value={family.id}>
+                                      {family.name}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+
+                        {/* Edit Actions */}
+                        <div className="flex justify-end gap-2 pt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={cancelEditingAccount}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={saveAccountEdit}
+                          >
+                            Save
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <div
                     key={account.id}
-                    className={`flex items-center justify-between rounded-lg p-3 ${
+                    className={`flex items-center justify-between rounded-lg p-3 cursor-pointer transition-colors ${
                       isExisting
-                        ? "border border-green-200 bg-green-50"
-                        : "border border-gray-200 bg-gray-50"
+                        ? "border border-green-200 bg-green-50 hover:bg-green-100"
+                        : "border border-gray-200 bg-gray-50 hover:bg-gray-100"
                     }`}
+                    onClick={() => startEditingAccount(account)}
                   >
                     <div className="flex items-center gap-3">
                       <Icon
@@ -615,7 +922,10 @@ export default function AccountSetupStep({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeAccount(account.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeAccount(account.id);
+                        }}
                         className="text-red-500 hover:bg-red-50 hover:text-red-700"
                       >
                         <X className="h-4 w-4" />

@@ -123,6 +123,16 @@ export default function CategorySetupStep({
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState("");
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editingCategory, setEditingCategory] = useState<{
+    name: string;
+    type: CategoryType;
+    icon: string;
+    budget_amount: string;
+    budget_frequency: BudgetFrequency | "";
+    is_shared: boolean;
+    family_id: string;
+  } | null>(null);
   const { user } = useAuth();
   const { currency: userCurrency } = useCurrencySettings();
 
@@ -266,6 +276,127 @@ export default function CategorySetupStep({
       family_id: "",
     });
     setError("");
+  };
+
+  const startEditingCategory = (category: Category) => {
+    setEditingCategoryId(category.id);
+    setEditingCategory({
+      name: category.name,
+      type: category.type,
+      icon: category.icon,
+      budget_amount: category.budget_amount?.toString() || "",
+      budget_frequency: category.budget_frequency || "",
+      is_shared: category.is_shared || false,
+      family_id: category.family_id || "",
+    });
+  };
+
+  const cancelEditingCategory = () => {
+    setEditingCategoryId(null);
+    setEditingCategory(null);
+    setError("");
+  };
+
+  const saveCategoryEdit = async () => {
+    if (!editingCategoryId || !editingCategory) return;
+
+    const category = categories.find((cat) => cat.id === editingCategoryId);
+    if (!category) return;
+
+    // Validate input
+    if (!editingCategory.name.trim() || !editingCategory.icon) {
+      setError("Please enter a category name and select an emoji");
+      return;
+    }
+
+    // Validate shared category requirements
+    if (editingCategory.is_shared) {
+      const adminFamilies = families.filter(f => f.user_role === 'admin');
+      if (adminFamilies.length === 0 && !onboardingFamilyId) {
+        setError("You must be an admin of a family to create shared categories");
+        return;
+      }
+      if (!editingCategory.family_id && !onboardingFamilyId) {
+        setError("Please select a family for the shared category");
+        return;
+      }
+    }
+
+    // Validate budget amount if provided
+    let budgetAmount: number | undefined = undefined;
+    if (editingCategory.budget_amount && editingCategory.budget_frequency) {
+      const amount = parseFloat(editingCategory.budget_amount);
+      if (isNaN(amount) || amount <= 0) {
+        setError("Please enter a valid budget amount");
+        return;
+      }
+      budgetAmount = amount;
+    }
+
+    try {
+      setError("");
+
+      const updatedCategory: Category = {
+        id: editingCategoryId,
+        name: editingCategory.name.trim(),
+        type: editingCategory.type,
+        icon: editingCategory.icon,
+        budget_amount: budgetAmount,
+        budget_frequency: editingCategory.budget_frequency || undefined,
+        is_shared: editingCategory.is_shared,
+        family_id: editingCategory.is_shared 
+          ? (onboardingFamilyId || editingCategory.family_id) 
+          : undefined,
+      };
+
+      // If it's a new category (temp ID), just update state
+      if (editingCategoryId.startsWith("default-") || editingCategoryId.startsWith("custom-")) {
+        setCategories((prev) =>
+          prev.map((cat) =>
+            cat.id === editingCategoryId ? updatedCategory : cat
+          ),
+        );
+      } else {
+        // If it's an existing category, update via API
+        const response = await fetch("/api/categories", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            category_id: editingCategoryId,
+            name: updatedCategory.name,
+            type: updatedCategory.type,
+            icon: updatedCategory.icon,
+            budget_amount: updatedCategory.budget_amount || null,
+            budget_frequency: updatedCategory.budget_frequency || null,
+            is_shared: updatedCategory.is_shared,
+            family_id: updatedCategory.is_shared 
+              ? (onboardingFamilyId || editingCategory.family_id)
+              : null,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to update category");
+        }
+
+        // Update state on successful update
+        setCategories((prev) =>
+          prev.map((cat) =>
+            cat.id === editingCategoryId ? updatedCategory : cat
+          ),
+        );
+      }
+
+      cancelEditingCategory();
+    } catch (error) {
+      console.error("Error updating category:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to update category",
+      );
+    }
   };
 
   const removeCategory = async (id: string) => {
@@ -644,54 +775,276 @@ export default function CategorySetupStep({
                     Your {type.label} ({categoriesByType.length})
                   </h4>
                   <div className="space-y-2">
-                    {categoriesByType.map((category) => (
-                      <div
-                        key={category.id}
-                        className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg">{category.icon}</span>
-                          <div>
-                            <div className="flex items-center gap-2 flex-wrap mb-1">
-                              <p className="font-medium text-gray-900">
-                                {category.name}
-                              </p>
-                              {category.is_shared && (
-                                <Badge
-                                  variant="outline"
-                                  className="border-purple-300 bg-purple-100 text-xs text-purple-700"
+                    {categoriesByType.map((category) => {
+                      const isEditing = editingCategoryId === category.id;
+                      const isExisting = !category.id.startsWith("default-") && !category.id.startsWith("custom-");
+
+                      if (isEditing) {
+                        return (
+                          <div
+                            key={category.id}
+                            className="rounded-lg border border-blue-300 bg-blue-50 p-3"
+                          >
+                            <div className="space-y-3">
+                              {/* Category Name and Icon */}
+                              <div>
+                                <Label className="text-sm font-medium text-gray-700">
+                                  Category Name & Icon
+                                </Label>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <EmojiPicker
+                                    value={editingCategory?.icon || ""}
+                                    onEmojiSelect={(emoji) =>
+                                      setEditingCategory((prev) => 
+                                        prev ? { ...prev, icon: emoji } : null
+                                      )
+                                    }
+                                  />
+                                  <Input
+                                    value={editingCategory?.name || ""}
+                                    onChange={(e) =>
+                                      setEditingCategory((prev) => 
+                                        prev ? { ...prev, name: e.target.value } : null
+                                      )
+                                    }
+                                    className="flex-1"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Category Type */}
+                              <div>
+                                <Label className="text-sm font-medium text-gray-700">
+                                  Category Type
+                                </Label>
+                                <Select
+                                  value={editingCategory?.type || ""}
+                                  onValueChange={(value) => {
+                                    const newType = value as CategoryType;
+                                    setEditingCategory((prev) => 
+                                      prev ? { 
+                                        ...prev, 
+                                        type: newType,
+                                        budget_frequency: "" // Clear frequency when type changes
+                                      } : null
+                                    );
+                                  }}
                                 >
-                                  Shared
-                                </Badge>
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {categoryTypes.map((type) => (
+                                      <SelectItem key={type.value} value={type.value}>
+                                        {type.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              {/* Category Scope */}
+                              <div>
+                                <Label className="text-sm font-medium text-gray-700">
+                                  Category Scope
+                                </Label>
+                                <RadioGroup
+                                  value={editingCategory?.is_shared ? 'true' : 'false'}
+                                  onValueChange={(value) => {
+                                    const isShared = value === 'true';
+                                    setEditingCategory((prev) => 
+                                      prev ? {
+                                        ...prev,
+                                        is_shared: isShared,
+                                        family_id: isShared ? prev.family_id : ''
+                                      } : null
+                                    );
+                                  }}
+                                  className="mt-1 flex flex-row space-x-4"
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="false" id={`personal-edit-${category.id}`} />
+                                    <Label htmlFor={`personal-edit-${category.id}`} className="text-sm">
+                                      Personal
+                                    </Label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="true" id={`shared-edit-${category.id}`} />
+                                    <Label htmlFor={`shared-edit-${category.id}`} className="text-sm">
+                                      Shared
+                                    </Label>
+                                  </div>
+                                </RadioGroup>
+                              </div>
+
+                              {/* Family Selection for Shared Categories */}
+                              {editingCategory?.is_shared && !onboardingFamilyId && (
+                                <div>
+                                  <Label className="text-sm font-medium text-gray-700">
+                                    Family
+                                  </Label>
+                                  <Select
+                                    value={editingCategory?.family_id || ""}
+                                    onValueChange={(value) => 
+                                      setEditingCategory((prev) => 
+                                        prev ? { ...prev, family_id: value } : null
+                                      )
+                                    }
+                                  >
+                                    <SelectTrigger className="mt-1">
+                                      <SelectValue placeholder="Select family" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {families.map((family) => (
+                                        <SelectItem key={family.id} value={family.id}>
+                                          {family.name}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+
+                              {/* Budget/Target Settings */}
+                              {(editingCategory?.type === "expense" || editingCategory?.type === "investment") && (
+                                <>
+                                  <div>
+                                    <Label className="text-sm font-medium text-gray-700">
+                                      {editingCategory?.type === "expense"
+                                        ? "Budget Amount"
+                                        : "Investment Target"}
+                                    </Label>
+                                    <CurrencyInput
+                                      currency={userCurrency}
+                                      value={editingCategory?.budget_amount || ""}
+                                      onChange={(displayValue, numericValue) => {
+                                        setEditingCategory((prev) => 
+                                          prev ? { ...prev, budget_amount: numericValue.toString() } : null
+                                        );
+                                      }}
+                                      className="mt-1"
+                                    />
+                                  </div>
+
+                                  {getBudgetFrequencyOptions(editingCategory?.type).length > 0 && (
+                                    <div>
+                                      <Label className="text-sm font-medium text-gray-700">
+                                        {editingCategory?.type === "expense"
+                                          ? "Budget Period"
+                                          : "Target Period"}
+                                      </Label>
+                                      <Select
+                                        value={editingCategory?.budget_frequency || ""}
+                                        onValueChange={(value) =>
+                                          setEditingCategory((prev) => 
+                                            prev ? { ...prev, budget_frequency: value as BudgetFrequency } : null
+                                          )
+                                        }
+                                      >
+                                        <SelectTrigger className="mt-1">
+                                          <SelectValue placeholder="Select frequency" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {getBudgetFrequencyOptions(editingCategory?.type).map(
+                                            (freq) => (
+                                              <SelectItem key={freq.value} value={freq.value}>
+                                                {freq.label}
+                                              </SelectItem>
+                                            ),
+                                          )}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+
+                              {/* Edit Actions */}
+                              <div className="flex justify-end gap-2 pt-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={cancelEditingCategory}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={saveCategoryEdit}
+                                >
+                                  Save
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div
+                          key={category.id}
+                          className={`flex items-center justify-between rounded-lg p-3 cursor-pointer transition-colors ${
+                            isExisting
+                              ? "border border-green-200 bg-green-50 hover:bg-green-100"
+                              : "bg-gray-50 hover:bg-gray-100"
+                          }`}
+                          onClick={() => startEditingCategory(category)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg">{category.icon}</span>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap mb-1">
+                                <p className="font-medium text-gray-900">
+                                  {category.name}
+                                </p>
+                                {isExisting && (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-green-300 bg-green-100 text-xs text-green-700"
+                                  >
+                                    Existing
+                                  </Badge>
+                                )}
+                                {category.is_shared && (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-purple-300 bg-purple-100 text-xs text-purple-700"
+                                  >
+                                    Shared
+                                  </Badge>
+                                )}
+                              </div>
+                              {category.budget_amount && (
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="secondary" className="text-xs">
+                                    {category.budget_frequency}
+                                  </Badge>
+                                  <span className="text-sm text-gray-600">
+                                    {formatCurrency(category.budget_amount)}
+                                  </span>
+                                </div>
+                              )}
+                              {category.is_shared && category.family_id && (
+                                <p className="text-xs text-purple-600 mt-1">
+                                  Family: {families.find(f => f.id === category.family_id)?.name || 'Unknown'}
+                                </p>
                               )}
                             </div>
-                            {category.budget_amount && (
-                              <div className="flex items-center gap-2">
-                                <Badge variant="secondary" className="text-xs">
-                                  {category.budget_frequency}
-                                </Badge>
-                                <span className="text-sm text-gray-600">
-                                  {formatCurrency(category.budget_amount)}
-                                </span>
-                              </div>
-                            )}
-                            {category.is_shared && category.family_id && (
-                              <p className="text-xs text-purple-600 mt-1">
-                                Family: {families.find(f => f.id === category.family_id)?.name || 'Unknown'}
-                              </p>
-                            )}
                           </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeCategory(category.id);
+                            }}
+                            className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeCategory(category.id)}
-                          className="text-red-500 hover:bg-red-50 hover:text-red-700"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
