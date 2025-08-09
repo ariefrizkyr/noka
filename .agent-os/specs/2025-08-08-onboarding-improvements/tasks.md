@@ -1,10 +1,5 @@
 # Spec Tasks
 
-These are the tasks to be completed for the spec detailed in @.agent-os/specs/2025-08-08-onboarding-improvements/spec.md
-
-> Created: 2025-08-08
-> Status: Ready for Implementation
-
 ## Tasks
 
 - [x] 1. Implement invitation context detection and step skipping
@@ -34,9 +29,3 @@ These are the tasks to be completed for the spec detailed in @.agent-os/specs/20
   - [x] 4.4 Create inline form components for category editing
   - [x] 4.5 Add click handlers and save/cancel actions with validation
   - [x] 4.6 Manual verification: Click existing accounts/categories and verify inline editing works
-
-- [ ] 5. UI consistency and integration testing
-  - [ ] 5.1 Ensure all changes maintain existing shadcn/ui styling patterns
-  - [ ] 5.2 Verify responsive design works on mobile for all modifications
-  - [ ] 5.3 Test loading states and error handling for new features
-  - [ ] 5.4 Manual verification: Complete full onboarding flow from invitation to finish
