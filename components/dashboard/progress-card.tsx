@@ -41,7 +41,7 @@ export function ProgressCard({
   memberContributions = [],
 }: ProgressCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  
+
   const hasContributions = memberContributions.length > 0 && isShared;
   const showExpandable = hasContributions && memberContributions.length > 1;
   // Get status badge
@@ -76,16 +76,16 @@ export function ProgressCard({
 
   return (
     <div className={className}>
-      <div 
+      <div
         className={cn(
           "flex flex-row p-2",
-          showExpandable && "cursor-pointer hover:bg-gray-50 transition-colors"
+          showExpandable && "cursor-pointer transition-colors hover:bg-gray-50",
         )}
         onClick={() => showExpandable && setIsExpanded(!isExpanded)}
       >
         <div className="flex w-2/6 items-start justify-start">
           <div className="text-left">
-            <div className="flex items-center gap-1 mb-1">
+            <div className="mb-1 flex items-center gap-1">
               <span className="text-md mr-1">{icon}</span>
               <span className="text-xs font-medium text-gray-800 sm:text-sm">
                 {title}
@@ -93,17 +93,17 @@ export function ProgressCard({
               {isShared && familyName && (
                 <Badge
                   variant="outline"
-                  className="border-blue-300 bg-blue-50 text-xs text-blue-700 px-1 py-0"
+                  className="border-blue-300 bg-blue-50 px-1 py-0 text-xs text-blue-700"
                 >
                   {familyName}
                 </Badge>
               )}
               {showExpandable && (
-                <div className="ml-1 transition-transform duration-200">
+                <div className="transition-transform duration-200">
                   {isExpanded ? (
-                    <ChevronDown className="h-3 w-3 text-gray-500" />
+                    <ChevronDown className="h-2 w-2 text-gray-500" />
                   ) : (
-                    <ChevronRight className="h-3 w-3 text-gray-500" />
+                    <ChevronRight className="h-2 w-2 text-gray-500" />
                   )}
                 </div>
               )}
@@ -129,22 +129,28 @@ export function ProgressCard({
           </div>
         </div>
       </div>
-      
+
       {/* Member Contributions Breakdown */}
       {isExpanded && hasContributions && (
         <div className="border-t border-gray-100 bg-gray-50/50">
           <div className="px-4 py-3">
-            <div className="text-xs font-medium text-gray-600 mb-2">Member Contributions</div>
+            <div className="mb-2 text-xs font-medium text-gray-600">
+              Member Contributions
+            </div>
             <div className="space-y-2">
               {memberContributions.map((contribution) => {
-                const contributionAmount = type === "budget" 
-                  ? contribution.contribution_amount 
-                  : contribution.contribution_amount;
-                
+                const contributionAmount =
+                  type === "budget"
+                    ? contribution.contribution_amount
+                    : contribution.contribution_amount;
+
                 return (
-                  <div key={contribution.user_id} className="flex items-center justify-between">
+                  <div
+                    key={contribution.user_id}
+                    className="flex items-center justify-between"
+                  >
                     <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="h-2 w-2 rounded-full bg-blue-500"></div>
                       <span className="text-xs text-gray-700">
                         {contribution.user_email}
                       </span>
