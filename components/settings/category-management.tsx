@@ -138,7 +138,9 @@ export function CategoryManagement({ userCurrency }: CategoryManagementProps) {
       type: formData.type,
       icon: formData.icon,
       budget_amount: formData.budget_amount
-        ? parseFloat(formData.budget_amount)
+        ? (typeof formData.budget_amount === "number" 
+           ? formData.budget_amount 
+           : parseFloat(formData.budget_amount))
         : null,
       budget_frequency: formData.budget_frequency || null,
       is_shared: formData.is_shared || false,

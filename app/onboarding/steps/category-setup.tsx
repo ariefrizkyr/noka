@@ -113,7 +113,7 @@ export default function CategorySetupStep({
     name: "",
     type: "expense" as CategoryType,
     icon: "",
-    budget_amount: "",
+    budget_amount: 0,
     budget_frequency: "" as BudgetFrequency | "",
     is_shared: false,
     family_id: "",
@@ -128,7 +128,7 @@ export default function CategorySetupStep({
     name: string;
     type: CategoryType;
     icon: string;
-    budget_amount: string;
+    budget_amount: string | number;
     budget_frequency: BudgetFrequency | "";
     is_shared: boolean;
     family_id: string;
@@ -258,8 +258,8 @@ export default function CategorySetupStep({
 
     // Add budget/target if specified
     if (newCategory.budget_amount && newCategory.budget_frequency) {
-      const amount = parseFloat(newCategory.budget_amount);
-      if (!isNaN(amount) && amount > 0) {
+      const amount = newCategory.budget_amount;
+      if (typeof amount === "number" && !isNaN(amount) && amount > 0) {
         category.budget_amount = amount;
         category.budget_frequency = newCategory.budget_frequency;
       }
@@ -270,7 +270,7 @@ export default function CategorySetupStep({
       name: "",
       type: activeTab,
       icon: "",
-      budget_amount: "",
+      budget_amount: 0,
       budget_frequency: "",
       is_shared: false,
       family_id: "",
@@ -284,7 +284,7 @@ export default function CategorySetupStep({
       name: category.name,
       type: category.type,
       icon: category.icon,
-      budget_amount: category.budget_amount?.toString() || "",
+      budget_amount: category.budget_amount || 0,
       budget_frequency: category.budget_frequency || "",
       is_shared: category.is_shared || false,
       family_id: category.family_id || "",
@@ -325,7 +325,9 @@ export default function CategorySetupStep({
     // Validate budget amount if provided
     let budgetAmount: number | undefined = undefined;
     if (editingCategory.budget_amount && editingCategory.budget_frequency) {
-      const amount = parseFloat(editingCategory.budget_amount);
+      const amount = typeof editingCategory.budget_amount === "number" 
+        ? editingCategory.budget_amount 
+        : parseFloat(editingCategory.budget_amount);
       if (isNaN(amount) || amount <= 0) {
         setError("Please enter a valid budget amount");
         return;
@@ -719,7 +721,7 @@ export default function CategorySetupStep({
                         onChange={(displayValue, numericValue) => {
                           setNewCategory((prev) => ({
                             ...prev,
-                            budget_amount: numericValue.toString(),
+                            budget_amount: numericValue,
                           }));
                         }}
                         placeholder={`Enter amount in ${userCurrency}`}
@@ -916,10 +918,10 @@ export default function CategorySetupStep({
                                     </Label>
                                     <CurrencyInput
                                       currency={userCurrency}
-                                      value={editingCategory?.budget_amount || ""}
+                                      value={editingCategory?.budget_amount || 0}
                                       onChange={(displayValue, numericValue) => {
                                         setEditingCategory((prev) => 
-                                          prev ? { ...prev, budget_amount: numericValue.toString() } : null
+                                          prev ? { ...prev, budget_amount: numericValue } : null
                                         );
                                       }}
                                       className="mt-1"

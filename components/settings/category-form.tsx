@@ -41,7 +41,7 @@ export function CategoryForm({
   const [loadingFamilies, setLoadingFamilies] = useState(false);
   const { user } = useAuth();
 
-  const handleInputChange = (field: keyof CategoryFormData, value: string) => {
+  const handleInputChange = (field: keyof CategoryFormData, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -224,7 +224,7 @@ export function CategoryForm({
               currency={userCurrency}
               value={formData.budget_amount}
               onChange={(displayValue, numericValue) => {
-                handleInputChange("budget_amount", numericValue.toString());
+                handleInputChange("budget_amount", numericValue);
               }}
               placeholder={`Enter amount in ${userCurrency}`}
             />

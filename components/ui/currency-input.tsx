@@ -37,7 +37,12 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
     React.useEffect(() => {
       if (value !== undefined) {
         const numericValue = typeof value === 'number' ? value : parseNumericValue(value.toString());
-        setDisplayValue(numericValue > 0 ? formatWithThousandSeparators(numericValue.toString()) : '');
+        // Allow displaying "0" but keep empty strings as empty
+        if (numericValue >= 0 && value !== '') {
+          setDisplayValue(formatWithThousandSeparators(numericValue.toString()));
+        } else {
+          setDisplayValue('');
+        }
       }
     }, [value, currency, formatWithThousandSeparators, parseNumericValue]);
 

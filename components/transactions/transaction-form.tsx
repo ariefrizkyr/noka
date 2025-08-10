@@ -112,7 +112,7 @@ export function TransactionForm({
     defaultValues: {
       type: "expense",
       transaction_date: new Date(),
-      amount: prefilledAmount || 0,
+      amount: prefilledAmount,
       description: "",
       // Merge defaultValues appropriately based on mode
       ...defaultValues,
@@ -137,20 +137,15 @@ export function TransactionForm({
 
   // Reset form with defaultValues when they change in edit mode
   useEffect(() => {
-
     if (mode === "edit" && defaultValues) {
-      
       const resetData = {
         type: defaultValues.type || "expense",
         transaction_date: new Date(),
-        amount: 0,
         description: "",
         ...defaultValues,
       };
-      
-      
+
       form.reset(resetData);
-      
     } else {
     }
   }, [mode, defaultValues, form]);
@@ -169,7 +164,7 @@ export function TransactionForm({
       prevTypeRef.current = watchedType;
       return;
     }
-    
+
     // Only reset when type actually changes from previous value
     if (prevTypeRef.current !== watchedType) {
       // Reset incompatible fields when transaction type changes
@@ -184,7 +179,7 @@ export function TransactionForm({
         form.setValue("category_id", "");
       }
     }
-    
+
     // Update previous type for next comparison
     prevTypeRef.current = watchedType;
   }, [watchedType, form]);
@@ -217,7 +212,6 @@ export function TransactionForm({
       form.reset({
         type: data.type, // Keep the same type
         transaction_date: new Date(),
-        amount: 0,
         description: "",
       });
     }
@@ -230,18 +224,18 @@ export function TransactionForm({
   const isFormValid = () => {
     // Amount must be greater than 0
     if (!watchedAmount || watchedAmount <= 0) return false;
-    
+
     if (watchedType === "transfer") {
       // Transfer requires from and to accounts
       if (!watchedFromAccountId || !watchedToAccountId) return false;
-      
+
       // If transferring to investment account, investment category is required
       if (showInvestmentCategory && !watchedInvestmentCategoryId) return false;
     } else {
       // Income/expense requires account and category
       if (!watchedAccountId || !watchedCategoryId) return false;
     }
-    
+
     return true;
   };
 

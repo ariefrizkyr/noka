@@ -40,7 +40,7 @@ export function AccountForm({
   const [loadingFamilies, setLoadingFamilies] = useState(false);
   const { user } = useAuth();
 
-  const handleInputChange = (field: keyof AccountFormData, value: string) => {
+  const handleInputChange = (field: keyof AccountFormData, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -185,7 +185,7 @@ export function AccountForm({
             currency={userCurrency}
             value={formData.initial_balance}
             onChange={(displayValue, numericValue) => {
-              handleInputChange("initial_balance", numericValue.toString());
+              handleInputChange("initial_balance", numericValue);
             }}
             placeholder="Enter initial balance"
           />

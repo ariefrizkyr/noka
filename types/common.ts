@@ -29,7 +29,7 @@ export type WeekendHandling = Enums<"weekend_handling">;
 export interface AccountFormData {
   name: string;
   type: AccountType;
-  initial_balance: string;
+  initial_balance: string | number;
   account_scope?: AccountScope;
   family_id?: string;
 }
@@ -38,7 +38,7 @@ export interface CategoryFormData {
   name: string;
   type: CategoryType;
   icon: string;
-  budget_amount: string;
+  budget_amount: string | number;
   budget_frequency: BudgetFrequency | "";
   is_shared?: boolean;
   family_id?: string;

@@ -92,7 +92,7 @@ export default function AccountSetupStep({
   const [newAccount, setNewAccount] = useState({
     name: "",
     type: "",
-    initial_balance: "",
+    initial_balance: 0,
     account_scope: "personal" as 'personal' | 'joint',
     family_id: "",
   });
@@ -105,7 +105,7 @@ export default function AccountSetupStep({
   const [editingAccount, setEditingAccount] = useState<{
     name: string;
     type: string;
-    initial_balance: string;
+    initial_balance: string | number;
     account_scope: 'personal' | 'joint';
     family_id: string;
   } | null>(null);
@@ -176,7 +176,7 @@ export default function AccountSetupStep({
     if (
       !newAccount.name.trim() ||
       !newAccount.type ||
-      !newAccount.initial_balance
+      typeof newAccount.initial_balance !== "number"
     ) {
       setError("Please fill in all fields");
       return;
@@ -195,8 +195,8 @@ export default function AccountSetupStep({
       }
     }
 
-    const balance = parseFloat(newAccount.initial_balance);
-    if (isNaN(balance)) {
+    const balance = newAccount.initial_balance;
+    if (typeof balance !== "number" || isNaN(balance)) {
       setError("Please enter a valid balance amount");
       return;
     }
@@ -231,7 +231,7 @@ export default function AccountSetupStep({
     setNewAccount({
       name: "",
       type: "",
-      initial_balance: "",
+      initial_balance: 0,
       account_scope: "personal",
       family_id: "",
     });
@@ -243,7 +243,7 @@ export default function AccountSetupStep({
     setEditingAccount({
       name: account.name,
       type: account.type,
-      initial_balance: account.initial_balance.toString(),
+      initial_balance: account.initial_balance,
       account_scope: account.account_scope || 'personal',
       family_id: account.family_id || "",
     });
@@ -267,7 +267,9 @@ export default function AccountSetupStep({
       return;
     }
 
-    const balance = parseFloat(editingAccount.initial_balance);
+    const balance = typeof editingAccount.initial_balance === "number" 
+      ? editingAccount.initial_balance 
+      : parseFloat(editingAccount.initial_balance);
     if (isNaN(balance)) {
       setError("Please enter a valid balance amount");
       return;
@@ -588,7 +590,7 @@ export default function AccountSetupStep({
                   onChange={(displayValue, numericValue) => {
                     setNewAccount((prev) => ({
                       ...prev,
-                      initial_balance: numericValue.toString(),
+                      initial_balance: numericValue,
                     }))
                   }}
                   placeholder="0"
@@ -769,7 +771,7 @@ export default function AccountSetupStep({
                             value={editingAccount?.initial_balance || ""}
                             onChange={(displayValue, numericValue) => {
                               setEditingAccount((prev) => 
-                                prev ? { ...prev, initial_balance: numericValue.toString() } : null
+                                prev ? { ...prev, initial_balance: numericValue } : null
                               );
                             }}
                             className="mt-1"

@@ -85,7 +85,9 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
     const payload = {
       name: formData.name,
       type: formData.type,
-      initial_balance: parseFloat(formData.initial_balance) || 0,
+      initial_balance: typeof formData.initial_balance === "number" 
+        ? formData.initial_balance 
+        : (parseFloat(formData.initial_balance) || 0),
       account_scope: formData.account_scope || 'personal',
       family_id: formData.family_id || undefined,
     };
