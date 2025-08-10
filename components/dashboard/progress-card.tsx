@@ -90,12 +90,12 @@ export function ProgressCard({
               <span className="text-xs font-medium text-gray-800 sm:text-sm">
                 {title}
               </span>
-              {isShared && (
+              {isShared && familyName && (
                 <Badge
                   variant="outline"
                   className="border-blue-300 bg-blue-50 text-xs text-blue-700 px-1 py-0"
                 >
-                  Shared
+                  {familyName}
                 </Badge>
               )}
               {showExpandable && (
@@ -108,11 +108,6 @@ export function ProgressCard({
                 </div>
               )}
             </div>
-            {isShared && familyName && (
-              <div className="text-xs text-blue-600">
-                Family: {familyName}
-              </div>
-            )}
           </div>
         </div>
 

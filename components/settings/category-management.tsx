@@ -235,21 +235,16 @@ export function CategoryManagement({ userCurrency }: CategoryManagementProps) {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-medium">{category.name}</h4>
-                          {category.is_shared && (
+                          {category.is_shared && category.family_name && (
                             <Badge
                               variant="outline"
                               className="border-purple-300 bg-purple-100 text-xs text-purple-700"
                             >
-                              Shared
+                              {category.family_name}
                             </Badge>
                           )}
                         </div>
                         <p className="text-xs text-gray-500">
-                          {category.is_shared && category.family_name && (
-                            <span className="block text-purple-600 mb-1">
-                              Family: {category.family_name}
-                            </span>
-                          )}
                           {formatBudget(
                             category.budget_amount,
                             category.budget_frequency,

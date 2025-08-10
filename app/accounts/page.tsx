@@ -141,20 +141,15 @@ export default function AccountsPage() {
                                 <CardTitle className="text-lg">
                                   {account.name}
                                 </CardTitle>
-                                {account.account_scope === 'joint' && (
+                                {account.account_scope === 'joint' && account.family_name && (
                                   <Badge
                                     variant="outline"
                                     className="border-purple-300 bg-purple-100 text-xs text-purple-700"
                                   >
-                                    Joint
+                                    {account.family_name}
                                   </Badge>
                                 )}
                               </div>
-                              {account.account_scope === 'joint' && account.family_name && (
-                                <div className="text-xs text-purple-600">
-                                  Family: {account.family_name}
-                                </div>
-                              )}
                             </div>
                           </div>
                         </div>

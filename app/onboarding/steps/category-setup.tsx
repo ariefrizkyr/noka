@@ -1005,12 +1005,12 @@ export default function CategorySetupStep({
                                     Existing
                                   </Badge>
                                 )}
-                                {category.is_shared && (
+                                {category.is_shared && category.family_id && (
                                   <Badge
                                     variant="outline"
                                     className="border-purple-300 bg-purple-100 text-xs text-purple-700"
                                   >
-                                    Shared
+                                    {families.find(f => f.id === category.family_id)?.name || 'Family'}
                                   </Badge>
                                 )}
                               </div>
@@ -1023,11 +1023,6 @@ export default function CategorySetupStep({
                                     {formatCurrency(category.budget_amount)}
                                   </span>
                                 </div>
-                              )}
-                              {category.is_shared && category.family_id && (
-                                <p className="text-xs text-purple-600 mt-1">
-                                  Family: {families.find(f => f.id === category.family_id)?.name || 'Unknown'}
-                                </p>
                               )}
                             </div>
                           </div>

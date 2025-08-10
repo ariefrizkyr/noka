@@ -179,21 +179,16 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-medium">{account.name}</h4>
-                          {account.account_scope === 'joint' && (
+                          {account.account_scope === 'joint' && account.family_name && (
                             <Badge
                               variant="outline"
                               className="border-purple-300 bg-purple-100 text-xs text-purple-700"
                             >
-                              Joint
+                              {account.family_name}
                             </Badge>
                           )}
                         </div>
                         <p className="text-xs text-gray-500">
-                          {account.account_scope === 'joint' && account.family_name && (
-                            <span className="block text-purple-600 mb-1">
-                              Family: {account.family_name}
-                            </span>
-                          )}
                           Balance: <br />
                           <span className="font-medium">
                             {formatAccountBalance(
