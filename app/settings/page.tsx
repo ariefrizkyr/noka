@@ -33,65 +33,10 @@ export default function SettingsPage() {
     }
   };
 
-  if (currencyLoading) {
-    return (
-      <MainLayout>
-        <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
-          {/* Header Skeleton */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-6 w-6" />
-              <Skeleton className="h-6 w-24" />
-            </div>
-          </div>
-
-          {/* Tabs Skeleton */}
-          <div className="space-y-4">
-            <div className="grid w-full grid-cols-4 gap-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-
-            {/* Tab Content Skeleton */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-5 w-5" />
-                  <Skeleton className="h-6 w-32" />
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Form fields skeleton */}
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-28" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <Skeleton className="h-10 w-24" />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Logout Button Skeleton */}
-          <Skeleton className="h-10 w-full" />
-        </div>
-      </MainLayout>
-    );
-  }
-
   return (
     <MainLayout>
       <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
-        {/* Header */}
+        {/* Header - Always show immediately */}
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
@@ -100,6 +45,49 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
+        {currencyLoading ? (
+          <>
+            {/* Loading skeleton for tabs */}
+            <div className="space-y-4">
+              <div className="grid w-full grid-cols-4 gap-2">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+
+              {/* Tab Content Skeleton */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-5 w-5" />
+                    <Skeleton className="h-6 w-32" />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <Skeleton className="h-10 w-24" />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Logout Button Skeleton */}
+            <Skeleton className="h-10 w-full" />
+          </>
+        ) : (
+          <>
 
         {/* Tabs */}
         <Tabs defaultValue="general" className="space-y-4">
@@ -179,15 +167,17 @@ export default function SettingsPage() {
           </TabsContent>
         </Tabs>
 
-        <Button
-          onClick={handleSignOut}
-          variant="destructive"
-          className="w-full"
-          disabled={isSigningOut}
-        >
-          <LogOut className="mr-1 h-4 w-4" />
-          {isSigningOut ? "Logging Out..." : "Logout"}
-        </Button>
+            <Button
+              onClick={handleSignOut}
+              variant="destructive"
+              className="w-full"
+              disabled={isSigningOut}
+            >
+              <LogOut className="mr-1 h-4 w-4" />
+              {isSigningOut ? "Logging Out..." : "Logout"}
+            </Button>
+          </>
+        )}
       </div>
     </MainLayout>
   );
