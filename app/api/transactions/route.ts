@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
     if (countError) throw countError
 
     // Build data query with relationships including family information
+    // Enhanced query includes category names for joint account transactions
     let dataQuery = supabase
       .from('transactions')
       .select(`
@@ -109,7 +110,7 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error
 
-    // Enhance transactions with family information and logged by details
+    // Enhance transactions with family information, logged by details, and joint account category names
     const enhancedTransactions = await Promise.all(transactions.map(async transaction => {
       let userEmail = null;
       
@@ -124,16 +125,80 @@ export async function GET(request: NextRequest) {
           userEmail = emailResult;
         }
       }
+
+      // Enhanced category data for joint account transactions
+      let enhancedCategories = transaction.categories;
+      let enhancedInvestmentCategories = transaction.investment_categories;
+
+      // Check if we need to load category name for joint account transactions
+      const isJointAccountTransaction = (
+        transaction.accounts?.account_scope === 'joint' || 
+        transaction.from_accounts?.account_scope === 'joint' ||
+        transaction.to_accounts?.account_scope === 'joint'
+      );
+
+
+      // For joint account transactions, always try to load category names bypassing RLS
+      if (isJointAccountTransaction) {
+        // For income/expense transactions - load category name bypassing RLS
+        if (transaction.category_id) {
+          const { data: categoryData, error: categoryError } = await supabase
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .rpc('get_category_for_joint_transaction' as any, {
+              p_category_id: transaction.category_id,
+              p_user_id: user.id
+            });
+
+          if (!categoryError && categoryData && Array.isArray(categoryData) && categoryData.length > 0) {
+            const category = categoryData[0];
+            enhancedCategories = {
+              ...transaction.categories,
+              name: category.name,
+              type: category.type,
+              icon: category.icon,
+              is_shared: category.is_shared,
+              family_id: category.family_id,
+              families: transaction.categories?.families || null
+            };
+          }
+        }
+
+        // For transfer transactions - load investment category name bypassing RLS
+        if (transaction.investment_category_id) {
+          const { data: investmentCategoryData, error: investmentCategoryError } = await supabase
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .rpc('get_category_for_joint_transaction' as any, {
+              p_category_id: transaction.investment_category_id,
+              p_user_id: user.id
+            });
+
+          if (!investmentCategoryError && investmentCategoryData && Array.isArray(investmentCategoryData) && investmentCategoryData.length > 0) {
+            const investmentCategory = investmentCategoryData[0];
+            enhancedInvestmentCategories = {
+              ...transaction.investment_categories,
+              name: investmentCategory.name,
+              type: investmentCategory.type,
+              icon: investmentCategory.icon,
+              is_shared: investmentCategory.is_shared,
+              family_id: investmentCategory.family_id,
+              families: transaction.investment_categories?.families || null
+            };
+          }
+        }
+      }
       
       return {
         ...transaction,
+        // Use enhanced category data
+        categories: enhancedCategories,
+        investment_categories: enhancedInvestmentCategories,
         // Add family information for accounts
         account_family_name: transaction.accounts?.families?.name || null,
         from_account_family_name: transaction.from_accounts?.families?.name || null,
         to_account_family_name: transaction.to_accounts?.families?.name || null,
-        // Add family information for categories
-        category_family_name: transaction.categories?.families?.name || null,
-        investment_category_family_name: transaction.investment_categories?.families?.name || null,
+        // Add family information for categories (using enhanced data)
+        category_family_name: enhancedCategories?.families?.name || null,
+        investment_category_family_name: enhancedInvestmentCategories?.families?.name || null,
         // Add logged by information with actual user emails
         is_logged_by_current_user: transaction.logged_by_user_id === user.id,
         logged_by_user: transaction.logged_by_user_id ? {
@@ -226,14 +291,77 @@ export async function POST(request: NextRequest) {
     if (fetchError) throw fetchError
     if (!completeTransaction) throw new Error('Transaction not found')
 
-    // Enhance transaction with family information
+    // Enhanced category data for joint account transactions  
+    let enhancedCategories = completeTransaction.categories;
+    let enhancedInvestmentCategories = completeTransaction.investment_categories;
+
+    // Check if we need to load category name for joint account transactions
+    const isJointAccountTransaction = (
+      completeTransaction.accounts?.account_scope === 'joint' || 
+      completeTransaction.from_accounts?.account_scope === 'joint' ||
+      completeTransaction.to_accounts?.account_scope === 'joint'
+    );
+
+    // For joint account transactions, always try to load category names bypassing RLS
+    if (isJointAccountTransaction) {
+      // For income/expense transactions - load category name bypassing RLS
+      if (completeTransaction.category_id) {
+        const { data: categoryData, error: categoryError } = await supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .rpc('get_category_for_joint_transaction' as any, {
+            p_category_id: completeTransaction.category_id,
+            p_user_id: user.id
+          });
+
+        if (!categoryError && categoryData && Array.isArray(categoryData) && categoryData.length > 0) {
+          const category = categoryData[0];
+          enhancedCategories = {
+            ...completeTransaction.categories,
+            name: category.name,
+            type: category.type,
+            icon: category.icon,
+            is_shared: category.is_shared,
+            family_id: category.family_id,
+            families: completeTransaction.categories?.families || null
+          };
+        }
+      }
+
+      // For transfer transactions - load investment category name bypassing RLS
+      if (completeTransaction.investment_category_id) {
+        const { data: investmentCategoryData, error: investmentCategoryError } = await supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .rpc('get_category_for_joint_transaction' as any, {
+            p_category_id: completeTransaction.investment_category_id,
+            p_user_id: user.id
+          });
+
+        if (!investmentCategoryError && investmentCategoryData && Array.isArray(investmentCategoryData) && investmentCategoryData.length > 0) {
+          const investmentCategory = investmentCategoryData[0];
+          enhancedInvestmentCategories = {
+            ...completeTransaction.investment_categories,
+            name: investmentCategory.name,
+            type: investmentCategory.type,
+            icon: investmentCategory.icon,
+            is_shared: investmentCategory.is_shared,
+            family_id: investmentCategory.family_id,
+            families: completeTransaction.investment_categories?.families || null
+          };
+        }
+      }
+    }
+
+    // Enhance transaction with family information and enhanced category data
     const enhancedTransaction = {
       ...completeTransaction,
+      // Use enhanced category data
+      categories: enhancedCategories,
+      investment_categories: enhancedInvestmentCategories,
       account_family_name: completeTransaction.accounts?.families?.name || null,
       from_account_family_name: completeTransaction.from_accounts?.families?.name || null,
       to_account_family_name: completeTransaction.to_accounts?.families?.name || null,
-      category_family_name: completeTransaction.categories?.families?.name || null,
-      investment_category_family_name: completeTransaction.investment_categories?.families?.name || null,
+      category_family_name: enhancedCategories?.families?.name || null,
+      investment_category_family_name: enhancedInvestmentCategories?.families?.name || null,
       is_logged_by_current_user: true, // Always true for newly created transactions
       logged_by_user: {
         id: user.id,
@@ -346,14 +474,63 @@ export async function PUT(request: NextRequest) {
         }
       }
 
-      // Enhance transaction with family information
+      // Enhanced category data for joint account transactions  
+      let enhancedCategories = completeTransaction.categories;
+      let enhancedInvestmentCategories = completeTransaction.investment_categories;
+
+      // Check if we need to load category name for joint account transactions
+      const isJointAccountTransaction = (
+        completeTransaction.accounts?.account_scope === 'joint' || 
+        completeTransaction.from_accounts?.account_scope === 'joint' ||
+        completeTransaction.to_accounts?.account_scope === 'joint'
+      );
+
+      // For joint account transactions, always try to load category names bypassing RLS
+      if (isJointAccountTransaction) {
+        // For income/expense transactions with missing category names
+        if (completeTransaction.category_id && (!completeTransaction.categories?.name || completeTransaction.categories.name === null)) {
+          const { data: categoryData, error: categoryError } = await supabase
+            .from('categories')
+            .select('name, type, icon, is_shared, family_id')
+            .eq('id', completeTransaction.category_id)
+            .single();
+
+          if (!categoryError && categoryData) {
+            enhancedCategories = {
+              ...completeTransaction.categories,
+              ...categoryData
+            };
+          }
+        }
+
+        // For transfer transactions with missing investment category names
+        if (completeTransaction.investment_category_id && (!completeTransaction.investment_categories?.name || completeTransaction.investment_categories.name === null)) {
+          const { data: investmentCategoryData, error: investmentCategoryError } = await supabase
+            .from('categories')
+            .select('name, type, icon, is_shared, family_id')
+            .eq('id', completeTransaction.investment_category_id)
+            .single();
+
+          if (!investmentCategoryError && investmentCategoryData) {
+            enhancedInvestmentCategories = {
+              ...completeTransaction.investment_categories,
+              ...investmentCategoryData
+            };
+          }
+        }
+      }
+
+      // Enhance transaction with family information and enhanced category data
       const enhancedTransaction = {
         ...completeTransaction,
+        // Use enhanced category data
+        categories: enhancedCategories,
+        investment_categories: enhancedInvestmentCategories,
         account_family_name: completeTransaction.accounts?.families?.name || null,
         from_account_family_name: completeTransaction.from_accounts?.families?.name || null,
         to_account_family_name: completeTransaction.to_accounts?.families?.name || null,
-        category_family_name: completeTransaction.categories?.families?.name || null,
-        investment_category_family_name: completeTransaction.investment_categories?.families?.name || null,
+        category_family_name: enhancedCategories?.families?.name || null,
+        investment_category_family_name: enhancedInvestmentCategories?.families?.name || null,
         is_logged_by_current_user: completeTransaction.logged_by_user_id === user.id,
         logged_by_user: completeTransaction.logged_by_user_id ? {
           id: completeTransaction.logged_by_user_id,
@@ -486,14 +663,77 @@ async function handleTransactionTypeChange(
       }
     }
 
-    // Enhance transaction with family information
+    // Enhanced category data for joint account transactions  
+    let enhancedCategories = completeTransaction.categories;
+    let enhancedInvestmentCategories = completeTransaction.investment_categories;
+
+    // Check if we need to load category name for joint account transactions
+    const isJointAccountTransaction = (
+      completeTransaction.accounts?.account_scope === 'joint' || 
+      completeTransaction.from_accounts?.account_scope === 'joint' ||
+      completeTransaction.to_accounts?.account_scope === 'joint'
+    );
+
+    // For joint account transactions, always try to load category names bypassing RLS
+    if (isJointAccountTransaction) {
+      // For income/expense transactions - load category name bypassing RLS
+      if (completeTransaction.category_id) {
+        const { data: categoryData, error: categoryError } = await supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .rpc('get_category_for_joint_transaction' as any, {
+            p_category_id: completeTransaction.category_id,
+            p_user_id: user.id
+          });
+
+        if (!categoryError && categoryData && Array.isArray(categoryData) && categoryData.length > 0) {
+          const category = categoryData[0];
+          enhancedCategories = {
+            ...completeTransaction.categories,
+            name: category.name,
+            type: category.type,
+            icon: category.icon,
+            is_shared: category.is_shared,
+            family_id: category.family_id,
+            families: completeTransaction.categories?.families || null
+          };
+        }
+      }
+
+      // For transfer transactions - load investment category name bypassing RLS
+      if (completeTransaction.investment_category_id) {
+        const { data: investmentCategoryData, error: investmentCategoryError } = await supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .rpc('get_category_for_joint_transaction' as any, {
+            p_category_id: completeTransaction.investment_category_id,
+            p_user_id: user.id
+          });
+
+        if (!investmentCategoryError && investmentCategoryData && Array.isArray(investmentCategoryData) && investmentCategoryData.length > 0) {
+          const investmentCategory = investmentCategoryData[0];
+          enhancedInvestmentCategories = {
+            ...completeTransaction.investment_categories,
+            name: investmentCategory.name,
+            type: investmentCategory.type,
+            icon: investmentCategory.icon,
+            is_shared: investmentCategory.is_shared,
+            family_id: investmentCategory.family_id,
+            families: completeTransaction.investment_categories?.families || null
+          };
+        }
+      }
+    }
+
+    // Enhance transaction with family information and enhanced category data
     const enhancedTransaction = {
       ...completeTransaction,
+      // Use enhanced category data
+      categories: enhancedCategories,
+      investment_categories: enhancedInvestmentCategories,
       account_family_name: completeTransaction.accounts?.families?.name || null,
       from_account_family_name: completeTransaction.from_accounts?.families?.name || null,
       to_account_family_name: completeTransaction.to_accounts?.families?.name || null,
-      category_family_name: completeTransaction.categories?.families?.name || null,
-      investment_category_family_name: completeTransaction.investment_categories?.families?.name || null,
+      category_family_name: enhancedCategories?.families?.name || null,
+      investment_category_family_name: enhancedInvestmentCategories?.families?.name || null,
       is_logged_by_current_user: completeTransaction.logged_by_user_id === user.id,
       logged_by_user: completeTransaction.logged_by_user_id ? {
         id: completeTransaction.logged_by_user_id,

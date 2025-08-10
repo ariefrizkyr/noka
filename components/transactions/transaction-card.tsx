@@ -44,16 +44,48 @@ export function TransactionCard({
     switch (transaction.type) {
       case "income":
       case "expense":
+        // Enhanced category name fallback for joint account transactions
+        let categoryName = "Unknown Category";
+        
+        if (transaction.categories?.name) {
+          categoryName = transaction.categories.name;
+        } else if (
+          // Check if this is a joint account transaction that might have enhanced category data
+          (transaction.accounts?.account_scope === 'joint' || 
+           transaction.from_accounts?.account_scope === 'joint' ||
+           transaction.to_accounts?.account_scope === 'joint') &&
+          transaction.category_id
+        ) {
+          // For joint account transactions, category names should now be available
+          // If still showing "Unknown Category", it might be a personal category from another user
+          categoryName = "Unknown Category";
+        }
+        
         return {
-          primaryText: transaction.categories?.name || "Unknown Category",
+          primaryText: categoryName,
           secondaryText: transaction.accounts?.name || "Unknown Account",
           icon: transaction.categories?.icon,
           accountType: transaction.accounts?.type,
         };
       case "transfer":
+        // Enhanced investment category name fallback for joint account transactions
+        let investmentCategoryName = "Transfer";
+        
+        if (transaction.investment_categories?.name) {
+          investmentCategoryName = transaction.investment_categories.name;
+        } else if (
+          // Check if this is a joint account transfer that might have enhanced category data
+          (transaction.from_accounts?.account_scope === 'joint' ||
+           transaction.to_accounts?.account_scope === 'joint') &&
+          transaction.investment_category_id
+        ) {
+          // For joint account transfers, investment category names should now be available
+          investmentCategoryName = "Transfer";
+        }
+        
         return {
           primaryText: `${transaction.from_accounts?.name} → ${transaction.to_accounts?.name}`,
-          secondaryText: transaction.investment_categories?.name || "Transfer",
+          secondaryText: investmentCategoryName,
           icon: transaction.investment_categories?.icon,
           accountType: undefined,
         };

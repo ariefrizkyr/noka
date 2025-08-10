@@ -135,3 +135,84 @@ export async function verifyCategoryAccess(userId: string, categoryId: string): 
 
   throw new Error('Access denied to this category')
 }
+
+/**
+ * Check if a user should see category names for a specific transaction based on account scope
+ * Used for joint account transactions where category names should be visible regardless of ownership
+ */
+export async function shouldShowCategoryName(
+  userId: string, 
+  accountId: string | null, 
+  categoryId: string | null
+): Promise<boolean> {
+  if (!accountId || !categoryId) {
+    return false;
+  }
+
+  const supabase = await createClient()
+  
+  // Get account information
+  const { data: account, error: accountError } = await supabase
+    .from('accounts')
+    .select('account_scope, family_id, user_id')
+    .eq('id', accountId)
+    .single()
+
+  if (accountError || !account) {
+    return false;
+  }
+
+  // If it's a personal account, use normal RLS rules (user must own the category)
+  if (account.account_scope === 'personal') {
+    if (account.user_id !== userId) {
+      return false; // User doesn't own the personal account
+    }
+    
+    // Check if user owns the category
+    const { data: category, error: categoryError } = await supabase
+      .from('categories')
+      .select('user_id, is_shared, family_id')
+      .eq('id', categoryId)
+      .single()
+
+    if (categoryError || !category) {
+      return false;
+    }
+
+    // User can see category name if they own it or it's shared in their family
+    return category.user_id === userId || 
+           (category.is_shared && category.family_id && await isUserInFamily(userId, category.family_id));
+  }
+
+  // If it's a joint account, check if user has access to the account
+  if (account.account_scope === 'joint' && account.family_id) {
+    const { isMember } = await verifyFamilyAccess(userId, account.family_id)
+    // For joint accounts, if user has access to the account, they should see category names
+    return isMember;
+  }
+
+  return false;
+}
+
+/**
+ * Helper function to check if user is a member of a family
+ */
+async function isUserInFamily(userId: string, familyId: string): Promise<boolean> {
+  const { isMember } = await verifyFamilyAccess(userId, familyId);
+  return isMember;
+}
+
+/**
+ * Determine if an account is a joint account
+ */
+export async function isJointAccount(accountId: string): Promise<boolean> {
+  const supabase = await createClient()
+  
+  const { data: account, error } = await supabase
+    .from('accounts')
+    .select('account_scope')
+    .eq('id', accountId)
+    .single()
+
+  return !error && account?.account_scope === 'joint';
+}
