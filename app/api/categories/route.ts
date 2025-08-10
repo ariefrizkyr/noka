@@ -10,49 +10,75 @@ import {
 } from '../utils/response'
 import { 
   validateRequestBody, 
-  createCategorySchema, 
-  updateCategorySchema,
+  createCategorySchemaEnhanced, 
+  updateCategorySchemaEnhanced,
   deleteCategorySchema 
 } from '../utils/validation'
-import { TablesInsert } from '@/types/database'
+import { 
+  verifyCategoryAccess, 
+  verifyFamilyAccess, 
+  getUserFamilyIds 
+} from '../utils/family-auth'
+import { TablesInsert, TablesUpdate } from '@/types/database'
 
 // type Category = Tables<'categories'>
 type CategoryInsert = TablesInsert<'categories'>
-// type CategoryUpdate = TablesUpdate<'categories'>
+type CategoryUpdate = TablesUpdate<'categories'>
 
 /**
  * GET /api/categories
- * Fetch user categories
+ * Fetch user categories (both personal and shared)
  */
 export async function GET() {
   try {
     const user = await requireAuth()
     const supabase = await createClient()
 
-    const { data: categories, error } = await supabase
+    // Get user's family IDs
+    const familyIds = await getUserFamilyIds(user.id)
+
+    // Build query to get both personal and shared categories
+    let query = supabase
       .from('categories')
-      .select('*')
-      .eq('user_id', user.id)
+      .select(`
+        *,
+        families!categories_family_id_fkey(id, name)
+      `)
       .eq('is_active', true)
+
+    // Add conditions for personal OR shared categories
+    if (familyIds.length > 0) {
+      query = query.or(`user_id.eq.${user.id},family_id.in.(${familyIds.join(',')})`)
+    } else {
+      query = query.eq('user_id', user.id)
+    }
+
+    const { data: categories, error } = await query
       .order('type', { ascending: true })
       .order('name', { ascending: true })
 
     if (error) throw error
 
+    // Transform the response to include family information
+    const enhancedCategories = categories.map(category => ({
+      ...category,
+      family_name: category.families?.name || null,
+    }))
+
     // Group categories by type for easier frontend consumption
     const groupedCategories = {
-      expense: categories.filter(cat => cat.type === 'expense'),
-      income: categories.filter(cat => cat.type === 'income'),
-      investment: categories.filter(cat => cat.type === 'investment'),
+      expense: enhancedCategories.filter(cat => cat.type === 'expense'),
+      income: enhancedCategories.filter(cat => cat.type === 'income'),
+      investment: enhancedCategories.filter(cat => cat.type === 'investment'),
     }
 
     return createSuccessResponse(
       {
-        categories,
+        categories: enhancedCategories,
         grouped: groupedCategories,
-        total: categories.length,
+        total: enhancedCategories.length,
       },
-      `Retrieved ${categories.length} categories successfully`
+      `Retrieved ${enhancedCategories.length} categories successfully`
     )
   } catch (error) {
     return handleApiError(error)
@@ -61,29 +87,47 @@ export async function GET() {
 
 /**
  * POST /api/categories
- * Create new category
+ * Create new category (personal or shared)
  */
 export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth()
-    const categoryData = await validateRequestBody(request, createCategorySchema)
+    const categoryData = await validateRequestBody(request, createCategorySchemaEnhanced)
     const supabase = await createClient()
+
+    // For shared categories, verify user has admin access to the family
+    if (categoryData.is_shared && categoryData.family_id) {
+      const { isAdmin } = await verifyFamilyAccess(user.id, categoryData.family_id)
+      if (!isAdmin) {
+        throw new Error('Only family admins can create shared categories')
+      }
+    }
 
     const newCategory: CategoryInsert = {
       ...categoryData,
-      user_id: user.id,
+      user_id: !categoryData.is_shared ? user.id : null,
+      family_id: categoryData.is_shared ? categoryData.family_id : null,
     }
 
     const { data: category, error } = await supabase
       .from('categories')
       .insert(newCategory)
-      .select()
+      .select(`
+        *,
+        families!categories_family_id_fkey(id, name)
+      `)
       .single()
 
     if (error) throw error
 
+    // Add family information to response
+    const enhancedCategory = {
+      ...category,
+      family_name: category.families?.name || null,
+    }
+
     return createCreatedResponse(
-      category,
+      enhancedCategory,
       'Category created successfully'
     )
   } catch (error) {
@@ -108,36 +152,55 @@ export async function PUT(request: NextRequest) {
     }
 
     // Validate the update data
-    const validatedData = updateCategorySchema.parse(updateData)
+    const validatedData = updateCategorySchemaEnhanced.parse(updateData)
     const supabase = await createClient()
 
-    // Verify the category belongs to the user
-    const { data: existingCategory, error: fetchError } = await supabase
-      .from('categories')
-      .select('id')
-      .eq('id', category_id)
-      .eq('user_id', user.id)
-      .single()
+    // Verify user has access to this category (personal or shared)
+    await verifyCategoryAccess(user.id, category_id)
 
-    if (fetchError || !existingCategory) {
-      throw new Error('Category not found or access denied')
+    // For scope changes to shared, verify user has admin access to the family
+    if (validatedData.is_shared && validatedData.family_id) {
+      const { isAdmin } = await verifyFamilyAccess(user.id, validatedData.family_id)
+      if (!isAdmin) {
+        throw new Error('Only family admins can change categories to shared scope')
+      }
+    }
+
+    // Prepare update data with proper ownership assignment
+    const updatePayload: CategoryUpdate = {
+      ...validatedData,
+      updated_at: new Date().toISOString(),
+    }
+
+    // Handle ownership changes based on sharing status
+    if (validatedData.is_shared) {
+      updatePayload.user_id = null
+      updatePayload.family_id = validatedData.family_id
+    } else if (validatedData.is_shared === false) {
+      updatePayload.user_id = user.id
+      updatePayload.family_id = null
     }
 
     const { data: updatedCategory, error } = await supabase
       .from('categories')
-      .update({
-        ...validatedData,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq('id', category_id)
-      .eq('user_id', user.id)
-      .select()
+      .select(`
+        *,
+        families!categories_family_id_fkey(id, name)
+      `)
       .single()
 
     if (error) throw error
 
+    // Add family information to response
+    const enhancedCategory = {
+      ...updatedCategory,
+      family_name: updatedCategory.families?.name || null,
+    }
+
     return createUpdatedResponse(
-      updatedCategory,
+      enhancedCategory,
       'Category updated successfully'
     )
   } catch (error) {
@@ -157,24 +220,45 @@ export async function DELETE(request: NextRequest) {
     
     const supabase = await createClient()
 
-    // Verify the category belongs to the user
+    // Verify user has access to this category (personal or shared)
+    await verifyCategoryAccess(user.id, category_id)
+
+    // Get category details for response message and permissions check
     const { data: existingCategory, error: fetchError } = await supabase
       .from('categories')
-      .select('id, name')
+      .select('id, name, is_shared, family_id')
       .eq('id', category_id)
-      .eq('user_id', user.id)
       .single()
 
     if (fetchError || !existingCategory) {
       throw new Error('Category not found or access denied')
     }
 
-    // Check if category is being used in transactions
-    const { data: transactionsUsingCategory, error: transactionError } = await supabase
+    // For shared categories, verify user has admin access to modify
+    if (existingCategory.is_shared && existingCategory.family_id) {
+      const { isAdmin } = await verifyFamilyAccess(user.id, existingCategory.family_id)
+      if (!isAdmin) {
+        throw new Error('Only family admins can delete shared categories')
+      }
+    }
+
+    // Get user's family IDs for transaction queries
+    const familyIds = await getUserFamilyIds(user.id)
+
+    // Check if category is being used in transactions (considering both personal and family transactions)
+    let transactionQuery = supabase
       .from('transactions')
       .select('id, type')
       .or(`category_id.eq.${category_id},investment_category_id.eq.${category_id}`)
-      .eq('user_id', user.id)
+
+    // Filter transactions by user access (personal or family)
+    if (familyIds.length > 0) {
+      transactionQuery = transactionQuery.or(`user_id.eq.${user.id},account_id.in.(select id from accounts where family_id in (${familyIds.join(',')}))`)
+    } else {
+      transactionQuery = transactionQuery.eq('user_id', user.id)
+    }
+
+    const { data: transactionsUsingCategory, error: transactionError } = await transactionQuery
 
     if (transactionError) throw transactionError
 
@@ -185,13 +269,14 @@ export async function DELETE(request: NextRequest) {
       throw new Error(`Cannot delete category "${existingCategory.name}" because it has ${transactionsUsingCategory.length} associated transactions. Please provide new_category_id to reassign transactions.`)
     }
 
-    // If new_category_id is provided, verify it belongs to the user and is active
+    // If new_category_id is provided, verify user has access and it's active
     if (new_category_id) {
+      await verifyCategoryAccess(user.id, new_category_id)
+
       const { data: newCategory, error: newCategoryError } = await supabase
         .from('categories')
         .select('id, name, type, is_active')
         .eq('id', new_category_id)
-        .eq('user_id', user.id)
         .single()
 
       if (newCategoryError || !newCategory) {
@@ -212,7 +297,6 @@ export async function DELETE(request: NextRequest) {
             updated_at: new Date().toISOString(),
           })
           .eq('category_id', category_id)
-          .eq('user_id', user.id)
 
         if (updateCategoryError) throw updateCategoryError
 
@@ -224,7 +308,6 @@ export async function DELETE(request: NextRequest) {
             updated_at: new Date().toISOString(),
           })
           .eq('investment_category_id', category_id)
-          .eq('user_id', user.id)
 
         if (updateInvestmentCategoryError) throw updateInvestmentCategoryError
       }
@@ -238,7 +321,6 @@ export async function DELETE(request: NextRequest) {
         updated_at: new Date().toISOString(),
       })
       .eq('id', category_id)
-      .eq('user_id', user.id)
 
     if (error) throw error
 

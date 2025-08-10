@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
@@ -14,10 +14,18 @@ import {
 } from "@/components/ui/select";
 import EmojiPicker from "@/components/ui/emoji-picker";
 import { Loader2 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useAuth } from "@/contexts/auth-context";
 import { CategoryFormData, FormComponentProps } from "@/types/common";
 
 interface CategoryFormProps extends FormComponentProps<CategoryFormData> {
   userCurrency: string;
+}
+
+interface UserFamily {
+  id: string;
+  name: string;
+  user_role: 'admin' | 'member';
 }
 
 export function CategoryForm({
@@ -29,6 +37,9 @@ export function CategoryForm({
   userCurrency,
 }: CategoryFormProps) {
   const [formData, setFormData] = useState<CategoryFormData>(data);
+  const [families, setFamilies] = useState<UserFamily[]>([]);
+  const [loadingFamilies, setLoadingFamilies] = useState(false);
+  const { user } = useAuth();
 
   const handleInputChange = (field: keyof CategoryFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -36,6 +47,38 @@ export function CategoryForm({
 
   const handleSubmit = () => {
     onSubmit(formData);
+  };
+
+  // Load user's families on mount
+  useEffect(() => {
+    const loadFamilies = async () => {
+      if (!user) return;
+      
+      try {
+        setLoadingFamilies(true);
+        const response = await fetch('/api/families');
+        if (response.ok) {
+          const result = await response.json();
+          setFamilies(result.data || []);
+        }
+      } catch (error) {
+        console.error('Error loading families:', error);
+      } finally {
+        setLoadingFamilies(false);
+      }
+    };
+
+    loadFamilies();
+  }, [user]);
+
+  // Handle scope change and reset family selection when switching to personal
+  const handleScopeChange = (shared: string) => {
+    const isShared = shared === 'true';
+    setFormData(prev => ({
+      ...prev,
+      is_shared: isShared,
+      family_id: isShared ? prev.family_id : undefined
+    }));
   };
 
 
@@ -106,6 +149,68 @@ export function CategoryForm({
         </p>
       </div>
 
+      <div className="space-y-3">
+        <Label>Category Scope</Label>
+        <RadioGroup
+          value={formData.is_shared ? 'true' : 'false'}
+          onValueChange={handleScopeChange}
+          className="flex flex-col space-y-2"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="false" id="personal-cat" />
+            <Label htmlFor="personal-cat" className="font-normal cursor-pointer">
+              Personal Category
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="true" id="shared-cat" />
+            <Label htmlFor="shared-cat" className="font-normal cursor-pointer">
+              Shared Category (Family)
+            </Label>
+          </div>
+        </RadioGroup>
+        <p className="text-sm text-gray-500">
+          {formData.is_shared ? (
+            families.length > 0 ? (
+              "Shared categories are visible to all family members"
+            ) : (
+              "You must be part of a family to create shared categories"
+            )
+          ) : (
+            "Personal categories are only visible to you"
+          )}
+        </p>
+      </div>
+
+      {formData.is_shared && (
+        <div className="space-y-2">
+          <Label htmlFor="family-cat">Family</Label>
+          <Select
+            value={formData.family_id || ''}
+            onValueChange={(value) => handleInputChange('family_id', value)}
+            disabled={loadingFamilies || families.length === 0}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue 
+                placeholder={loadingFamilies ? "Loading families..." : "Select family"} 
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {families.map((family) => (
+                <SelectItem key={family.id} value={family.id}>
+                  {family.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {families.length === 0 && !loadingFamilies && (
+            <p className="text-sm text-amber-600">
+              You must be part of a family to create shared categories
+            </p>
+          )}
+        </div>
+      )}
+
       {shouldShowBudget && (
         <>
           <div className="space-y-2">
@@ -163,7 +268,14 @@ export function CategoryForm({
         >
           Cancel
         </Button>
-        <Button onClick={handleSubmit} disabled={loading || !formData.name}>
+        <Button 
+          onClick={handleSubmit} 
+          disabled={
+            loading || 
+            !formData.name ||
+            (formData.is_shared && (!formData.family_id || families.length === 0))
+          }
+        >
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

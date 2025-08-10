@@ -15,6 +15,10 @@ import {
   updateTransactionSchema,
   transactionQuerySchema
 } from '../utils/validation'
+import { 
+  verifyAccountAccess, 
+  verifyCategoryAccess 
+} from '../utils/family-auth'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { User } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
@@ -25,7 +29,7 @@ type TransactionUpdate = Database['public']['Tables']['transactions']['Update']
 
 /**
  * GET /api/transactions
- * Fetch user transactions with optional filtering and infinite scroll support
+ * Fetch user transactions (both personal and family) with optional filtering and infinite scroll support
  */
 export async function GET(request: NextRequest) {
   try {
@@ -34,15 +38,19 @@ export async function GET(request: NextRequest) {
     const queryParams = validateQueryParams(url, transactionQuerySchema)
     const supabase = await createClient()
 
+    // RLS policies will handle family access automatically
+
     // Apply pagination
     const limit = queryParams.limit || 50
     const offset = queryParams.offset || 0
 
-    // Build count query for pagination
+    // Build count query for pagination (include both personal and family transactions)
     let countQuery = supabase
       .from('transactions')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
+
+    // RLS policies will handle access control, but we can optimize by filtering for user transactions or transactions they have access to
+    // For simplicity, we'll rely on RLS and just ensure we have the right joins
       
     if (queryParams.account_id) {
       countQuery = countQuery.eq('account_id', queryParams.account_id)
@@ -64,18 +72,20 @@ export async function GET(request: NextRequest) {
 
     if (countError) throw countError
 
-    // Build data query with relationships
+    // Build data query with relationships including family information
+    // Enhanced query includes category names for joint account transactions
     let dataQuery = supabase
       .from('transactions')
       .select(`
         *,
-        accounts!transactions_account_id_fkey(name, type),
-        categories!transactions_category_id_fkey(name, type, icon),
-        from_accounts:accounts!transactions_from_account_id_fkey(name, type),
-        to_accounts:accounts!transactions_to_account_id_fkey(name, type),
-        investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon)
+        accounts!transactions_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        categories!transactions_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name)),
+        from_accounts:accounts!transactions_from_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        to_accounts:accounts!transactions_to_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name))
       `)
-      .eq('user_id', user.id)
+
+    // RLS policies will handle access control automatically
       
     if (queryParams.account_id) {
       dataQuery = dataQuery.eq('account_id', queryParams.account_id)
@@ -100,23 +110,121 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error
 
+    // Enhance transactions with family information, logged by details, and joint account category names
+    const enhancedTransactions = await Promise.all(transactions.map(async transaction => {
+      let userEmail = null;
+      
+      // Get the actual user email using SECURITY DEFINER function
+      if (transaction.logged_by_user_id) {
+        const { data: emailResult, error: emailError } = await supabase
+          .rpc('get_transaction_user_email', {
+            p_user_id: transaction.logged_by_user_id
+          });
+        
+        if (!emailError && emailResult) {
+          userEmail = emailResult;
+        }
+      }
+
+      // Enhanced category data for joint account transactions
+      let enhancedCategories = transaction.categories;
+      let enhancedInvestmentCategories = transaction.investment_categories;
+
+      // Check if we need to load category name for joint account transactions
+      const isJointAccountTransaction = (
+        transaction.accounts?.account_scope === 'joint' || 
+        transaction.from_accounts?.account_scope === 'joint' ||
+        transaction.to_accounts?.account_scope === 'joint'
+      );
+
+
+      // For joint account transactions, always try to load category names bypassing RLS
+      if (isJointAccountTransaction) {
+        // For income/expense transactions - load category name bypassing RLS
+        if (transaction.category_id) {
+          const { data: categoryData, error: categoryError } = await supabase
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .rpc('get_category_for_joint_transaction' as any, {
+              p_category_id: transaction.category_id,
+              p_user_id: user.id
+            });
+
+          if (!categoryError && categoryData && Array.isArray(categoryData) && categoryData.length > 0) {
+            const category = categoryData[0];
+            enhancedCategories = {
+              ...transaction.categories,
+              name: category.name,
+              type: category.type,
+              icon: category.icon,
+              is_shared: category.is_shared,
+              family_id: category.family_id,
+              families: transaction.categories?.families || null
+            };
+          }
+        }
+
+        // For transfer transactions - load investment category name bypassing RLS
+        if (transaction.investment_category_id) {
+          const { data: investmentCategoryData, error: investmentCategoryError } = await supabase
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .rpc('get_category_for_joint_transaction' as any, {
+              p_category_id: transaction.investment_category_id,
+              p_user_id: user.id
+            });
+
+          if (!investmentCategoryError && investmentCategoryData && Array.isArray(investmentCategoryData) && investmentCategoryData.length > 0) {
+            const investmentCategory = investmentCategoryData[0];
+            enhancedInvestmentCategories = {
+              ...transaction.investment_categories,
+              name: investmentCategory.name,
+              type: investmentCategory.type,
+              icon: investmentCategory.icon,
+              is_shared: investmentCategory.is_shared,
+              family_id: investmentCategory.family_id,
+              families: transaction.investment_categories?.families || null
+            };
+          }
+        }
+      }
+      
+      return {
+        ...transaction,
+        // Use enhanced category data
+        categories: enhancedCategories,
+        investment_categories: enhancedInvestmentCategories,
+        // Add family information for accounts
+        account_family_name: transaction.accounts?.families?.name || null,
+        from_account_family_name: transaction.from_accounts?.families?.name || null,
+        to_account_family_name: transaction.to_accounts?.families?.name || null,
+        // Add family information for categories (using enhanced data)
+        category_family_name: enhancedCategories?.families?.name || null,
+        investment_category_family_name: enhancedInvestmentCategories?.families?.name || null,
+        // Add logged by information with actual user emails
+        is_logged_by_current_user: transaction.logged_by_user_id === user.id,
+        logged_by_user: transaction.logged_by_user_id ? {
+          id: transaction.logged_by_user_id,
+          email: userEmail || 'Unknown user'
+        } : null,
+      };
+    }))
+
     // Calculate infinite scroll metadata
-    const hasMore = (offset + transactions.length) < (totalCount || 0)
+    const hasMore = (offset + enhancedTransactions.length) < (totalCount || 0)
     const nextOffset = hasMore ? offset + limit : null
 
     return createSuccessResponse(
       {
-        transactions,
+        transactions: enhancedTransactions,
         pagination: {
           limit,
           offset,
-          count: transactions.length,
+          count: enhancedTransactions.length,
           total_count: totalCount || 0,
           has_more: hasMore,
           next_offset: nextOffset,
         },
       },
-      `Retrieved ${transactions.length} of ${totalCount || 0} transactions successfully`
+      `Retrieved ${enhancedTransactions.length} of ${totalCount || 0} transactions successfully`
     )
   } catch (error) {
     return handleApiError(error)
@@ -133,12 +241,30 @@ export async function POST(request: NextRequest) {
     const transactionData = await validateRequestBody(request, createTransactionSchema)
     const supabase = await createClient()
 
+    // Verify user has access to the accounts and categories being used
+    if (transactionData.account_id) {
+      await verifyAccountAccess(user.id, transactionData.account_id)
+    }
+    if (transactionData.from_account_id) {
+      await verifyAccountAccess(user.id, transactionData.from_account_id)
+    }
+    if (transactionData.to_account_id) {
+      await verifyAccountAccess(user.id, transactionData.to_account_id)
+    }
+    if (transactionData.category_id) {
+      await verifyCategoryAccess(user.id, transactionData.category_id)
+    }
+    if (transactionData.investment_category_id) {
+      await verifyCategoryAccess(user.id, transactionData.investment_category_id)
+    }
+
     // Start a transaction
     const { data: newTransaction, error: transactionError } = await supabase
       .from('transactions')
       .insert({
         ...transactionData,
         user_id: user.id,
+        logged_by_user_id: user.id, // Explicitly set even though trigger would handle it
       })
       .select()
       .single()
@@ -148,24 +274,103 @@ export async function POST(request: NextRequest) {
     // Balance updates are handled automatically by the database trigger
     // No manual balance updates needed here
 
-    // Fetch the complete transaction with related data
+    // Fetch the complete transaction with related data including family information
     const { data: completeTransaction, error: fetchError } = await supabase
       .from('transactions')
       .select(`
         *,
-        accounts!transactions_account_id_fkey(name, type),
-        categories!transactions_category_id_fkey(name, type, icon),
-        from_accounts:accounts!transactions_from_account_id_fkey(name, type),
-        to_accounts:accounts!transactions_to_account_id_fkey(name, type),
-        investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon)
+        accounts!transactions_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        categories!transactions_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name)),
+        from_accounts:accounts!transactions_from_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        to_accounts:accounts!transactions_to_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name))
       `)
       .eq('id', newTransaction.id)
       .single()
 
     if (fetchError) throw fetchError
+    if (!completeTransaction) throw new Error('Transaction not found')
+
+    // Enhanced category data for joint account transactions  
+    let enhancedCategories = completeTransaction.categories;
+    let enhancedInvestmentCategories = completeTransaction.investment_categories;
+
+    // Check if we need to load category name for joint account transactions
+    const isJointAccountTransaction = (
+      completeTransaction.accounts?.account_scope === 'joint' || 
+      completeTransaction.from_accounts?.account_scope === 'joint' ||
+      completeTransaction.to_accounts?.account_scope === 'joint'
+    );
+
+    // For joint account transactions, always try to load category names bypassing RLS
+    if (isJointAccountTransaction) {
+      // For income/expense transactions - load category name bypassing RLS
+      if (completeTransaction.category_id) {
+        const { data: categoryData, error: categoryError } = await supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .rpc('get_category_for_joint_transaction' as any, {
+            p_category_id: completeTransaction.category_id,
+            p_user_id: user.id
+          });
+
+        if (!categoryError && categoryData && Array.isArray(categoryData) && categoryData.length > 0) {
+          const category = categoryData[0];
+          enhancedCategories = {
+            ...completeTransaction.categories,
+            name: category.name,
+            type: category.type,
+            icon: category.icon,
+            is_shared: category.is_shared,
+            family_id: category.family_id,
+            families: completeTransaction.categories?.families || null
+          };
+        }
+      }
+
+      // For transfer transactions - load investment category name bypassing RLS
+      if (completeTransaction.investment_category_id) {
+        const { data: investmentCategoryData, error: investmentCategoryError } = await supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .rpc('get_category_for_joint_transaction' as any, {
+            p_category_id: completeTransaction.investment_category_id,
+            p_user_id: user.id
+          });
+
+        if (!investmentCategoryError && investmentCategoryData && Array.isArray(investmentCategoryData) && investmentCategoryData.length > 0) {
+          const investmentCategory = investmentCategoryData[0];
+          enhancedInvestmentCategories = {
+            ...completeTransaction.investment_categories,
+            name: investmentCategory.name,
+            type: investmentCategory.type,
+            icon: investmentCategory.icon,
+            is_shared: investmentCategory.is_shared,
+            family_id: investmentCategory.family_id,
+            families: completeTransaction.investment_categories?.families || null
+          };
+        }
+      }
+    }
+
+    // Enhance transaction with family information and enhanced category data
+    const enhancedTransaction = {
+      ...completeTransaction,
+      // Use enhanced category data
+      categories: enhancedCategories,
+      investment_categories: enhancedInvestmentCategories,
+      account_family_name: completeTransaction.accounts?.families?.name || null,
+      from_account_family_name: completeTransaction.from_accounts?.families?.name || null,
+      to_account_family_name: completeTransaction.to_accounts?.families?.name || null,
+      category_family_name: enhancedCategories?.families?.name || null,
+      investment_category_family_name: enhancedInvestmentCategories?.families?.name || null,
+      is_logged_by_current_user: true, // Always true for newly created transactions
+      logged_by_user: {
+        id: user.id,
+        email: user.email || 'Current user'
+      },
+    }
 
     return createCreatedResponse(
-      completeTransaction,
+      enhancedTransaction,
       'Transaction created successfully'
     )
   } catch (error) {
@@ -192,16 +397,32 @@ export async function PUT(request: NextRequest) {
     const validatedData = updateTransactionSchema.parse(updateData)
     const supabase = await createClient()
 
-    // Get the original transaction
+    // Get the original transaction (RLS will handle access control)
     const { data: originalTransaction, error: fetchError } = await supabase
       .from('transactions')
       .select('*')
       .eq('id', transaction_id)
-      .eq('user_id', user.id)
       .single()
 
     if (fetchError || !originalTransaction) {
       throw new Error('Transaction not found or access denied')
+    }
+
+    // Verify user has access to the new accounts and categories if they're being changed
+    if (validatedData.account_id) {
+      await verifyAccountAccess(user.id, validatedData.account_id)
+    }
+    if (validatedData.from_account_id) {
+      await verifyAccountAccess(user.id, validatedData.from_account_id)
+    }
+    if (validatedData.to_account_id) {
+      await verifyAccountAccess(user.id, validatedData.to_account_id)
+    }
+    if (validatedData.category_id) {
+      await verifyCategoryAccess(user.id, validatedData.category_id)
+    }
+    if (validatedData.investment_category_id) {
+      await verifyCategoryAccess(user.id, validatedData.investment_category_id)
     }
 
     // Check if transaction type is being changed
@@ -223,24 +444,102 @@ export async function PUT(request: NextRequest) {
 
       if (updateError) throw updateError
 
-      // Fetch the complete transaction with related data
+      // Fetch the complete transaction with related data including family information
       const { data: completeTransaction, error: completeError } = await supabase
         .from('transactions')
         .select(`
           *,
-          accounts!transactions_account_id_fkey(name, type),
-          categories!transactions_category_id_fkey(name, type, icon),
-          from_accounts:accounts!transactions_from_account_id_fkey(name, type),
-          to_accounts:accounts!transactions_to_account_id_fkey(name, type),
-          investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon)
+          accounts!transactions_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+          categories!transactions_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name)),
+          from_accounts:accounts!transactions_from_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+          to_accounts:accounts!transactions_to_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+          investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name))
         `)
         .eq('id', transaction_id)
         .single()
 
       if (completeError) throw completeError
+      if (!completeTransaction) throw new Error('Transaction not found after update')
+
+      // Get the actual user email using SECURITY DEFINER function
+      let userEmail = null;
+      if (completeTransaction.logged_by_user_id) {
+        const { data: emailResult, error: emailError } = await supabase
+          .rpc('get_transaction_user_email', {
+            p_user_id: completeTransaction.logged_by_user_id
+          });
+        
+        if (!emailError && emailResult) {
+          userEmail = emailResult;
+        }
+      }
+
+      // Enhanced category data for joint account transactions  
+      let enhancedCategories = completeTransaction.categories;
+      let enhancedInvestmentCategories = completeTransaction.investment_categories;
+
+      // Check if we need to load category name for joint account transactions
+      const isJointAccountTransaction = (
+        completeTransaction.accounts?.account_scope === 'joint' || 
+        completeTransaction.from_accounts?.account_scope === 'joint' ||
+        completeTransaction.to_accounts?.account_scope === 'joint'
+      );
+
+      // For joint account transactions, always try to load category names bypassing RLS
+      if (isJointAccountTransaction) {
+        // For income/expense transactions with missing category names
+        if (completeTransaction.category_id && (!completeTransaction.categories?.name || completeTransaction.categories.name === null)) {
+          const { data: categoryData, error: categoryError } = await supabase
+            .from('categories')
+            .select('name, type, icon, is_shared, family_id')
+            .eq('id', completeTransaction.category_id)
+            .single();
+
+          if (!categoryError && categoryData) {
+            enhancedCategories = {
+              ...completeTransaction.categories,
+              ...categoryData
+            };
+          }
+        }
+
+        // For transfer transactions with missing investment category names
+        if (completeTransaction.investment_category_id && (!completeTransaction.investment_categories?.name || completeTransaction.investment_categories.name === null)) {
+          const { data: investmentCategoryData, error: investmentCategoryError } = await supabase
+            .from('categories')
+            .select('name, type, icon, is_shared, family_id')
+            .eq('id', completeTransaction.investment_category_id)
+            .single();
+
+          if (!investmentCategoryError && investmentCategoryData) {
+            enhancedInvestmentCategories = {
+              ...completeTransaction.investment_categories,
+              ...investmentCategoryData
+            };
+          }
+        }
+      }
+
+      // Enhance transaction with family information and enhanced category data
+      const enhancedTransaction = {
+        ...completeTransaction,
+        // Use enhanced category data
+        categories: enhancedCategories,
+        investment_categories: enhancedInvestmentCategories,
+        account_family_name: completeTransaction.accounts?.families?.name || null,
+        from_account_family_name: completeTransaction.from_accounts?.families?.name || null,
+        to_account_family_name: completeTransaction.to_accounts?.families?.name || null,
+        category_family_name: enhancedCategories?.families?.name || null,
+        investment_category_family_name: enhancedInvestmentCategories?.families?.name || null,
+        is_logged_by_current_user: completeTransaction.logged_by_user_id === user.id,
+        logged_by_user: completeTransaction.logged_by_user_id ? {
+          id: completeTransaction.logged_by_user_id,
+          email: userEmail || 'Unknown user'
+        } : null,
+      }
 
       return createUpdatedResponse(
-        completeTransaction,
+        enhancedTransaction,
         'Transaction updated successfully'
       )
     }
@@ -255,7 +554,7 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await requireAuth()
+    await requireAuth() // Ensure user is authenticated, RLS handles access control
     const { transaction_id } = await request.json()
     
     if (!transaction_id) {
@@ -264,12 +563,11 @@ export async function DELETE(request: NextRequest) {
 
     const supabase = await createClient()
 
-    // Get the transaction before deleting
+    // Get the transaction before deleting (RLS will handle access control)
     const { data: transaction, error: fetchError } = await supabase
       .from('transactions')
       .select('*')
       .eq('id', transaction_id)
-      .eq('user_id', user.id)
       .single()
 
     if (fetchError || !transaction) {
@@ -279,12 +577,11 @@ export async function DELETE(request: NextRequest) {
     // Balance updates for transaction deletion are handled by the database trigger
     // Application-level balance reversal is not needed
 
-    // Delete the transaction
+    // Delete the transaction (RLS will handle access control)
     const { error: deleteError } = await supabase
       .from('transactions')
       .delete()
       .eq('id', transaction_id)
-      .eq('user_id', user.id)
 
     if (deleteError) throw deleteError
 
@@ -327,6 +624,7 @@ async function handleTransactionTypeChange(
       .insert({
         ...validatedNewTransaction,
         user_id: user.id,
+        logged_by_user_id: user.id, // Explicitly set even though trigger would handle it
         created_at: originalTransaction.created_at, // Preserve original creation time
         updated_at: new Date().toISOString(),
       })
@@ -335,24 +633,116 @@ async function handleTransactionTypeChange(
 
     if (createError) throw createError
 
-    // Fetch the complete transaction with related data
+    // Fetch the complete transaction with related data including family information
     const { data: completeTransaction, error: fetchError } = await supabase
       .from('transactions')
       .select(`
         *,
-        accounts!transactions_account_id_fkey(name, type),
-        categories!transactions_category_id_fkey(name, type, icon),
-        from_accounts:accounts!transactions_from_account_id_fkey(name, type),
-        to_accounts:accounts!transactions_to_account_id_fkey(name, type),
-        investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon)
+        accounts!transactions_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        categories!transactions_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name)),
+        from_accounts:accounts!transactions_from_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        to_accounts:accounts!transactions_to_account_id_fkey(name, type, account_scope, family_id, families!accounts_family_id_fkey(name)),
+        investment_categories:categories!transactions_investment_category_id_fkey(name, type, icon, is_shared, family_id, families!categories_family_id_fkey(name))
       `)
       .eq('id', newTransaction.id)
       .single()
 
     if (fetchError) throw fetchError
+    if (!completeTransaction) throw new Error('Transaction not found')
+
+    // Get the actual user email using SECURITY DEFINER function
+    let userEmail = null;
+    if (completeTransaction.logged_by_user_id) {
+      const { data: emailResult, error: emailError } = await supabase
+        .rpc('get_transaction_user_email', {
+          p_user_id: completeTransaction.logged_by_user_id
+        });
+      
+      if (!emailError && emailResult) {
+        userEmail = emailResult;
+      }
+    }
+
+    // Enhanced category data for joint account transactions  
+    let enhancedCategories = completeTransaction.categories;
+    let enhancedInvestmentCategories = completeTransaction.investment_categories;
+
+    // Check if we need to load category name for joint account transactions
+    const isJointAccountTransaction = (
+      completeTransaction.accounts?.account_scope === 'joint' || 
+      completeTransaction.from_accounts?.account_scope === 'joint' ||
+      completeTransaction.to_accounts?.account_scope === 'joint'
+    );
+
+    // For joint account transactions, always try to load category names bypassing RLS
+    if (isJointAccountTransaction) {
+      // For income/expense transactions - load category name bypassing RLS
+      if (completeTransaction.category_id) {
+        const { data: categoryData, error: categoryError } = await supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .rpc('get_category_for_joint_transaction' as any, {
+            p_category_id: completeTransaction.category_id,
+            p_user_id: user.id
+          });
+
+        if (!categoryError && categoryData && Array.isArray(categoryData) && categoryData.length > 0) {
+          const category = categoryData[0];
+          enhancedCategories = {
+            ...completeTransaction.categories,
+            name: category.name,
+            type: category.type,
+            icon: category.icon,
+            is_shared: category.is_shared,
+            family_id: category.family_id,
+            families: completeTransaction.categories?.families || null
+          };
+        }
+      }
+
+      // For transfer transactions - load investment category name bypassing RLS
+      if (completeTransaction.investment_category_id) {
+        const { data: investmentCategoryData, error: investmentCategoryError } = await supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .rpc('get_category_for_joint_transaction' as any, {
+            p_category_id: completeTransaction.investment_category_id,
+            p_user_id: user.id
+          });
+
+        if (!investmentCategoryError && investmentCategoryData && Array.isArray(investmentCategoryData) && investmentCategoryData.length > 0) {
+          const investmentCategory = investmentCategoryData[0];
+          enhancedInvestmentCategories = {
+            ...completeTransaction.investment_categories,
+            name: investmentCategory.name,
+            type: investmentCategory.type,
+            icon: investmentCategory.icon,
+            is_shared: investmentCategory.is_shared,
+            family_id: investmentCategory.family_id,
+            families: completeTransaction.investment_categories?.families || null
+          };
+        }
+      }
+    }
+
+    // Enhance transaction with family information and enhanced category data
+    const enhancedTransaction = {
+      ...completeTransaction,
+      // Use enhanced category data
+      categories: enhancedCategories,
+      investment_categories: enhancedInvestmentCategories,
+      account_family_name: completeTransaction.accounts?.families?.name || null,
+      from_account_family_name: completeTransaction.from_accounts?.families?.name || null,
+      to_account_family_name: completeTransaction.to_accounts?.families?.name || null,
+      category_family_name: enhancedCategories?.families?.name || null,
+      investment_category_family_name: enhancedInvestmentCategories?.families?.name || null,
+      is_logged_by_current_user: completeTransaction.logged_by_user_id === user.id,
+      logged_by_user: completeTransaction.logged_by_user_id ? {
+        id: completeTransaction.logged_by_user_id,
+        email: userEmail || 'Unknown user'
+      } : null,
+    }
 
     return createUpdatedResponse(
-      completeTransaction,
+      enhancedTransaction,
       'Transaction updated successfully'
     )
   } catch (validationError) {

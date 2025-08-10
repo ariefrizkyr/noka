@@ -30,15 +30,17 @@ interface GoogleSignInButtonProps extends React.ComponentPropsWithoutRef<'button
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
+  redirectUrl?: string | null;
 }
 
 export function GoogleSignInButton({
   className,
   style,
   children,
+  redirectUrl,
   ...props
 }: GoogleSignInButtonProps) {
-  const { signIn, isLoading, error } = useGoogleSignIn();
+  const { signIn, isLoading, error } = useGoogleSignIn(redirectUrl);
 
   return (
     <div className="w-full">

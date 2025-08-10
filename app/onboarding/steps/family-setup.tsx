@@ -1,0 +1,603 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Users, Home, Shield, Mail, Plus, X, Check, AlertCircle } from "lucide-react";
+
+interface FamilySetupStepProps {
+  onNext: () => void;
+  onPrevious: () => void;
+  isFirstStep: boolean;
+  isLastStep: boolean;
+}
+
+export default function FamilySetupStep({
+  onNext,
+  onPrevious,
+  isFirstStep,
+  // isLastStep,
+}: FamilySetupStepProps) {
+  const [familyName, setFamilyName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [existingFamily, setExistingFamily] = useState<{ id: string; name: string; user_role: string } | null>(null);
+  const [checkingExisting, setCheckingExisting] = useState(true);
+  const [familyCreated, setFamilyCreated] = useState(false);
+  const [createdFamilyId, setCreatedFamilyId] = useState<string | null>(null);
+  
+  // Invitation form state
+  const [invitationEmail, setInvitationEmail] = useState("");
+  const [invitationRole, setInvitationRole] = useState<"member" | "admin">("member");
+  const [invitations, setInvitations] = useState<Array<{
+    id: string;
+    email: string;
+    role: string;
+    status: 'sending' | 'pending' | 'failed';
+    error?: string;
+  }>>([]);
+  const [isInviting, setIsInviting] = useState(false);
+
+  // Check if user already has a family on component mount
+  useEffect(() => {
+    const checkExistingFamily = async () => {
+      try {
+        setCheckingExisting(true);
+        
+        // First check sessionStorage for family created in this onboarding session or from invitation
+        const sessionFamilyId = sessionStorage.getItem("onboardingFamilyId");
+        const acceptedFamilyId = sessionStorage.getItem("acceptedFamilyId");
+        const acceptedFamilyName = sessionStorage.getItem("acceptedFamilyName");
+        
+        if (sessionFamilyId) {
+          // Fetch family details from API to get the name
+          const response = await fetch("/api/families");
+          if (response.ok) {
+            const data = await response.json();
+            const family = data.data.find((f: { id: string; name: string; user_role: string }) => f.id === sessionFamilyId);
+            if (family) {
+              setExistingFamily({ id: family.id, name: family.name, user_role: family.user_role });
+              return;
+            }
+          }
+        }
+        
+        // Check if user came from invitation
+        if (acceptedFamilyId) {
+          // Fetch family details to get current user role
+          const response = await fetch("/api/families");
+          if (response.ok) {
+            const data = await response.json();
+            const family = data.data.find((f: { id: string; name: string; user_role: string }) => f.id === acceptedFamilyId);
+            if (family) {
+              setExistingFamily({ id: family.id, name: family.name, user_role: family.user_role });
+              // Store as onboarding family for consistency
+              sessionStorage.setItem("onboardingFamilyId", family.id);
+              return;
+            }
+          }
+          // Fallback to session storage name if API fails but we have the accepted family info
+          if (acceptedFamilyName) {
+            setExistingFamily({ id: acceptedFamilyId, name: acceptedFamilyName, user_role: 'member' }); // Default to member for invited users
+            sessionStorage.setItem("onboardingFamilyId", acceptedFamilyId);
+            return;
+          }
+        }
+        
+        // If no session family, check if user already has any families
+        const response = await fetch("/api/families");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.data && data.data.length > 0) {
+            // For onboarding, we expect only 1 family, so take the first one
+            const family = data.data[0];
+            setExistingFamily({ id: family.id, name: family.name, user_role: family.user_role });
+            // Store in session for consistency
+            sessionStorage.setItem("onboardingFamilyId", family.id);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking existing family:", error);
+        // Don't show error toast during onboarding check
+      } finally {
+        setCheckingExisting(false);
+      }
+    };
+
+    checkExistingFamily();
+  }, []);
+
+  const handleNext = async () => {
+    // If family already exists, just proceed to next step
+    if (existingFamily) {
+      onNext();
+      return;
+    }
+    if (!familyName.trim()) return;
+
+    try {
+      setIsLoading(true);
+      setError("");
+
+      // Create the family
+      const response = await fetch("/api/families", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: familyName.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create family");
+      }
+
+      const result = await response.json();
+      const familyId = result.data?.id;
+
+      if (!familyId) {
+        throw new Error("Family creation succeeded but no ID returned");
+      }
+
+      // Store the family ID in sessionStorage for use in account/category setup
+      sessionStorage.setItem("onboardingFamilyId", familyId);
+      setCreatedFamilyId(familyId);
+      setFamilyCreated(true);
+
+      // Mark step 2 as completed (family setup is step 2 in family flow)
+      const stepResponse = await fetch("/api/onboarding", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          step: 2,
+          completed: true,
+        }),
+      });
+
+      if (!stepResponse.ok) {
+        const errorData = await stepResponse.json();
+        throw new Error(errorData.message || "Failed to update step progress");
+      }
+
+      // Don't automatically proceed to next step - show invitation form instead
+    } catch (error) {
+      console.error("Error creating family:", error);
+      setError(error instanceof Error ? error.message : "Failed to create family");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFamilyName(e.target.value);
+    if (error) setError(""); // Clear error when user starts typing
+  };
+
+  const handleInvitationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!invitationEmail.trim() || !createdFamilyId) return;
+
+    const invitationId = crypto.randomUUID();
+    
+    // Add invitation to list with 'sending' status
+    const newInvitation = {
+      id: invitationId,
+      email: invitationEmail.trim(),
+      role: invitationRole,
+      status: 'sending' as const
+    };
+    
+    setInvitations(prev => [...prev, newInvitation]);
+    setInvitationEmail("");
+    setIsInviting(true);
+
+    try {
+      const response = await fetch(`/api/families/${createdFamilyId}/members/invite`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: newInvitation.email,
+          role: newInvitation.role,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to send invitation");
+      }
+
+      // Update invitation status to 'pending'
+      setInvitations(prev => 
+        prev.map(inv => 
+          inv.id === invitationId 
+            ? { ...inv, status: 'pending' as const }
+            : inv
+        )
+      );
+    } catch (error) {
+      // Update invitation status to 'failed'
+      setInvitations(prev => 
+        prev.map(inv => 
+          inv.id === invitationId 
+            ? { 
+                ...inv, 
+                status: 'failed' as const,
+                error: error instanceof Error ? error.message : "Failed to send invitation"
+              }
+            : inv
+        )
+      );
+    } finally {
+      setIsInviting(false);
+    }
+  };
+
+  const removeInvitation = (id: string) => {
+    setInvitations(prev => prev.filter(inv => inv.id !== id));
+  };
+
+  const proceedToNext = () => {
+    onNext();
+  };
+
+  const skipInvitations = () => {
+    onNext();
+  };
+
+  // Show loading state while checking for existing family
+  if (checkingExisting) {
+    return (
+      <div className="space-y-8">
+        <div className="space-y-4 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+            <Users className="h-8 w-8 text-gray-400 animate-pulse" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900">Checking Family Status...</h2>
+          <p className="mx-auto max-w-md text-gray-600">
+            Please wait while we check your family setup.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="space-y-4 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+          <Users className="h-8 w-8 text-green-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900">
+          {existingFamily ? "Your Family is Ready!" : "Create Your Family"}
+        </h2>
+        <p className="mx-auto max-w-md text-gray-600">
+          {existingFamily 
+            ? "Your family has been created successfully. You can proceed to set up your accounts and categories."
+            : "Give your family a name to start collaborating on your financial goals together."
+          }
+        </p>
+      </div>
+
+      {/* Family Name Input or Existing Family Display */}
+      <div className="space-y-4">
+        {existingFamily ? (
+          // Show existing family
+          <Card className="border-green-200 bg-green-50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Home className="h-5 w-5 text-green-600" />
+                <div>
+                  <p className="font-medium text-green-900">
+                    {existingFamily.name}
+                  </p>
+                  <p className="text-sm text-green-700">
+                    You are a family {existingFamily.user_role} {existingFamily.user_role === 'admin' ? 'with full access' : 'with shared access'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          // Show family creation form
+          <>
+            <div>
+              <Label htmlFor="familyName" className="text-sm font-medium text-gray-700">
+                Family Name
+              </Label>
+              <Input
+                id="familyName"
+                type="text"
+                placeholder="Enter your family name (e.g., The Smith Family)"
+                value={familyName}
+                onChange={handleInputChange}
+                className={`mt-2 ${error ? "border-red-500 focus:border-red-500" : ""}`}
+                disabled={isLoading}
+              />
+              {error && (
+                <p className="mt-2 text-sm text-red-600">{error}</p>
+              )}
+            </div>
+
+            {/* Preview Card */}
+            {familyName.trim() && (
+              <Card className="border-green-200 bg-green-50">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Home className="h-5 w-5 text-green-600" />
+                    <div>
+                      <p className="font-medium text-green-900">
+                        {familyName.trim()}
+                      </p>
+                      <p className="text-sm text-green-700">
+                        You'll be the family administrator with full access
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Family Benefits */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900">
+          What you can do as a family:
+        </h3>
+        
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Card className="border-gray-200">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+                  <Users className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900">Invite Members</h4>
+                  <p className="text-sm text-gray-600">Add family members to collaborate</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-200">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100">
+                  <Home className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900">Joint Accounts</h4>
+                  <p className="text-sm text-gray-600">Manage shared bank accounts</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-200">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+                  <Shield className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900">Shared Budgets</h4>
+                  <p className="text-sm text-gray-600">Set family-wide spending goals</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-200">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100">
+                  <Users className="h-5 w-5 text-orange-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900">Member Contributions</h4>
+                  <p className="text-sm text-gray-600">Track individual contributions</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Member Invitation Section - Only show after family creation */}
+      {familyCreated && !existingFamily && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="p-6">
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 mb-3">
+                  <Mail className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Invite Family Members (Optional)
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Add family members now or skip and invite them later from settings.
+                </p>
+              </div>
+
+              {/* Invitation Form */}
+              <form onSubmit={handleInvitationSubmit} className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label htmlFor="invitationEmail" className="text-sm font-medium text-gray-700">
+                      Email Address
+                    </Label>
+                    <Input
+                      id="invitationEmail"
+                      type="email"
+                      placeholder="Enter email address"
+                      value={invitationEmail}
+                      onChange={(e) => setInvitationEmail(e.target.value)}
+                      className="mt-1"
+                      disabled={isInviting}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="invitationRole" className="text-sm font-medium text-gray-700">
+                      Role
+                    </Label>
+                    <Select value={invitationRole} onValueChange={(value: "member" | "admin") => setInvitationRole(value)}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="member">Member</SelectItem>
+                        <SelectItem value="admin">Administrator</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <Button
+                  type="submit"
+                  disabled={!invitationEmail.trim() || isInviting}
+                  className="w-full sm:w-auto"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {isInviting ? "Sending Invitation..." : "Send Invitation"}
+                </Button>
+              </form>
+
+              {/* Invitations List */}
+              {invitations.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-900">Sent Invitations</h4>
+                  {invitations.map((invitation) => (
+                    <div
+                      key={invitation.id}
+                      className="flex items-center justify-between p-3 bg-white border rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          {invitation.status === 'sending' && (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                          )}
+                          {invitation.status === 'pending' && (
+                            <Check className="h-4 w-4 text-green-600" />
+                          )}
+                          {invitation.status === 'failed' && (
+                            <AlertCircle className="h-4 w-4 text-red-600" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{invitation.email}</p>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={invitation.role === 'admin' ? 'default' : 'secondary'}>
+                              {invitation.role}
+                            </Badge>
+                            <Badge 
+                              variant={
+                                invitation.status === 'pending' ? 'default' :
+                                invitation.status === 'failed' ? 'destructive' : 'secondary'
+                              }
+                            >
+                              {invitation.status}
+                            </Badge>
+                          </div>
+                          {invitation.error && (
+                            <p className="text-xs text-red-600 mt-1">{invitation.error}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeInvitation(invitation.id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button variant="outline" onClick={skipInvitations}>
+                  Skip for Now
+                </Button>
+                <Button onClick={proceedToNext}>
+                  Continue Setup
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Info Box - Only show when not in invitation mode */}
+      {!familyCreated && (
+        <Card className="border-dashed bg-gray-50">
+          <CardContent className="p-4">
+            <h4 className="mb-2 font-medium text-gray-900">
+              {existingFamily 
+                ? `Your Role as Family ${existingFamily.user_role === 'admin' ? 'Administrator' : 'Member'}`
+                : 'Your Role as Family Administrator'
+              }
+            </h4>
+            <ul className="space-y-1 text-sm text-gray-600">
+              {existingFamily && existingFamily.user_role === 'member' ? (
+                <>
+                  <li>• You can view and manage shared family finances</li>
+                  <li>• You can add transactions to shared accounts and categories</li>
+                  <li>• You can view family budget progress and investment performance</li>
+                  <li>• Your personal finances remain private and separate</li>
+                </>
+              ) : (
+                <>
+                  <li>• You'll have full control over family settings and member management</li>
+                  <li>• You can create joint accounts and shared categories</li>
+                  <li>• You can invite family members and manage their roles</li>
+                  <li>• Your personal finances remain private and separate</li>
+                </>
+              )}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Navigation Buttons - Only show when not in invitation mode */}
+      {!familyCreated && (
+        <div className="flex justify-between pt-6">
+          <Button
+            variant="outline"
+            onClick={onPrevious}
+            disabled={isFirstStep || isLoading}
+          >
+            Previous
+          </Button>
+          <Button 
+            onClick={handleNext} 
+            disabled={existingFamily ? false : (!familyName.trim() || isLoading)}
+          >
+            {isLoading 
+              ? "Creating Family..." 
+              : existingFamily 
+                ? "Continue" 
+                : "Create Family"
+            }
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}

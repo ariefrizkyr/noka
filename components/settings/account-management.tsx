@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { Plus, Edit, Trash2, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Account, AccountFormData } from "@/types/common";
+import { AccountWithFamily, AccountFormData } from "@/types/common";
 import { useApiData } from "@/hooks/use-api-data";
 import { useCrudDialog } from "@/hooks/use-crud-dialog";
 import { formatAccountBalance } from "@/lib/currency-utils";
@@ -29,7 +29,7 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
     data: accounts,
     loading,
     refetch,
-  } = useApiData<Account[]>("/api/accounts");
+  } = useApiData<AccountWithFamily[]>("/api/accounts");
 
   const {
     isAddOpen,
@@ -49,7 +49,7 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
     isCreating,
     isUpdating,
     isDeleting,
-  } = useCrudDialog<Account>("/api/accounts", {
+  } = useCrudDialog<AccountWithFamily>("/api/accounts", {
     entityName: "Account",
     onRefresh: refetch,
   });
@@ -58,7 +58,7 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
     "bank_account" | "credit_card" | "investment_account"
   >("bank_account");
 
-  const groupAccountsByType = (accounts: Account[]) => {
+  const groupAccountsByType = (accounts: AccountWithFamily[]) => {
     return accounts.reduce(
       (acc, account) => {
         if (!acc[account.type]) {
@@ -67,7 +67,7 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
         acc[account.type].push(account);
         return acc;
       },
-      {} as Record<string, Account[]>,
+      {} as Record<string, AccountWithFamily[]>,
     );
   };
 
@@ -86,11 +86,12 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
       name: formData.name,
       type: formData.type,
       initial_balance: parseFloat(formData.initial_balance) || 0,
+      account_scope: formData.account_scope || 'personal',
+      family_id: formData.family_id || undefined,
     };
 
     if (editingItem) {
-      // For edit, only send name
-      await handleUpdate({ name: payload.name });
+      await handleUpdate(payload);
     } else {
       await handleCreate(payload);
     }
@@ -102,6 +103,8 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
         name: editingItem.name,
         type: editingItem.type,
         initial_balance: editingItem.initial_balance.toString(),
+        account_scope: editingItem.account_scope || 'personal',
+        family_id: editingItem.family_id || undefined,
       };
     }
 
@@ -109,6 +112,8 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
       name: "",
       type: addFormType,
       initial_balance: "",
+      account_scope: 'personal',
+      family_id: undefined,
     };
   };
 
@@ -172,7 +177,17 @@ export function AccountManagement({ userCurrency }: AccountManagementProps) {
                         <Icon className="h-5 w-5 text-gray-600" />
                       </div>
                       <div>
-                        <h4 className="font-medium">{account.name}</h4>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium">{account.name}</h4>
+                          {account.account_scope === 'joint' && account.family_name && (
+                            <Badge
+                              variant="outline"
+                              className="border-purple-300 bg-purple-100 text-xs text-purple-700"
+                            >
+                              {account.family_name}
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-500">
                           Balance: <br />
                           <span className="font-medium">

@@ -19,7 +19,7 @@ import {
   Target,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Category, GroupedCategories, CategoryFormData } from "@/types/common";
+import { Category, GroupedCategoriesWithFamily, CategoryFormData } from "@/types/common";
 import { useApiData } from "@/hooks/use-api-data";
 import { useCrudDialog } from "@/hooks/use-crud-dialog";
 import { formatCurrency } from "@/lib/currency-utils";
@@ -36,7 +36,7 @@ export function CategoryManagement({ userCurrency }: CategoryManagementProps) {
     data: categoriesData,
     loading,
     refetch,
-  } = useApiData<{ grouped: GroupedCategories }>("/api/categories");
+  } = useApiData<{ grouped: GroupedCategoriesWithFamily }>("/api/categories");
   const categories = categoriesData?.grouped;
 
   const {
@@ -141,6 +141,8 @@ export function CategoryManagement({ userCurrency }: CategoryManagementProps) {
         ? parseFloat(formData.budget_amount)
         : null,
       budget_frequency: formData.budget_frequency || null,
+      is_shared: formData.is_shared || false,
+      family_id: formData.family_id || undefined,
     };
 
     if (editingItem) {
@@ -158,6 +160,8 @@ export function CategoryManagement({ userCurrency }: CategoryManagementProps) {
         icon: editingItem.icon || "📁",
         budget_amount: editingItem.budget_amount?.toString() || "",
         budget_frequency: editingItem.budget_frequency || "",
+        is_shared: editingItem.is_shared || false,
+        family_id: editingItem.family_id || undefined,
       };
     }
 
@@ -167,6 +171,8 @@ export function CategoryManagement({ userCurrency }: CategoryManagementProps) {
       icon: "📁",
       budget_amount: "",
       budget_frequency: "",
+      is_shared: false,
+      family_id: undefined,
     };
   };
 
@@ -227,7 +233,17 @@ export function CategoryManagement({ userCurrency }: CategoryManagementProps) {
                         <span className="text-lg">{category.icon || "📁"}</span>
                       </div>
                       <div>
-                        <h4 className="font-medium">{category.name}</h4>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium">{category.name}</h4>
+                          {category.is_shared && category.family_name && (
+                            <Badge
+                              variant="outline"
+                              className="border-purple-300 bg-purple-100 text-xs text-purple-700"
+                            >
+                              {category.family_name}
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-500">
                           {formatBudget(
                             category.budget_amount,

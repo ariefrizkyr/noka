@@ -62,3 +62,72 @@ This project supports Google Single Sign-On (SSO) for both registration and logi
   - **Invalid client credentials:** Double-check your client ID and secret.
   - **Network issues:** Retry or check your connection.
 - For more details, see `scripts/google-sso.txt` and the Supabase/Google OAuth documentation links in that file.
+
+## Email Service (Resend)
+
+This project uses [Resend](https://resend.com) for sending transactional emails, such as family invitations. Emails are rendered using [React Email](https://react.email) for professional, responsive templates.
+
+### Quick Setup
+
+1. **Get Resend API Key**
+   - Sign up at [resend.com](https://resend.com)
+   - Create a new API key at [resend.com/api-keys](https://resend.com/api-keys)
+   - Copy your API key (starts with `re_`)
+
+2. **Configure Environment Variable**
+   ```bash
+   # Add to your .env.local file
+   RESEND_API_KEY=re_your_api_key_here
+   ```
+
+3. **Domain Setup (Production)**
+   - Add and verify your sending domain in [Resend Dashboard](https://resend.com/domains)
+   - Update the `from` address in `lib/email/invitation-service.ts` to use your verified domain
+   - Example: `from: 'Noka <noreply@yourdomain.com>'`
+
+### Features
+
+- **Family Invitation Emails**: Professional HTML templates for family invitations
+- **React Email Templates**: Maintainable, responsive email designs
+- **Development Mode**: Console logging when API key is not configured
+- **Error Handling**: Comprehensive error handling with Resend API error codes
+- **Plain Text Fallback**: Automatic plain text versions for accessibility
+
+### Email Templates
+
+Email templates are located in `lib/email/templates/` and built using React Email components:
+
+- `family-invitation.tsx` - Professional invitation emails with role details and branding
+
+### Development
+
+```bash
+# Check email service status
+import { getEmailServiceStatus } from '@/lib/email/invitation-service'
+console.log(getEmailServiceStatus())
+
+# Preview email template (future feature)
+# Visit /api/email/preview/family-invitation
+```
+
+### Customization
+
+1. **Styling**: Modify template styles in `lib/email/templates/family-invitation.tsx`
+2. **Content**: Update email copy and structure in the template component
+3. **Sender Address**: Change the `from` field in `sendInvitationEmail()` function
+4. **App URL**: Set `NEXT_PUBLIC_SITE_URL` for correct invitation links
+
+### Troubleshooting
+
+- **No emails sent**: Check that `RESEND_API_KEY` is set correctly
+- **Domain verification required**: For production, verify your sending domain in Resend
+- **Rate limits**: Resend has sending limits on free tier
+- **Delivery issues**: Check Resend dashboard for delivery status and logs
+
+### API Integration
+
+The email service is integrated into:
+- Family invitation creation (`POST /api/families/[id]/members/invite`)
+- Invitation resending (`POST /api/invitations/by-id/[id]/resend`)
+
+All email sending is handled automatically when these endpoints are called.

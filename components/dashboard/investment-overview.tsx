@@ -9,6 +9,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/currency-utils";
 
+interface MemberContribution {
+  user_id: string;
+  user_email: string;
+  contribution_amount: number;
+  percentage: number;
+}
+
 interface InvestmentOverviewProps {
   currency?: string;
   className?: string;
@@ -193,6 +200,9 @@ export function InvestmentOverview({
                 percentage={investment.progress_percentage}
                 currency={currency}
                 type="investment"
+                isShared={investment.is_shared}
+                familyName={investment.family_name}
+                memberContributions={Array.isArray(investment.member_contributions) ? investment.member_contributions as unknown as MemberContribution[] : []}
               />
             ))}
           {!showAllCategories && monthlyGoals.length > 6 && (
@@ -260,6 +270,9 @@ export function InvestmentOverview({
                 percentage={investment.progress_percentage}
                 currency={currency}
                 type="investment"
+                isShared={investment.is_shared}
+                familyName={investment.family_name}
+                memberContributions={Array.isArray(investment.member_contributions) ? investment.member_contributions as unknown as MemberContribution[] : []}
               />
             ))}
           {!showAllCategories && oneTimeGoals.length > 6 && (

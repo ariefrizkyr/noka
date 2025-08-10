@@ -1,10 +1,11 @@
 "use client";
 
 import { format } from "date-fns";
-import { MoreVertical, Edit, Trash2 } from "lucide-react";
+import { MoreVertical, Edit, Trash2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/contexts/auth-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +19,7 @@ import {
   DATE_FORMATS,
   CURRENCY_DEFAULTS,
 } from "@/lib/constants";
+import { useTransactionPermissions } from "@/hooks/use-transaction-permissions";
 import type { TransactionWithRelations } from "@/types/common";
 
 interface TransactionCardProps {
@@ -35,6 +37,8 @@ export function TransactionCard({
   className,
   currency = CURRENCY_DEFAULTS.DEFAULT_CURRENCY,
 }: TransactionCardProps) {
+  const { user } = useAuth();
+  const { canEditTransaction, canDeleteTransaction } = useTransactionPermissions();
   const config = TRANSACTION_TYPE_CONFIG[transaction.type];
   const Icon = config.icon;
 
@@ -42,16 +46,48 @@ export function TransactionCard({
     switch (transaction.type) {
       case "income":
       case "expense":
+        // Enhanced category name fallback for joint account transactions
+        let categoryName = "Unknown Category";
+        
+        if (transaction.categories?.name) {
+          categoryName = transaction.categories.name;
+        } else if (
+          // Check if this is a joint account transaction that might have enhanced category data
+          (transaction.accounts?.account_scope === 'joint' || 
+           transaction.from_accounts?.account_scope === 'joint' ||
+           transaction.to_accounts?.account_scope === 'joint') &&
+          transaction.category_id
+        ) {
+          // For joint account transactions, category names should now be available
+          // If still showing "Unknown Category", it might be a personal category from another user
+          categoryName = "Unknown Category";
+        }
+        
         return {
-          primaryText: transaction.categories?.name || "Unknown Category",
+          primaryText: categoryName,
           secondaryText: transaction.accounts?.name || "Unknown Account",
           icon: transaction.categories?.icon,
           accountType: transaction.accounts?.type,
         };
       case "transfer":
+        // Enhanced investment category name fallback for joint account transactions
+        let investmentCategoryName = "Transfer";
+        
+        if (transaction.investment_categories?.name) {
+          investmentCategoryName = transaction.investment_categories.name;
+        } else if (
+          // Check if this is a joint account transfer that might have enhanced category data
+          (transaction.from_accounts?.account_scope === 'joint' ||
+           transaction.to_accounts?.account_scope === 'joint') &&
+          transaction.investment_category_id
+        ) {
+          // For joint account transfers, investment category names should now be available
+          investmentCategoryName = "Transfer";
+        }
+        
         return {
           primaryText: `${transaction.from_accounts?.name} → ${transaction.to_accounts?.name}`,
-          secondaryText: transaction.investment_categories?.name || "Transfer",
+          secondaryText: investmentCategoryName,
           icon: transaction.investment_categories?.icon,
           accountType: undefined,
         };
@@ -66,7 +102,31 @@ export function TransactionCard({
   };
 
   const display = getTransactionDisplay();
-  const showActions = onEdit || onDelete;
+  
+  // Determine if user can perform actions based on permissions
+  const userCanEdit = canEditTransaction(transaction);
+  const userCanDelete = canDeleteTransaction(transaction);
+  
+  // Show actions only if user has permissions and handlers are provided
+  const showActions = (onEdit && userCanEdit) || (onDelete && userCanDelete);
+
+  // Show attribution only for family transactions where someone else logged the transaction
+  const showAttribution = 
+    transaction.logged_by_user && 
+    user && 
+    transaction.logged_by_user.id !== user.id &&
+    (
+      // Check for joint accounts (income/expense)
+      transaction.accounts?.account_scope === 'joint' ||
+      // Check for shared categories (income/expense) 
+      transaction.categories?.is_shared ||
+      // Check for joint accounts in transfers (from_account)
+      transaction.from_accounts?.account_scope === 'joint' ||
+      // Check for joint accounts in transfers (to_account)  
+      transaction.to_accounts?.account_scope === 'joint' ||
+      // Check for shared investment categories
+      transaction.investment_categories?.is_shared
+    );
 
   return (
     <Card className={cn("transition-colors hover:bg-gray-50", className)}>
@@ -114,6 +174,14 @@ export function TransactionCard({
                   DATE_FORMATS.DISPLAY,
                 )}
               </p>
+
+              {/* Transaction attribution */}
+              {showAttribution && (
+                <div className="mt-1 flex items-center gap-1 text-xs text-gray-400">
+                  <User className="h-3 w-3" />
+                  <span>Logged by {transaction.logged_by_user?.email}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -150,7 +218,7 @@ export function TransactionCard({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {onEdit && (
+                  {onEdit && userCanEdit && (
                     <DropdownMenuItem
                       onClick={() => onEdit(transaction)}
                       className="cursor-pointer"
@@ -159,7 +227,7 @@ export function TransactionCard({
                       Edit
                     </DropdownMenuItem>
                   )}
-                  {onDelete && (
+                  {onDelete && userCanDelete && (
                     <DropdownMenuItem
                       onClick={() => onDelete(transaction)}
                       className="cursor-pointer text-red-600"

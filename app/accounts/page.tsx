@@ -10,12 +10,12 @@ import { formatCurrency } from "@/lib/currency-utils";
 import { getAccountTypeInfo } from "@/lib/account-utils";
 import { useCurrencySettings } from "@/hooks/use-currency-settings";
 
-import { Account } from "@/types/common";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AccountWithFamily } from "@/types/common";
+import { Badge } from "@/components/ui/badge";
 
 export default function AccountsPage() {
   const { currency, loading: currencyLoading } = useCurrencySettings();
-  const { data: accounts, loading: accountsLoading } = useApiData<Account[]>(
+  const { data: accounts, loading: accountsLoading } = useApiData<AccountWithFamily[]>(
     "/api/accounts",
     {
       listenToEvents: ["transactionUpdated"],
@@ -23,7 +23,7 @@ export default function AccountsPage() {
   );
 
   // Group accounts by type
-  const groupAccountsByType = (accounts: Account[]) => {
+  const groupAccountsByType = (accounts: AccountWithFamily[]) => {
     const grouped = accounts.reduce(
       (acc, account) => {
         const type = account.type;
@@ -33,7 +33,7 @@ export default function AccountsPage() {
         acc[type].push(account);
         return acc;
       },
-      {} as Record<string, Account[]>,
+      {} as Record<string, AccountWithFamily[]>,
     );
 
     return grouped;
@@ -49,39 +49,12 @@ export default function AccountsPage() {
   // Combined loading state
   const loading = currencyLoading || accountsLoading;
 
-  if (loading) {
-    return (
-      <MainLayout>
-        <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-          <div className="space-y-6">
-            {/* Loading skeleton for summary cards */}
-            <div className="space-y-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <Skeleton className="mb-2 h-4 w-24" />
-                  <Skeleton className="mb-2 h-4 w-24" />
-                  <Skeleton className="h-4 w-24" />
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Loading skeleton for tabs */}
-            <div className="space-y-4">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-64 w-full" />
-            </div>
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
-
   const groupedAccounts = accounts ? groupAccountsByType(accounts) : {};
 
   return (
     <MainLayout>
       <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
-        {/* Header */}
+        {/* Header - Always show immediately */}
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
@@ -91,8 +64,38 @@ export default function AccountsPage() {
           </div>
         </div>
 
-        {/* Accounts List Grouped by Type */}
-        <div className="space-y-8">
+        {loading ? (
+          <div className="space-y-8">
+            {/* Loading skeleton for different account types */}
+            {['Bank Accounts', 'Credit Cards', 'Investment Accounts'].map((accountType, index) => (
+              <div key={index} className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-5 bg-gray-200 rounded animate-pulse w-32"></div>
+                  <div className="h-5 bg-gray-100 rounded-full animate-pulse w-8"></div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {[1, 2].map((cardIndex) => (
+                    <div key={cardIndex} className="rounded-lg border bg-white shadow-sm p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse"></div>
+                          <div className="h-5 bg-gray-200 rounded animate-pulse w-24"></div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="h-4 bg-gray-100 rounded animate-pulse w-16"></div>
+                          <div className="h-5 bg-gray-200 rounded animate-pulse w-20"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            {/* Accounts List Grouped by Type */}
+            <div className="space-y-8">
           {accountTypeOrder.map((accountType) => {
             const accountsOfType = groupedAccounts[accountType];
             if (!accountsOfType || accountsOfType.length === 0) {
@@ -135,10 +138,20 @@ export default function AccountsPage() {
                                 return <Icon className="h-4 w-4" />;
                               })()}
                             </div>
-                            <div>
-                              <CardTitle className="text-lg">
-                                {account.name}
-                              </CardTitle>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <CardTitle className="text-lg">
+                                  {account.name}
+                                </CardTitle>
+                                {account.account_scope === 'joint' && account.family_name && (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-purple-300 bg-purple-100 text-xs text-purple-700"
+                                  >
+                                    {account.family_name}
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -176,27 +189,29 @@ export default function AccountsPage() {
               </div>
             );
           })}
-        </div>
+            </div>
 
-        {/* Empty State */}
-        {(!accounts || accounts.length === 0) && (
-          <Card className="py-12 text-center">
-            <CardContent>
-              <Wallet className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-              <h3 className="mb-2 text-lg font-semibold text-gray-900">
-                No Accounts Yet
-              </h3>
-              <p className="mb-6 text-gray-600">
-                Add your first financial account to start tracking your finances
-              </p>
-              <Link href="/settings?tab=accounts">
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Your First Account
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+            {/* Empty State */}
+            {(!accounts || accounts.length === 0) && (
+              <Card className="py-12 text-center">
+                <CardContent>
+                  <Wallet className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                  <h3 className="mb-2 text-lg font-semibold text-gray-900">
+                    No Accounts Yet
+                  </h3>
+                  <p className="mb-6 text-gray-600">
+                    Add your first financial account to start tracking your finances
+                  </p>
+                  <Link href="/settings?tab=accounts">
+                    <Button className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Add Your First Account
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+          </>
         )}
       </div>
     </MainLayout>

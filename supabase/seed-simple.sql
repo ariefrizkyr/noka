@@ -10,9 +10,123 @@ DO $$
 BEGIN
     RAISE NOTICE '=== NOKA FINANCIAL TRACKER - SIMPLE SEED DATA ===';
     RAISE NOTICE 'This seed file creates basic sample data for development.';
-    RAISE NOTICE 'Note: This data is not associated with any user due to RLS.';
+    RAISE NOTICE 'Includes test users:';
+    RAISE NOTICE '- ariefrizkyr@gmail.com with password "omgoogle"';
+    RAISE NOTICE '- arieftikettest1@gmail.com with password "omgoogle"';
     RAISE NOTICE 'For full testing, create users through the application first.';
     RAISE NOTICE '================================================';
+END $$;
+
+-- =============================================================================
+-- TEST USERS FOR DEVELOPMENT
+-- =============================================================================
+
+-- Create test users in the auth.users table
+-- This allows direct login without registration during development
+
+-- First test user
+INSERT INTO auth.users (
+    instance_id,
+    id,
+    aud,
+    role,
+    email,
+    encrypted_password,
+    email_confirmed_at,
+    recovery_sent_at,
+    last_sign_in_at,
+    raw_app_meta_data,
+    raw_user_meta_data,
+    created_at,
+    updated_at,
+    confirmation_token,
+    email_change,
+    email_change_token_new,
+    recovery_token
+) VALUES (
+    '00000000-0000-0000-0000-000000000000',
+    gen_random_uuid(),
+    'authenticated',
+    'authenticated',
+    'ariefrizkyr@gmail.com',
+    crypt('omgoogle', gen_salt('bf')),
+    NOW(),
+    NOW(),
+    NOW(),
+    '{"provider": "email", "providers": ["email"]}',
+    '{"email": "ariefrizkyr@gmail.com"}',
+    NOW(),
+    NOW(),
+    '',
+    '',
+    '',
+    ''
+);
+
+-- Second test user
+INSERT INTO auth.users (
+    instance_id,
+    id,
+    aud,
+    role,
+    email,
+    encrypted_password,
+    email_confirmed_at,
+    recovery_sent_at,
+    last_sign_in_at,
+    raw_app_meta_data,
+    raw_user_meta_data,
+    created_at,
+    updated_at,
+    confirmation_token,
+    email_change,
+    email_change_token_new,
+    recovery_token
+) VALUES (
+    '00000000-0000-0000-0000-000000000000',
+    gen_random_uuid(),
+    'authenticated',
+    'authenticated',
+    'arieftikettest1@gmail.com',
+    crypt('omgoogle', gen_salt('bf')),
+    NOW(),
+    NOW(),
+    NOW(),
+    '{"provider": "email", "providers": ["email"]}',
+    '{"email": "arieftikettest1@gmail.com"}',
+    NOW(),
+    NOW(),
+    '',
+    '',
+    '',
+    ''
+);
+
+-- Create corresponding profile entries (if profiles table exists and has trigger)
+-- Note: This may be automatically created by trigger, but we ensure it exists
+DO $$
+DECLARE
+    user_uuid1 UUID;
+    user_uuid2 UUID;
+BEGIN
+    SELECT id INTO user_uuid1 FROM auth.users WHERE email = 'ariefrizkyr@gmail.com';
+    SELECT id INTO user_uuid2 FROM auth.users WHERE email = 'arieftikettest1@gmail.com';
+    
+    -- Insert into profiles table if it exists
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'profiles') THEN
+        INSERT INTO profiles (id, email, updated_at) 
+        VALUES (user_uuid1, 'ariefrizkyr@gmail.com', NOW())
+        ON CONFLICT (id) DO NOTHING;
+        
+        INSERT INTO profiles (id, email, updated_at) 
+        VALUES (user_uuid2, 'arieftikettest1@gmail.com', NOW())
+        ON CONFLICT (id) DO NOTHING;
+        
+        RAISE NOTICE 'Test user created: ariefrizkyr@gmail.com (password: omgoogle)';
+        RAISE NOTICE 'User UUID: %', user_uuid1;
+        RAISE NOTICE 'Test user created: arieftikettest1@gmail.com (password: omgoogle)';
+        RAISE NOTICE 'User UUID: %', user_uuid2;
+    END IF;
 END $$;
 
 -- =============================================================================
@@ -115,23 +229,29 @@ DO $$
 DECLARE
     category_count INTEGER;
     account_count INTEGER;
+    user_count INTEGER;
 BEGIN
     SELECT count(*) INTO category_count FROM categories;
     SELECT count(*) INTO account_count FROM accounts;
+    SELECT count(*) INTO user_count FROM auth.users WHERE email IN ('ariefrizkyr@gmail.com', 'arieftikettest1@gmail.com');
     
     RAISE NOTICE '=== SIMPLE SEED DATA SUMMARY ===';
-    RAISE NOTICE 'Categories created: %', category_count;
+    RAISE NOTICE 'Test users created: %', user_count;
+    RAISE NOTICE 'Categories created: %', category_count; 
     RAISE NOTICE 'Sample accounts created: %', account_count;
     RAISE NOTICE '';
+    RAISE NOTICE 'TEST USER CREDENTIALS:';
+    RAISE NOTICE 'Email: ariefrizkyr@gmail.com | Password: omgoogle';
+    RAISE NOTICE 'Email: arieftikettest1@gmail.com | Password: omgoogle';
+    RAISE NOTICE '';
     RAISE NOTICE 'IMPORTANT NOTES:';
-    RAISE NOTICE '- This data is for development reference only';
-    RAISE NOTICE '- Data is not visible through the app due to Row Level Security';
-    RAISE NOTICE '- To test the app fully, create users and their data through the UI';
-    RAISE NOTICE '- Use this data as templates for creating realistic test scenarios';
+    RAISE NOTICE '- Test users can be used to login immediately after db reset';
+    RAISE NOTICE '- Reference data (categories/accounts) not visible due to RLS';
+    RAISE NOTICE '- Use reference data as templates for creating realistic test scenarios';
     RAISE NOTICE '';
     RAISE NOTICE 'NEXT STEPS:';
     RAISE NOTICE '1. Start your application: npm run dev';
-    RAISE NOTICE '2. Sign up/sign in to create a user';
+    RAISE NOTICE '2. Login with any of the test user credentials above';
     RAISE NOTICE '3. Create categories and accounts through the UI';
     RAISE NOTICE '4. Use the seeded data as reference for realistic values';
     RAISE NOTICE '';

@@ -9,6 +9,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/currency-utils";
 
+interface MemberContribution {
+  user_id: string;
+  user_email: string;
+  contribution_amount: number;
+  percentage: number;
+}
+
 interface BudgetOverviewProps {
   currency?: string;
   className?: string;
@@ -217,6 +224,9 @@ export function BudgetOverview({
                 percentage={budget.progress_percentage}
                 currency={currency}
                 type="budget"
+                isShared={budget.is_shared}
+                familyName={budget.family_name}
+                memberContributions={Array.isArray(budget.member_contributions) ? budget.member_contributions as unknown as MemberContribution[] : []}
               />
             ))}
           {!showAllCategories && weeklyBudgets.length > 6 && (
@@ -284,6 +294,9 @@ export function BudgetOverview({
                 percentage={budget.progress_percentage}
                 currency={currency}
                 type="budget"
+                isShared={budget.is_shared}
+                familyName={budget.family_name}
+                memberContributions={Array.isArray(budget.member_contributions) ? budget.member_contributions as unknown as MemberContribution[] : []}
               />
             ))}
           {!showAllCategories && monthlyBudgets.length > 6 && (
@@ -351,6 +364,9 @@ export function BudgetOverview({
                 percentage={budget.progress_percentage}
                 currency={currency}
                 type="budget"
+                isShared={budget.is_shared}
+                familyName={budget.family_name}
+                memberContributions={Array.isArray(budget.member_contributions) ? budget.member_contributions as unknown as MemberContribution[] : []}
               />
             ))}
           {!showAllCategories && oneTimeBudgets.length > 6 && (
