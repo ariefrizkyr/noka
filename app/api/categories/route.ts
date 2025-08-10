@@ -245,17 +245,36 @@ export async function DELETE(request: NextRequest) {
     // Get user's family IDs for transaction queries
     const familyIds = await getUserFamilyIds(user.id)
 
+    // Get accessible account IDs (personal and family accounts)
+    let accountQuery = supabase
+      .from('accounts')
+      .select('id')
+      .eq('is_active', true)
+
+    if (familyIds.length > 0) {
+      accountQuery = accountQuery.or(`user_id.eq.${user.id},family_id.in.(${familyIds.join(',')})`)
+    } else {
+      accountQuery = accountQuery.eq('user_id', user.id)
+    }
+
+    const { data: accessibleAccounts, error: accountError } = await accountQuery
+
+    if (accountError) throw accountError
+
+    const accessibleAccountIds = accessibleAccounts.map(acc => acc.id)
+
     // Check if category is being used in transactions (considering both personal and family transactions)
     let transactionQuery = supabase
       .from('transactions')
       .select('id, type')
       .or(`category_id.eq.${category_id},investment_category_id.eq.${category_id}`)
 
-    // Filter transactions by user access (personal or family)
-    if (familyIds.length > 0) {
-      transactionQuery = transactionQuery.or(`user_id.eq.${user.id},account_id.in.(select id from accounts where family_id in (${familyIds.join(',')}))`)
+    // Filter transactions by accessible accounts
+    if (accessibleAccountIds.length > 0) {
+      transactionQuery = transactionQuery.in('account_id', accessibleAccountIds)
     } else {
-      transactionQuery = transactionQuery.eq('user_id', user.id)
+      // If no accessible accounts, no transactions can be found
+      transactionQuery = transactionQuery.eq('account_id', 'no-accounts')
     }
 
     const { data: transactionsUsingCategory, error: transactionError } = await transactionQuery
