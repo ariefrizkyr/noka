@@ -19,6 +19,7 @@ import {
   DATE_FORMATS,
   CURRENCY_DEFAULTS,
 } from "@/lib/constants";
+import { useTransactionPermissions } from "@/hooks/use-transaction-permissions";
 import type { TransactionWithRelations } from "@/types/common";
 
 interface TransactionCardProps {
@@ -37,6 +38,7 @@ export function TransactionCard({
   currency = CURRENCY_DEFAULTS.DEFAULT_CURRENCY,
 }: TransactionCardProps) {
   const { user } = useAuth();
+  const { canEditTransaction, canDeleteTransaction } = useTransactionPermissions();
   const config = TRANSACTION_TYPE_CONFIG[transaction.type];
   const Icon = config.icon;
 
@@ -100,7 +102,13 @@ export function TransactionCard({
   };
 
   const display = getTransactionDisplay();
-  const showActions = onEdit || onDelete;
+  
+  // Determine if user can perform actions based on permissions
+  const userCanEdit = canEditTransaction(transaction);
+  const userCanDelete = canDeleteTransaction(transaction);
+  
+  // Show actions only if user has permissions and handlers are provided
+  const showActions = (onEdit && userCanEdit) || (onDelete && userCanDelete);
 
   // Show attribution only for family transactions where someone else logged the transaction
   const showAttribution = 
@@ -210,7 +218,7 @@ export function TransactionCard({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {onEdit && (
+                  {onEdit && userCanEdit && (
                     <DropdownMenuItem
                       onClick={() => onEdit(transaction)}
                       className="cursor-pointer"
@@ -219,7 +227,7 @@ export function TransactionCard({
                       Edit
                     </DropdownMenuItem>
                   )}
-                  {onDelete && (
+                  {onDelete && userCanDelete && (
                     <DropdownMenuItem
                       onClick={() => onDelete(transaction)}
                       className="cursor-pointer text-red-600"

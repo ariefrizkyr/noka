@@ -387,3 +387,23 @@ export interface ListComponentProps<T> {
   onAdd: () => void;
   emptyMessage?: string;
 }
+
+// Permission-related interfaces
+export interface UserFamilyRoles {
+  roles: Record<string, 'admin' | 'member'>;
+  families: Record<string, { name: string }>;
+  count: number;
+}
+
+export interface TransactionPermissions {
+  canEdit: boolean;
+  canDelete: boolean;
+  familyId: string | null;
+  reason: 'owner' | 'admin' | 'denied';
+}
+
+// API response interface for family roles endpoint
+export interface FamilyRolesApiResponse {
+  data: UserFamilyRoles;
+  message?: string;
+}
